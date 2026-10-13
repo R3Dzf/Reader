@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -137,6 +138,7 @@ private fun SlideContent(presentation: NativePresentation, slide: NativeSlide, i
     val background = slide.backgroundRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color.White
     BoxWithConstraints(modifier.background(background).clipToBounds()) {
         val scale = maxWidth.value / presentation.slideWidthPoints
+        val density = LocalDensity.current
         slide.shapes.forEach { shape ->
             val width = maxWidth * shape.widthFraction
             val height = maxHeight * shape.heightFraction
@@ -160,7 +162,7 @@ private fun SlideContent(presentation: NativePresentation, slide: NativeSlide, i
                     shape.text != null -> Text(
                         shape.text, modifier = Modifier.fillMaxSize(),
                         color = shape.textRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color(0xFF202124),
-                        fontSize = ((shape.fontSizePoints ?: 14f) * 4f / 3f * scale).coerceIn(4f, 96f).sp,
+                        fontSize = slideFontSize(shape.fontSizePoints ?: 14f, scale, density),
                         fontWeight = if (shape.bold) FontWeight.Bold else FontWeight.Normal,
                         fontStyle = if (shape.italic) FontStyle.Italic else FontStyle.Normal,
                         textAlign = if (shape.centered) TextAlign.Center else TextAlign.Start,
@@ -210,11 +212,12 @@ private fun SlideTableView(table: NativeSlideTable, scale: Float) {
 
 @Composable
 private fun SlideTextBlock(paragraphs: List<NativeSlideTextParagraph>, scale: Float, fallbackSize: Float, modifier: Modifier) {
+    val density = LocalDensity.current
     val families = remember(paragraphs) {
         paragraphs.flatMap { it.runs + it.defaultStyle }.mapNotNull { it.fontFamilyName }.distinct()
             .associateWith { FontFamily(Typeface.create(it, Typeface.NORMAL)) }
     }
-    fun size(points: Float?) = ((points ?: fallbackSize) * 4f / 3f * scale).coerceIn(4f, 96f).sp
+    fun size(points: Float?) = slideFontSize(points ?: fallbackSize, scale, density)
     Column(modifier) {
         paragraphs.forEach { paragraph ->
             val text = buildAnnotatedString {

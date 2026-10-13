@@ -34,6 +34,8 @@ The Android app parses and renders the document locally. The parser does not wri
 
 Font references resolve to names and use Android's font lookup/fallback. A missing Office font can still change wrapping and metrics. This does not embed the original fonts or render all layout/master decorative elements.
 
+Document font sizes use the same point-to-dp ratio as slide geometry, converted through Android's density API. System text scaling applies to app controls; the fixed slide layout uses document zoom instead.
+
 To regenerate this developer fixture:
 
 ```bash

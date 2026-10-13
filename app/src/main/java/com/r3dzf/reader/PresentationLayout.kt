@@ -1,5 +1,13 @@
 package com.r3dzf.reader
 
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+
+/** Fixed Office page geometry uses points-to-dp scale; system font scaling is reversed by toSp. */
+internal fun slideFontSize(fontSizePoints: Float, pageScale: Float, density: Density): TextUnit =
+    with(density) { (fontSizePoints * pageScale).dp.toSp() }
+
 data class SlideTableCellPlacement(
     val cell: NativeSlideTableCell,
     val row: Int,
