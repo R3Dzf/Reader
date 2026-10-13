@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Reader</string>
+    <string name="app_tagline">عارض واضح للقراءة فقط.</string>
+    <string name="section_on_device">على الهاتف</string>
+    <string name="open_pdf">افتح ملف PDF</string>
+    <string name="open_office">افتح ملف Office</string>
+    <string name="office_hint">لأفضل تطابق مع تنسيق Microsoft، افتح الملف باستخدام Microsoft 365.</string>
+    <string name="section_onedrive">Microsoft OneDrive</string>
+    <string name="connect_onedrive">اتصل بـ OneDrive</string>
+    <string name="refresh_files">تحديث الملفات</string>
+    <string name="onedrive_hint">يمكن تحويل ملفات Office الموجودة في OneDrive إلى PDF مؤقت للقراءة داخل التطبيق.</string>
+    <string name="microsoft_setup_required">اضبط تسجيل التطبيق لدى Microsoft لربط OneDrive. راجع README.md.</string>
+    <string name="microsoft_not_ready">تسجيل الدخول إلى Microsoft غير مضبوط بعد.</string>
+    <string name="reading_only">قراءة فقط · لا يتم تعديل الملفات الأصلية</string>
+    <string name="empty_onedrive">لم يتم العثور على ملفات Office مدعومة في المجلد الرئيسي لـ OneDrive.</string>
+    <string name="read_as_pdf">اقرأ كـ PDF</string>
+    <string name="loading">جارٍ العمل…</string>
+    <string name="converting">جارٍ تجهيز نسخة PDF للقراءة…</string>
+    <string name="page_count">%1$d صفحات</string>
+    <string name="page_number">صفحة %1$d</string>
+    <string name="close">إغلاق</string>
+    <string name="choose_app">فتح باستخدام</string>
+    <string name="open_failed">تعذر فتح الملف.</string>
+    <string name="pdf_failed">تعذر قراءة ملف PDF. قد يكون محميًا أو تالفًا.</string>
+    <string name="cache_cleared">تم مسح المعاينات المؤقتة.</string>
+    <string name="clear_previews">امسح المعاينات المؤقتة</string>
+</resources>

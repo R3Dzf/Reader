@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Reader</string>
+    <string name="app_tagline">A clear, read-only home for your documents.</string>
+    <string name="section_on_device">On this phone</string>
+    <string name="open_pdf">Open a PDF</string>
+    <string name="open_office">Open an Office file</string>
+    <string name="office_hint">For the closest Microsoft layout, open a file with Microsoft 365.</string>
+    <string name="section_onedrive">Microsoft OneDrive</string>
+    <string name="connect_onedrive">Connect OneDrive</string>
+    <string name="refresh_files">Refresh files</string>
+    <string name="onedrive_hint">Office files in OneDrive can be converted to a temporary PDF for in-app reading.</string>
+    <string name="microsoft_setup_required">Set up a Microsoft app registration to connect OneDrive. See README.md.</string>
+    <string name="microsoft_not_ready">Microsoft sign-in is not configured yet.</string>
+    <string name="reading_only">Read-only · Original files are never changed</string>
+    <string name="empty_onedrive">No supported Office files found in the OneDrive root folder.</string>
+    <string name="read_as_pdf">Read as PDF</string>
+    <string name="loading">Working…</string>
+    <string name="converting">Preparing a read-only PDF…</string>
+    <string name="page_count">%1$d pages</string>
+    <string name="page_number">Page %1$d</string>
+    <string name="close">Close</string>
+    <string name="choose_app">Open with</string>
+    <string name="open_failed">Could not open this file.</string>
+    <string name="pdf_failed">Could not read this PDF. It may be protected or damaged.</string>
+    <string name="cache_cleared">Temporary previews cleared.</string>
+    <string name="clear_previews">Clear temporary previews</string>
+</resources>

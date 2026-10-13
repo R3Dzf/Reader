@@ -1,0 +1,13 @@
+{
+  "client_id": "REPLACE_WITH_ENTRA_CLIENT_ID",
+  "authorization_user_agent": "DEFAULT",
+  "redirect_uri": "msauth://com.r3dzf.reader/REPLACE_WITH_SIGNATURE_HASH",
+  "account_mode": "SINGLE",
+  "authorities": [
+    {
+      "type": "AAD",
+      "authority_url": "https://login.microsoftonline.com/common",
+      "default": true
+    }
+  ]
+}
