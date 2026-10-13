@@ -1,5 +1,7 @@
 package com.r3dzf.reader
 
+import android.graphics.Typeface
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -26,17 +28,24 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
 import kotlin.math.roundToInt
 
 @Composable
@@ -126,8 +135,10 @@ private fun ZoomableSlide(presentation: NativePresentation, slide: NativeSlide) 
 
 @Composable
 private fun SlideContent(presentation: NativePresentation, slide: NativeSlide, imageScale: Float, modifier: Modifier) {
-    BoxWithConstraints(modifier.background(Color.White).clipToBounds()) {
+    val background = slide.backgroundRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color.White
+    BoxWithConstraints(modifier.background(background).clipToBounds()) {
         val scale = maxWidth.value / presentation.slideWidthPoints
+        val density = LocalDensity.current
         slide.shapes.forEach { shape ->
             val width = maxWidth * shape.widthFraction
             val height = maxHeight * shape.heightFraction
@@ -147,10 +158,11 @@ private fun SlideContent(presentation: NativePresentation, slide: NativeSlide, i
             ) {
                 when {
                     shape.table != null -> SlideTableView(shape.table, scale)
+                    shape.paragraphs.isNotEmpty() -> SlideTextBlock(shape.paragraphs, scale, 14f, Modifier.fillMaxSize())
                     shape.text != null -> Text(
                         shape.text, modifier = Modifier.fillMaxSize(),
                         color = shape.textRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color(0xFF202124),
-                        fontSize = ((shape.fontSizePoints ?: 14f) * 4f / 3f * scale).coerceIn(4f, 96f).sp,
+                        fontSize = slideFontSize(shape.fontSizePoints ?: 14f, scale, density),
                         fontWeight = if (shape.bold) FontWeight.Bold else FontWeight.Normal,
                         fontStyle = if (shape.italic) FontStyle.Italic else FontStyle.Normal,
                         textAlign = if (shape.centered) TextAlign.Center else TextAlign.Start,
@@ -192,18 +204,60 @@ private fun SlideTableView(table: NativeSlideTable, scale: Float) {
                     SlideCellVerticalAlignment.BOTTOM -> Alignment.BottomStart
                 }
             ) {
-                Text(
-                    cell.text, modifier = Modifier.fillMaxWidth(),
-                    color = cell.textRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color(0xFF202124),
-                    fontSize = ((cell.fontSizePoints ?: 10f) * 4f / 3f * scale).coerceIn(4f, 96f).sp,
-                    fontWeight = if (cell.bold) FontWeight.Bold else FontWeight.Normal,
-                    fontStyle = if (cell.italic) FontStyle.Italic else FontStyle.Normal,
-                    textAlign = if (cell.centered) TextAlign.Center else TextAlign.Start,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        textDirection = if (cell.rightToLeft) TextDirection.Rtl else TextDirection.ContentOrRtl
-                    )
-                )
+                SlideTextBlock(cell.paragraphs, scale, 10f, Modifier.fillMaxWidth())
             }
+        }
+    }
+}
+
+@Composable
+private fun SlideTextBlock(paragraphs: List<NativeSlideTextParagraph>, scale: Float, fallbackSize: Float, modifier: Modifier) {
+    val density = LocalDensity.current
+    val families = remember(paragraphs) {
+        paragraphs.flatMap { it.runs + it.defaultStyle }.mapNotNull { it.fontFamilyName }.distinct()
+            .associateWith { FontFamily(Typeface.create(it, Typeface.NORMAL)) }
+    }
+    fun size(points: Float?) = slideFontSize(points ?: fallbackSize, scale, density)
+    Column(modifier) {
+        paragraphs.forEach { paragraph ->
+            val text = buildAnnotatedString {
+                paragraph.runs.forEach { run ->
+                    val decorations = listOfNotNull(
+                        TextDecoration.Underline.takeIf { run.underline },
+                        TextDecoration.LineThrough.takeIf { run.strikeThrough }
+                    )
+                    withStyle(SpanStyle(
+                        color = run.textRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color.Unspecified,
+                        fontSize = size(run.fontSizePoints),
+                        fontWeight = if (run.bold) FontWeight.Bold else FontWeight.Normal,
+                        fontStyle = if (run.italic) FontStyle.Italic else FontStyle.Normal,
+                        fontFamily = families[run.fontFamilyName],
+                        textDecoration = if (decorations.isEmpty()) TextDecoration.None else TextDecoration.combine(decorations)
+                    )) { append(run.text) }
+                }
+                if (length == 0) append(" ")
+            }
+            Text(
+                text,
+                modifier = Modifier.fillMaxWidth().padding(
+                    top = (paragraph.spaceBeforePoints * scale).dp,
+                    bottom = (paragraph.spaceAfterPoints * scale).dp
+                ),
+                color = paragraph.defaultStyle.textRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color(0xFF202124),
+                fontSize = size(paragraph.defaultStyle.fontSizePoints),
+                fontFamily = families[paragraph.defaultStyle.fontFamilyName],
+                textAlign = when (paragraph.alignment) {
+                    SlideParagraphAlignment.START -> TextAlign.Start
+                    SlideParagraphAlignment.LEFT -> TextAlign.Left
+                    SlideParagraphAlignment.CENTER -> TextAlign.Center
+                    SlideParagraphAlignment.RIGHT -> TextAlign.Right
+                    SlideParagraphAlignment.JUSTIFY -> TextAlign.Justify
+                },
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    lineHeight = TextUnit.Unspecified,
+                    textDirection = if (paragraph.rightToLeft) TextDirection.Rtl else TextDirection.Ltr
+                )
+            )
         }
     }
 }

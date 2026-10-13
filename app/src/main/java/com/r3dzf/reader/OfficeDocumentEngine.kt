@@ -192,7 +192,7 @@ data class NativePresentation(
     val slideHeightPoints: Float
 ) : NativeOfficeDocument
 
-data class NativeSlide(val number: Int, val shapes: List<NativeSlideShape>)
+data class NativeSlide(val number: Int, val shapes: List<NativeSlideShape>, val backgroundRgb: Long? = null)
 
 enum class NativeSlideShapeKind { TEXT, SHAPE, IMAGE, TABLE, OTHER }
 enum class SlideCellVerticalAlignment { TOP, CENTER, BOTTOM }
@@ -225,7 +225,8 @@ data class NativeSlideTableCell(
     val borderLeft: NativeSlideCellBorder? = null,
     val borderRight: NativeSlideCellBorder? = null,
     val borderTop: NativeSlideCellBorder? = null,
-    val borderBottom: NativeSlideCellBorder? = null
+    val borderBottom: NativeSlideCellBorder? = null,
+    val paragraphs: List<NativeSlideTextParagraph> = emptyList()
 )
 
 data class NativeSlideTable(
@@ -252,7 +253,8 @@ data class NativeSlideShape(
     val centered: Boolean = false,
     val rightToLeft: Boolean = false,
     val imageBytes: ByteArray? = null,
-    val table: NativeSlideTable? = null
+    val table: NativeSlideTable? = null,
+    val paragraphs: List<NativeSlideTextParagraph> = emptyList()
 ) {
     val tableRows: List<List<NativeSlideTableCell>> get() = table?.rows.orEmpty()
 }
@@ -408,6 +410,59 @@ object NativeOfficeEngine {
         return pathParts.joinToString("/")
     }
 
+    private class PptxStyleParts(private val zip: ZipFile, private val presentation: Element) {
+        private val documents = mutableMapOf<String, org.w3c.dom.Document>()
+        private var totalBytes = 0L
+
+        fun xml(part: String): org.w3c.dom.Document? {
+            documents[part]?.let { return it }
+            val entry = zip.getEntry(part) ?: return null
+            if (documents.size >= 512) throw InvalidOfficeDocumentException("The presentation contains too many style parts.")
+            val bytes = NativeOfficeEngine.readBounded(zip, entry)
+            totalBytes += bytes.size
+            if (totalBytes > 8L * 1024 * 1024) throw InvalidOfficeDocumentException("PowerPoint style parts exceed the 8 MB reading limit.")
+            return NativeOfficeEngine.secureXml(bytes).also { documents[part] = it }
+        }
+
+        fun related(source: String, type: String): String? {
+            val relationship = xml(NativeOfficeEngine.officeRelationshipPart(source))?.documentElement
+                ?.elementChildren()?.firstOrNull {
+                    it.attributeByLocalName("Type")?.endsWith("/$type") == true &&
+                        it.attributeByLocalName("TargetMode") != "External"
+                } ?: return null
+            val target = relationship.attributeByLocalName("Target")
+                ?: throw InvalidOfficeDocumentException("A PowerPoint style relationship has no target.")
+            return NativeOfficeEngine.resolveOfficeRelationship(source, target)
+        }
+
+        fun context(slidePart: String, slide: Element): PptxSlideStyleContext {
+            fun part(name: String?, rootName: String): Element? {
+                if (name == null) return null
+                val root = xml(name)?.documentElement
+                    ?: throw InvalidOfficeDocumentException("A PowerPoint style part is missing.")
+                if (root.localName() != rootName) throw InvalidOfficeDocumentException("A PowerPoint style part has an invalid root.")
+                return root
+            }
+            val layoutName = related(slidePart, "slideLayout")
+            val layout = part(layoutName, "sldLayout")
+            val masterName = layoutName?.let { related(it, "slideMaster") }
+            val master = part(masterName, "sldMaster")
+            val themeName = masterName?.let { related(it, "theme") } ?: related("ppt/presentation.xml", "theme")
+            var theme = PptxTheme().overlay(part(themeName, "theme"))
+            for (source in listOfNotNull(masterName, layoutName, slidePart)) {
+                theme = theme.overlay(part(related(source, "themeOverride"), "themeOverride"))
+            }
+            val masterMap = theme.mapColors(master?.directChild("clrMap"))
+            var mapped = masterMap
+            for (root in listOfNotNull(layout, slide)) {
+                val override = root.directChild("clrMapOvr")
+                mapped = if (override?.directChild("masterClrMapping") != null) masterMap
+                    else mapped.mapColors(override?.directChild("overrideClrMapping"))
+            }
+            return PptxSlideStyleContext(mapped, presentation.directChild("defaultTextStyle"), master, layout)
+        }
+    }
+
     private fun readPptx(file: File): NativePresentation {
         if (!file.isFile || file.length() <= 0 || file.length() > MAX_OFFICE_FILE_BYTES) {
             throw InvalidOfficeDocumentException("The presentation is missing, empty, or larger than the 250 MB limit.")
@@ -449,6 +504,8 @@ object NativeOfficeEngine {
                 var totalShapes = 0
                 var remainingTableCells = MAX_PPTX_TOTAL_TABLE_CELLS
                 val imageCache = OfficeImageCache()
+                val styleParts = PptxStyleParts(packageFile, presentation.documentElement)
+                val textBudget = PptxTextBudget()
                 val slides = slideIds.mapIndexed { index, slideId ->
                     val relationshipId = slideId.relationshipAttribute("id")
                         ?: throw InvalidOfficeDocumentException("A slide has no relationship identifier.")
@@ -457,7 +514,7 @@ object NativeOfficeEngine {
                     val remainingShapes = MAX_PPTX_TOTAL_SHAPES - totalShapes
                     val slide = readSlide(
                         packageFile, target, index + 1, widthEmu, heightEmu,
-                        remainingShapes, remainingTableCells, imageCache
+                        remainingShapes, remainingTableCells, imageCache, styleParts, textBudget
                     )
                     totalShapes += slide.shapes.size
                     remainingTableCells -= slide.shapes.sumOf { shape -> shape.tableRows.sumOf { it.size } }
@@ -480,11 +537,14 @@ object NativeOfficeEngine {
         slideHeightEmu: Float,
         remainingShapeLimit: Int,
         remainingTableCellLimit: Int,
-        imageCache: OfficeImageCache
+        imageCache: OfficeImageCache,
+        styleParts: PptxStyleParts,
+        textBudget: PptxTextBudget
     ): NativeSlide {
         val entry = zip.getEntry(partName)
             ?: throw InvalidOfficeDocumentException("Slide $slideNumber is missing from the PPTX package.")
         val document = secureXml(readBounded(zip, entry))
+        val style = styleParts.context(partName, document.documentElement)
         val shapeTree = document.documentElement.directChild("cSld")?.directChild("spTree")
             ?: throw InvalidOfficeDocumentException("Slide $slideNumber has no shape tree.")
         val shapes = shapeTree.elementChildren().filter {
@@ -494,15 +554,15 @@ object NativeOfficeEngine {
             throw InvalidOfficeDocumentException("The presentation exceeds the current shape reading limit at slide $slideNumber.")
         }
         val relationshipPart = officeRelationshipPart(partName)
-        val relationships = zip.getEntry(relationshipPart)?.let { relationshipEntry ->
-            readRelationships(secureXml(readBounded(zip, relationshipEntry)), partName)
+        val relationships = styleParts.xml(relationshipPart)?.let { relationshipDocument ->
+            readRelationships(relationshipDocument, partName)
         }.orEmpty()
         var tableCellsRead = 0
         val parsed = shapes.mapNotNull { shape ->
-            val transform = shape.directChild("spPr")?.directChild("xfrm")
-                ?: shape.directChild("xfrm")
-            val offset = transform?.directChild("off")
-            val extent = transform?.directChild("ext")
+            val inheritedShapes = style.inheritedShapes(shape)
+            val transforms = inheritedShapes.mapNotNull { it.directChild("spPr")?.directChild("xfrm") ?: it.directChild("xfrm") }
+            val offset = transforms.firstNotNullOfOrNull { it.directChild("off") }
+            val extent = transforms.firstNotNullOfOrNull { it.directChild("ext") }
             val x = slideCoordinate(offset, "x")
             val y = slideCoordinate(offset, "y")
             val width = slideCoordinate(extent, "cx")
@@ -511,9 +571,10 @@ object NativeOfficeEngine {
                 throw InvalidOfficeDocumentException("A slide element has invalid dimensions.")
             }
             val textBody = shape.directChild("txBody")
-            val text = textBody?.let(::slideText)?.takeIf { it.isNotBlank() }
+            val paragraphs = readPptxRichText(textBody, style.theme, style.textDefaults(shape), textBudget)
+            val text = paragraphs.joinToString("\n") { it.plainText }.takeIf { it.isNotBlank() }
             val table = if (shape.localName() == "graphicFrame") {
-                parseSlideTable(shape, remainingTableCellLimit - tableCellsRead).also { parsedTable ->
+                parseSlideTable(shape, remainingTableCellLimit - tableCellsRead, style, textBudget).also { parsedTable ->
                     tableCellsRead += parsedTable?.rows?.sumOf { it.size } ?: 0
                 }
             } else {
@@ -527,10 +588,11 @@ object NativeOfficeEngine {
                 "sp", "cxnSp" -> if (text != null) NativeSlideShapeKind.TEXT else NativeSlideShapeKind.SHAPE
                 else -> NativeSlideShapeKind.OTHER
             }
-            val properties = shape.directChild("spPr")
-            val firstRun = textBody?.let(::firstSlideRunProperties)
-            val paragraphProperties = textBody?.elementChildren()
-                ?.firstOrNull { it.localName() == "p" }?.directChild("pPr")
+            val properties = inheritedShapes.mapNotNull { it.directChild("spPr") }.firstOrNull { element ->
+                element.elementChildren().any { it.localName() in setOf("solidFill", "noFill", "gradFill", "pattFill", "blipFill") }
+            }
+            val firstParagraph = paragraphs.firstOrNull()
+            val firstRun = paragraphs.flatMap { it.runs }.firstOrNull { it.text.isNotEmpty() } ?: firstParagraph?.defaultStyle
             NativeSlideShape(
                 kind = kind,
                 text = text,
@@ -538,22 +600,22 @@ object NativeOfficeEngine {
                 yFraction = (y / slideHeightEmu).coerceIn(-1f, 1f),
                 widthFraction = (width / slideWidthEmu).coerceIn(0f, 2f),
                 heightFraction = (height / slideHeightEmu).coerceIn(0f, 2f),
-                fillRgb = properties?.directChild("solidFill")?.directChild("srgbClr")
-                    ?.attributeByLocalName("val")?.takeIf { it.matches(Regex("[0-9a-fA-F]{6}")) }?.toLongOrNull(16),
-                textRgb = firstRun?.directChild("solidFill")?.directChild("srgbClr")
-                    ?.attributeByLocalName("val")?.takeIf { it.matches(Regex("[0-9a-fA-F]{6}")) }?.toLongOrNull(16),
-                fontSizePoints = firstRun?.attributeByLocalName("sz")?.toFloatOrNull()?.div(100f)
-                    ?.takeIf { it in 4f..288f },
-                bold = firstRun?.attributeByLocalName("b")?.let(::isEnabled) ?: false,
-                italic = firstRun?.attributeByLocalName("i")?.let(::isEnabled) ?: false,
-                centered = paragraphProperties?.attributeByLocalName("algn") in setOf("ctr", "center"),
-                rightToLeft = paragraphProperties?.attributeByLocalName("rtl")?.let(::isEnabled) == true ||
-                    text?.any(::isArabicCharacter) == true,
+                fillRgb = style.theme.solidFill(properties),
+                textRgb = firstRun?.textRgb,
+                fontSizePoints = firstRun?.fontSizePoints,
+                bold = firstRun?.bold ?: false,
+                italic = firstRun?.italic ?: false,
+                centered = firstParagraph?.alignment == SlideParagraphAlignment.CENTER,
+                rightToLeft = firstParagraph?.rightToLeft ?: false,
                 imageBytes = imageBytes,
-                table = table
+                table = table,
+                paragraphs = paragraphs
             )
         }
-        return NativeSlide(slideNumber, parsed)
+        val background = listOfNotNull(document.documentElement, style.layout, style.master).firstNotNullOfOrNull {
+            it.directChild("cSld")?.directChild("bg")
+        }?.directChild("bgPr")
+        return NativeSlide(slideNumber, parsed, style.theme.solidFill(background))
     }
 
     private fun officeRelationshipPart(sourcePart: String): String {
@@ -564,7 +626,9 @@ object NativeOfficeEngine {
 
     private fun parseSlideTable(
         graphicFrame: Element,
-        remainingCellLimit: Int
+        remainingCellLimit: Int,
+        style: PptxSlideStyleContext,
+        textBudget: PptxTextBudget
     ): NativeSlideTable? {
         val table = graphicFrame.directChild("graphic")
             ?.directChild("graphicData")
@@ -591,22 +655,20 @@ object NativeOfficeEngine {
             }
             cells.map { cell ->
                 val textBody = cell.directChild("txBody")
-                val runProperties = textBody?.let(::firstSlideRunProperties)
-                val paragraphProperties = textBody?.elementChildren()
-                    ?.firstOrNull { it.localName() == "p" }?.directChild("pPr")
-                val text = textBody?.let(::slideText).orEmpty()
+                val paragraphs = readPptxRichText(textBody, style.theme, style.textDefaults(graphicFrame), textBudget)
+                val firstParagraph = paragraphs.firstOrNull()
+                val firstRun = paragraphs.flatMap { it.runs }.firstOrNull { it.text.isNotEmpty() } ?: firstParagraph?.defaultStyle
+                val text = paragraphs.joinToString("\n") { it.plainText }
                 val properties = cell.directChild("tcPr")
                 NativeSlideTableCell(
                     text = text,
-                    fillRgb = pptxSolidFillRgb(properties),
-                    textRgb = pptxSolidFillRgb(runProperties),
-                    fontSizePoints = runProperties?.attributeByLocalName("sz")?.toFloatOrNull()?.div(100f)
-                        ?.takeIf { it in 4f..288f },
-                    bold = runProperties?.attributeByLocalName("b")?.let(::isEnabled) ?: false,
-                    italic = runProperties?.attributeByLocalName("i")?.let(::isEnabled) ?: false,
-                    centered = paragraphProperties?.attributeByLocalName("algn") in setOf("ctr", "center"),
-                    rightToLeft = paragraphProperties?.attributeByLocalName("rtl")?.let(::isEnabled) == true ||
-                        text.any(::isArabicCharacter),
+                    fillRgb = style.theme.solidFill(properties),
+                    textRgb = firstRun?.textRgb,
+                    fontSizePoints = firstRun?.fontSizePoints,
+                    bold = firstRun?.bold ?: false,
+                    italic = firstRun?.italic ?: false,
+                    centered = firstParagraph?.alignment == SlideParagraphAlignment.CENTER,
+                    rightToLeft = firstParagraph?.rightToLeft ?: false,
                     columnSpan = pptxSpan(cell, "gridSpan"),
                     rowSpan = pptxSpan(cell, "rowSpan"),
                     horizontalMerge = pptxBoolean(cell.attributeByLocalName("hMerge")),
@@ -620,10 +682,11 @@ object NativeOfficeEngine {
                     marginRightPoints = pptxCellMargin(properties, "marR", 7.2f),
                     marginTopPoints = pptxCellMargin(properties, "marT", 3.6f),
                     marginBottomPoints = pptxCellMargin(properties, "marB", 3.6f),
-                    borderLeft = pptxCellBorder(properties?.directChild("lnL")),
-                    borderRight = pptxCellBorder(properties?.directChild("lnR")),
-                    borderTop = pptxCellBorder(properties?.directChild("lnT")),
-                    borderBottom = pptxCellBorder(properties?.directChild("lnB"))
+                    borderLeft = pptxCellBorder(properties?.directChild("lnL"), style.theme),
+                    borderRight = pptxCellBorder(properties?.directChild("lnR"), style.theme),
+                    borderTop = pptxCellBorder(properties?.directChild("lnT"), style.theme),
+                    borderBottom = pptxCellBorder(properties?.directChild("lnB"), style.theme),
+                    paragraphs = paragraphs
                 )
             }
         }
@@ -665,59 +728,18 @@ object NativeOfficeEngine {
             ?: throw InvalidOfficeDocumentException("A PowerPoint table cell has an invalid margin.")
     }
 
-    private fun pptxCellBorder(line: Element?): NativeSlideCellBorder? {
+    private fun pptxCellBorder(line: Element?, theme: PptxTheme): NativeSlideCellBorder? {
         if (line == null) return null
         if (line.directChild("noFill") != null) return NativeSlideCellBorder(0f)
         val width = line.attributeByLocalName("w")?.let { value ->
             value.toLongOrNull()?.takeIf { it >= 0L }?.toFloat()?.div(EMU_PER_POINT)?.coerceAtMost(72f)
                 ?: throw InvalidOfficeDocumentException("A PowerPoint table has an invalid border width.")
         } ?: 0.75f
-        return NativeSlideCellBorder(width, pptxSolidFillRgb(line), when (line.directChild("prstDash")?.attributeByLocalName("val")) {
+        return NativeSlideCellBorder(width, theme.solidFill(line), when (line.directChild("prstDash")?.attributeByLocalName("val")) {
             "dash", "lgDash", "sysDash", "dashDot", "lgDashDot", "lgDashDotDot", "sysDashDot", "sysDashDotDot" -> SlideBorderDash.DASH
             "dot", "sysDot" -> SlideBorderDash.DOT
             else -> SlideBorderDash.SOLID
         })
-    }
-
-    private fun pptxSolidFillRgb(parent: Element?): Long? {
-        val fill = parent?.directChild("solidFill") ?: return null
-        val color = fill.elementChildren().firstOrNull { it.localName() in setOf("srgbClr", "sysClr") } ?: return null
-        val value = if (color.localName() == "sysClr") {
-            color.attributeByLocalName("lastClr")
-        } else {
-            color.attributeByLocalName("val")
-        }
-        return value?.takeIf { it.matches(Regex("[0-9a-fA-F]{6}")) }?.toLongOrNull(16)
-    }
-
-    private fun slideText(textBody: Element): String = textBody.elementChildren()
-        .filter { it.localName() == "p" }
-        .joinToString("\n") { paragraph ->
-            buildString {
-                fun collect(element: Element) {
-                    element.elementChildren().forEach { child ->
-                        when (child.localName()) {
-                            "t" -> append(child.textContent)
-                            "br" -> append('\n')
-                            else -> collect(child)
-                        }
-                    }
-                }
-                collect(paragraph)
-            }
-        }
-
-    private fun firstSlideRunProperties(textBody: Element): Element? {
-        fun find(element: Element): Element? {
-            for (child in element.elementChildren()) {
-                if (child.localName() == "r") return child.directChild("rPr")
-                    ?: child.directChild("defRPr")
-                    ?: child.directChild("endParaRPr")
-                find(child)?.let { return it }
-            }
-            return null
-        }
-        return find(textBody)
     }
 
     private fun readWorksheet(
@@ -1248,9 +1270,9 @@ object NativeOfficeEngine {
         char in '\u0600'..'\u06FF' || char in '\u0750'..'\u077F' || char in '\u08A0'..'\u08FF'
 }
 
-private fun Element.localName(): String = localName ?: tagName.substringAfter(':')
+internal fun Element.localName(): String = localName ?: tagName.substringAfter(':')
 
-private fun Element.elementChildren(): List<Element> = buildList {
+internal fun Element.elementChildren(): List<Element> = buildList {
     val nodes = childNodes
     for (index in 0 until nodes.length) {
         val node = nodes.item(index)
@@ -1258,7 +1280,7 @@ private fun Element.elementChildren(): List<Element> = buildList {
     }
 }
 
-private fun Element.directChild(name: String): Element? =
+internal fun Element.directChild(name: String): Element? =
     elementChildren().firstOrNull { it.localName() == name }
 
 private fun Element.wordAttribute(name: String): String? {
@@ -1272,7 +1294,7 @@ private fun Element.wordAttribute(name: String): String? {
     return null
 }
 
-private fun Element.attributeByLocalName(name: String): String? {
+internal fun Element.attributeByLocalName(name: String): String? {
     val attributes = attributes
     for (index in 0 until attributes.length) {
         val attribute = attributes.item(index)
