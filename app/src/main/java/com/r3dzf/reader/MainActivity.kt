@@ -1,6 +1,5 @@
 package com.r3dzf.reader
 
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -35,7 +34,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private val officePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) openInMicrosoftApp(uri)
+        if (uri != null) openOfficeDocument(uri)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -172,16 +171,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun openInMicrosoftApp(uri: Uri) {
-        val mimeType = contentResolver.getType(uri) ?: "application/octet-stream"
-        val viewIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, mimeType)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        try {
-            startActivity(Intent.createChooser(viewIntent, getString(R.string.choose_app)))
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(this, getString(R.string.open_failed), Toast.LENGTH_LONG).show()
+    private fun openOfficeDocument(uri: Uri) {
+        lifecycleScope.launch {
+            val prepared = runCatching {
+                withContext(Dispatchers.IO) { prepareOfficeDocument(this@MainActivity, uri) }
+            }
+            prepared.onSuccess { document ->
+                startActivity(OfficeDocumentViewerActivity.intent(this@MainActivity, document))
+            }.onFailure { error ->
+                val message = if (error is LegacyOfficeFormatException) {
+                    getString(R.string.local_legacy_unsupported)
+                } else {
+                    error.message ?: getString(R.string.open_failed)
+                }
+                Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+            }
         }
     }
 

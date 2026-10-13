@@ -4,7 +4,7 @@
     <string name="section_on_device">على الهاتف</string>
     <string name="open_pdf">افتح ملف PDF</string>
     <string name="open_office">افتح ملف Office</string>
-    <string name="office_hint">لأفضل تطابق مع تنسيق Microsoft، افتح الملف باستخدام Microsoft 365.</string>
+    <string name="office_hint">تُعرض ملفات DOCX وXLSX وPPTX داخل Reader دون تطبيق Office أو إنترنت. ملفات DOC وXLS وPPT القديمة لا يدعمها العرض المحلي حاليًا.</string>
     <string name="section_onedrive">Microsoft OneDrive</string>
     <string name="connect_onedrive">اتصل بـ OneDrive</string>
     <string name="refresh_files">تحديث الملفات</string>
@@ -21,6 +21,9 @@
     <string name="close">إغلاق</string>
     <string name="choose_app">فتح باستخدام</string>
     <string name="open_failed">تعذر فتح الملف.</string>
+    <string name="local_legacy_unsupported">صيغة Office القديمة دي لسه مش مدعومة في العارض المحلي. لو الملف على OneDrive، افتح معاينة PDF منه.</string>
+    <string name="office_engine_loading">جارٍ تجهيز عارض Office المدمج…</string>
+    <string name="office_engine_failed">تعذر تشغيل عارض Office المدمج.</string>
     <string name="pdf_failed">تعذر قراءة ملف PDF. قد يكون محميًا أو تالفًا.</string>
     <string name="cache_cleared">تم مسح المعاينات المؤقتة.</string>
     <string name="clear_previews">امسح المعاينات المؤقتة</string>

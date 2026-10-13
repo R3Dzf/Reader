@@ -4,7 +4,7 @@
     <string name="section_on_device">On this phone</string>
     <string name="open_pdf">Open a PDF</string>
     <string name="open_office">Open an Office file</string>
-    <string name="office_hint">For the closest Microsoft layout, open a file with Microsoft 365.</string>
+    <string name="office_hint">DOCX, XLSX, and PPTX render inside Reader without another office app or internet. Legacy DOC, XLS, and PPT are not supported offline yet.</string>
     <string name="section_onedrive">Microsoft OneDrive</string>
     <string name="connect_onedrive">Connect OneDrive</string>
     <string name="refresh_files">Refresh files</string>
@@ -21,6 +21,9 @@
     <string name="close">Close</string>
     <string name="choose_app">Open with</string>
     <string name="open_failed">Could not open this file.</string>
+    <string name="local_legacy_unsupported">This older Office format is not supported by the offline reader yet. For OneDrive files, use the PDF preview there.</string>
+    <string name="office_engine_loading">Preparing the built-in Office reader…</string>
+    <string name="office_engine_failed">The built-in Office reader could not start.</string>
     <string name="pdf_failed">Could not read this PDF. It may be protected or damaged.</string>
     <string name="cache_cleared">Temporary previews cleared.</string>
     <string name="clear_previews">Clear temporary previews</string>
