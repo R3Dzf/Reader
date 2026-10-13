@@ -1,63 +1,37 @@
 # Reader for Android
 
-Reader is a read-only Android app for viewing PDFs and Microsoft Office documents on a phone. Word, Excel, and PowerPoint files are rendered inside Reader by an offline engine bundled in the APK; the phone does not need Microsoft 365 or another Office application.
+Reader is being rebuilt as an offline, read-only document reader. It does not launch Office apps, convert Office files through a cloud service, or bundle a third-party Office rendering engine.
 
-## What works
+## Current milestone
 
-- Open a PDF stored on the phone and read it page by page inside Reader.
-- Open local .docx, .xlsx, and .pptx files in Reader without an Office app or an internet connection.
-- Keep the document renderer and its WebAssembly modules inside the APK. The WebView is restricted to app-bundled assets and the selected file in private app storage.
-- Sign in to OneDrive and list supported Office documents from the root folder.
-- Convert a selected OneDrive Office document to a temporary PDF through Microsoft Graph, then read that PDF inside Reader.
-- English and Arabic interface strings; the layout follows the phone's language direction.
-- Temporary converted files live in the app cache and can be cleared by Android at any time.
+- PDF files open inside Reader with Android's `PdfRenderer`.
+- The native DOCX reader parses paragraphs, Arabic text direction, common run formatting, numbered lists, basic page settings, page breaks, simple tables, and embedded raster images using Kotlin code in this app. Images render beneath their paragraph or table cell text.
+- The native XLSX reader parses worksheets, shared and inline strings, cached cell values, right-to-left sheet direction, basic cell font/fill styles (bold, italic, size, text color, and solid fill), and horizontal merged cells. It displays a native scrollable grid.
+- The native PPTX reader displays slides in presentation order with slide proportions, basic shape positions/fills, Arabic text, and embedded raster images decoded locally. Tables preserve column and row proportions, rectangular horizontal/vertical merges, cell margins, vertical alignment, direct RGB fills, basic text styles, and per-edge solid/dashed/dotted borders. Right-to-left tables are positioned independently of the phone's interface language.
+- PowerPoint slides support pinch zoom up to 5×, panning while zoomed, double tap, zoom buttons, and a fit control. Embedded images are decoded at higher resolution when zooming within the existing bitmap memory cap. Unsupported graphic frames, such as charts, receive an element placeholder.
+- Template and macro-enabled OOXML variants are routed through the same readers. VBA/macros are never executed.
+- The readers use Android's native text rendering and never modify the selected file.
+- DOCX automatic pagination, headers, and footers remain future work. XLSX vertical merged cells, number formats, borders, formula calculation, and rich drawing content are not implemented yet. PPTX theme-based cell styles, mixed text styles within one cell, masters/layout inheritance, grouped/rotated shapes, chart rendering, animations, and transitions remain future work. Tables are limited to 100 rows and 64 columns each, and 25,000 cells per presentation. Legacy DOC/DOT, XLS/XLT/XLSB, and PPT/PPS/POT remain on the roadmap. The reader caps an individual embedded image at 10 MB and total images per document at 50 MB. See [ENGINE_ROADMAP.md](ENGINE_ROADMAP.md) and [PPTX compatibility](docs/PPTX_COMPATIBILITY.md).
+- No network permission or Office viewer dependency is included.
 
-The built-in offline viewer supports .docx, .xlsx, and .pptx. Legacy binary .doc, .xls, and .ppt files can still be previewed from OneDrive using Microsoft Graph's PDF conversion; offline support for these older formats is not included yet.
-
-## Microsoft sign-in setup
-
-The optional OneDrive feature uses delegated `Files.Read` access only. It does not upload local files, request write permission, or change OneDrive documents. A Microsoft Entra app registration is required before the OneDrive button can sign in. Local .docx, .xlsx, .pptx, and PDF files do not use OneDrive.
-
-1. Register a **mobile and desktop public client** application in the Microsoft Entra admin center. Allow personal Microsoft accounts if you want to use a personal OneDrive.
-2. Add the Android platform with package name `com.r3dzf.reader`. Register the signing certificate hash for the build you will install.
-3. Add the delegated Microsoft Graph permission `Files.Read`.
-4. In `app/src/main/res/raw/auth_config_single_account.json`, replace `REPLACE_WITH_ENTRA_CLIENT_ID` and `REPLACE_WITH_SIGNATURE_HASH` with the values from the registration.
-5. In `app/src/main/AndroidManifest.xml`, replace `REPLACE_WITH_SIGNATURE_HASH` in the MSAL redirect intent filter with the same signature hash.
-6. Build and install the app. The Client ID is public app configuration; **do not add a client secret** to a mobile app or commit one to this repository.
-
-MSAL configuration reference: <https://learn.microsoft.com/en-us/entra/msal/android/configure-your-app>
+These readers are foundations, not a claim of Office-perfect layout. Compatibility will be measured with Arabic and English test documents as those features are added.
 
 ## Build
 
-Open the repository in Android Studio, allow Gradle sync, then run the `app` configuration on a phone or emulator. The project includes the Gradle Wrapper.
-
-To build from a terminal:
+Open the project in Android Studio and run the `app` configuration. With JDK 17 and Android SDK 35 configured, run:
 
 ```bash
-./gradlew testDebugUnitTest assembleDebug
+./gradlew testDebugUnitTest lintDebug assembleDebug
 ```
 
-On Windows PowerShell:
+The project includes the Gradle 8.11.1 wrapper with the official distribution SHA-256 pinned. On Windows use `gradlew.bat`.
+The debug APK is generated at `app/build/outputs/apk/debug/app-debug.apk`.
 
-```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug
-```
-
-The debug APK is generated at `app/build/outputs/apk/debug/app-debug.apk`. GitHub Actions builds the project on pushes and pull requests and uploads the APK as a workflow artifact.
-
-## Reading and fidelity
-
-Local .docx, .xlsx, and .pptx files are copied to Reader's private cache and rendered by the bundled @silurus/ooxml engine, which parses the formats on-device. The viewer is read-only; it does not write back to the selected document. Local legacy .doc, .xls, and .ppt files are currently rejected with a clear message. OneDrive previews use Microsoft Graph's PDF conversion endpoint and are stored temporarily in the app cache.
-
-This is not a promise of pixel-perfect compatibility with Microsoft Office for every file. Complex or unsupported OOXML features and fonts that are not embedded or available to Android can change layout. The bundled renderer's MIT license and notices are shipped with its asset bundle.
-
-Graph conversion reference: <https://learn.microsoft.com/en-us/graph/api/driveitem-get-content-format?view=graph-rest-1.0>
+Version 0.2.0 passes 23 JVM unit tests, including an Arabic merged-table PPTX fixture generated with python-pptx, damaged merge rejection, invalid coordinate rejection, viewport limits, and checks that parsing leaves the input file unchanged. Android device rendering and gesture tests remain part of the compatibility roadmap.
 
 ## Project stack
 
 - Kotlin and Jetpack Compose
-- Android PDF rendering with `PdfRenderer`
-- Offline OOXML rendering with @silurus/ooxml (Rust/WebAssembly parser and Canvas renderer, bundled at build time)
-- Android WebView restricted to local app assets for Office rendering
-- Microsoft Authentication Library (MSAL) for Android
-- Microsoft Graph v1.0 for OneDrive listing and PDF conversion
+- Android `PdfRenderer` for PDF
+- An in-app OOXML package parser and native Compose document view, built in stages
+- Android system text shaping for Arabic and other scripts

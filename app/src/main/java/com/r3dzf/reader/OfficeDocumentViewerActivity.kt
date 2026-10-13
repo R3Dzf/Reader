@@ -1,23 +1,33 @@
 package com.r3dzf.reader
 
-import android.annotation.SuppressLint
+import android.graphics.BitmapFactory
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -27,22 +37,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.webkit.WebViewAssetLoader
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayInputStream
 import java.io.File
-import java.util.UUID
+import kotlin.math.sqrt
 
 class OfficeDocumentViewerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +73,7 @@ class OfficeDocumentViewerActivity : ComponentActivity() {
         }
         val file = runCatching { path?.let { File(it).canonicalFile } }.getOrNull()
         val allowedDirectory = File(cacheDir, "office-input").canonicalFile
-        if (file == null || format == null || !format.supportedOffline || !file.isFile ||
+        if (file == null || format == null || !file.isFile ||
             !file.path.startsWith(allowedDirectory.path + File.separator)
         ) {
             finish()
@@ -63,12 +82,7 @@ class OfficeDocumentViewerActivity : ComponentActivity() {
 
         setContent {
             ReaderTheme {
-                OfficeDocumentViewerScreen(
-                    file = file,
-                    displayName = name.ifBlank { file.name },
-                    format = format,
-                    onClose = ::finish
-                )
+                NativeOfficeViewer(file, name.ifBlank { file.name }, format, ::finish)
             }
         }
     }
@@ -87,23 +101,36 @@ class OfficeDocumentViewerActivity : ComponentActivity() {
 }
 
 @Composable
-private fun OfficeDocumentViewerScreen(
-    file: File,
-    displayName: String,
-    format: OfficeFormat,
-    onClose: () -> Unit
-) {
-    val context = LocalContext.current
-    var rendererDirectory by remember(file.path) { mutableStateOf<File?>(null) }
-    var loadingError by remember(file.path) { mutableStateOf<String?>(null) }
+private fun NativeOfficeViewer(file: File, displayName: String, format: OfficeFormat, onClose: () -> Unit) {
+    var document by remember(file.path) { mutableStateOf<NativeWordDocument?>(null) }
+    var workbook by remember(file.path) { mutableStateOf<NativeWorkbook?>(null) }
+    var presentation by remember(file.path) { mutableStateOf<NativePresentation?>(null) }
+    var error by remember(file.path) { mutableStateOf<String?>(null) }
+    var formatPending by remember(file.path) { mutableStateOf(false) }
+    var invalidDocument by remember(file.path) { mutableStateOf(false) }
+    var loaded by remember(file.path) { mutableStateOf(false) }
 
-    LaunchedEffect(file.path) {
-        runCatching { withContext(Dispatchers.IO) { OfficeRendererAssets.ensureExtracted(context) } }
-            .onSuccess { rendererDirectory = it }
-            .onFailure { loadingError = it.message ?: context.getString(R.string.office_engine_failed) }
+    LaunchedEffect(file.path, format) {
+        runCatching {
+            withContext(Dispatchers.IO) {
+                NativeOfficeEngine.open(file, format)
+            }
+        }.onSuccess { result ->
+                when (result) {
+                    is NativeWordDocument -> document = result
+                    is NativeWorkbook -> workbook = result
+                    is NativePresentation -> presentation = result
+                }
+                loaded = true
+            }
+            .onFailure {
+                if (it is OfficeFormatNotImplementedException) formatPending = true
+                else if (it is InvalidOfficeDocumentException) invalidDocument = true
+                else error = it.message ?: "Could not read this document."
+            }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize()) {
         Surface(color = MaterialTheme.colorScheme.surface) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
@@ -111,13 +138,7 @@ private fun OfficeDocumentViewerScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = displayName,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Text(displayName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                     Text(format.extension.uppercase(), style = MaterialTheme.typography.labelSmall)
                 }
                 TextButton(onClick = onClose) { Text(stringResource(R.string.close)) }
@@ -125,91 +146,345 @@ private fun OfficeDocumentViewerScreen(
         }
 
         when {
-            loadingError != null -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-                Text(loadingError.orEmpty(), color = MaterialTheme.colorScheme.error)
+            error != null -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                Text(error.orEmpty(), color = MaterialTheme.colorScheme.error)
             }
-            rendererDirectory == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    CircularProgressIndicator()
-                    Text(stringResource(R.string.office_engine_loading))
+            formatPending -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                Text(stringResource(R.string.office_format_roadmap, format.extension.uppercase()))
+            }
+            invalidDocument -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                Text(stringResource(R.string.office_document_invalid), color = MaterialTheme.colorScheme.error)
+            }
+            !loaded -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+            document != null -> WordDocumentView(document!!)
+            workbook != null -> WorkbookDocumentView(workbook!!)
+            presentation != null -> PresentationDocumentView(presentation!!)
+            else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(stringResource(R.string.office_empty_document))
+            }
+        }
+    }
+}
+
+@Composable
+internal fun OfficeImageView(
+    bytes: ByteArray,
+    targetWidthDp: Float,
+    targetHeightDp: Float,
+    description: String?
+) {
+    val density = androidx.compose.ui.platform.LocalDensity.current.density
+    val rawWidth = (targetWidthDp * density).toInt().coerceIn(1, 4096)
+    val rawHeight = (targetHeightDp * density).toInt().coerceIn(1, 4096)
+    val scale = minOf(1f, sqrt(6_000_000f / (rawWidth.toFloat() * rawHeight)))
+    val targetWidth = (rawWidth * scale).toInt().coerceAtLeast(1)
+    val targetHeight = (rawHeight * scale).toInt().coerceAtLeast(1)
+    val image = produceState<androidx.compose.ui.graphics.ImageBitmap?>(
+        null,
+        bytes,
+        targetWidth,
+        targetHeight
+    ) {
+        value = withContext(Dispatchers.IO) { decodeOfficeImage(bytes, targetWidth, targetHeight) }
+    }.value
+    if (image == null) {
+        Text(stringResource(R.string.office_image_unreadable), style = MaterialTheme.typography.labelSmall)
+    } else {
+        androidx.compose.foundation.Image(
+            bitmap = image,
+            contentDescription = description,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit
+        )
+    }
+}
+
+private fun decodeOfficeImage(bytes: ByteArray, targetWidth: Int, targetHeight: Int): androidx.compose.ui.graphics.ImageBitmap? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+    var sampleSize = 1
+    while (
+        sampleSize < 32_768 &&
+        (bounds.outWidth / sampleSize > targetWidth || bounds.outHeight / sampleSize > targetHeight)
+    ) {
+        sampleSize *= 2
+    }
+    return runCatching {
+        BitmapFactory.decodeByteArray(
+            bytes,
+            0,
+            bytes.size,
+            BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        )?.asImageBitmap()
+    }.getOrNull()
+}
+
+@Composable
+private fun WordDocumentView(document: NativeWordDocument) {
+    if (document.blocks.isEmpty()) {
+        Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+            Text(stringResource(R.string.office_empty_document))
+        }
+        return
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().background(Color(0xFFECEEF2)),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(0.dp)
+    ) {
+        item {
+            Box(
+                Modifier.fillMaxWidth()
+                    .widthIn(max = document.pageSettings.widthPoints.dp)
+                    .background(Color.White)
+                    .padding(top = document.pageSettings.marginTopPoints.dp)
+            )
+        }
+        itemsIndexed(document.blocks) { _, block ->
+            Column(
+                Modifier.fillMaxWidth()
+                    .widthIn(max = document.pageSettings.widthPoints.dp)
+                    .background(Color.White)
+                    .padding(
+                        start = document.pageSettings.marginLeftPoints.dp,
+                        end = document.pageSettings.marginRightPoints.dp
+                    )
+            ) {
+                when (block) {
+                    is WordParagraph -> {
+                        if (block.startsNewPage) WordPageBreakMarker()
+                        WordParagraphView(block)
+                        if (block.endsPage) WordPageBreakMarker()
+                    }
+                    is WordTable -> WordTableView(block)
                 }
             }
-            else -> {
-                val engineRoot = rendererDirectory ?: return
-                AndroidView(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    factory = { viewContext -> createOfficeWebView(viewContext, engineRoot, file, format) },
-                    onRelease = { webView ->
-                        webView.stopLoading()
-                        webView.destroy()
-                    }
+        }
+        item {
+            Box(
+                Modifier.fillMaxWidth()
+                    .widthIn(max = document.pageSettings.widthPoints.dp)
+                    .background(Color.White)
+                    .padding(bottom = document.pageSettings.marginBottomPoints.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun WordParagraphView(paragraph: WordParagraph) {
+    val content = remember(paragraph) {
+        buildAnnotatedString {
+            paragraph.runs.forEach { run ->
+                val color = run.colorRgb?.let { Color((0xFF000000L or it).toInt()) }
+                val style = SpanStyle(
+                    fontWeight = if (run.bold) FontWeight.Bold else FontWeight.Normal,
+                    fontStyle = if (run.italic) FontStyle.Italic else FontStyle.Normal,
+                    textDecoration = if (run.underline) TextDecoration.Underline else TextDecoration.None,
+                    fontSize = run.fontSizePoints?.let { (it * 4f / 3f).sp } ?: 16.sp,
+                    color = color ?: Color.Unspecified
+                )
+                pushStyle(style)
+                append(run.text)
+                pop()
+            }
+        }
+    }
+    val textAlign = when (paragraph.alignment) {
+        WordAlignment.START -> TextAlign.Start
+        WordAlignment.CENTER -> TextAlign.Center
+        WordAlignment.END -> TextAlign.End
+        WordAlignment.JUSTIFY -> TextAlign.Justify
+    }
+    val headingStyle = when (paragraph.headingLevel) {
+        1 -> MaterialTheme.typography.headlineSmall
+        2 -> MaterialTheme.typography.titleLarge
+        3 -> MaterialTheme.typography.titleMedium
+        else -> MaterialTheme.typography.bodyLarge
+    }
+    val shownContent = if (content.isEmpty()) AnnotatedString(" ") else content
+    val textStyle = headingStyle.copy(
+            textAlign = textAlign,
+            textDirection = if (paragraph.rightToLeft) TextDirection.Rtl else TextDirection.ContentOrRtl
+        )
+    val paragraphModifier = Modifier.padding(top = paragraph.spaceBeforePoints.dp, bottom = paragraph.spaceAfterPoints.dp)
+    Column(paragraphModifier.fillMaxWidth()) {
+        if (paragraph.listMarker == null) {
+            Text(shownContent, modifier = Modifier.fillMaxWidth(), style = textStyle)
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = (paragraph.listLevel * 16).dp),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(paragraph.listMarker, style = textStyle)
+                Text(shownContent, modifier = Modifier.weight(1f), style = textStyle)
+            }
+        }
+        paragraph.images.forEach { image ->
+            val aspectRatio = (image.widthPoints / image.heightPoints).coerceIn(0.15f, 8f)
+            BoxWithConstraints(
+                Modifier.fillMaxWidth().aspectRatio(aspectRatio).heightIn(max = 600.dp)
+            ) {
+                OfficeImageView(
+                    bytes = image.imageBytes,
+                    targetWidthDp = maxWidth.value,
+                    targetHeightDp = maxHeight.value,
+                    description = image.description
                 )
             }
         }
     }
 }
 
-@SuppressLint("SetJavaScriptEnabled")
-private fun createOfficeWebView(
-    context: Context,
-    rendererRoot: File,
-    documentFile: File,
-    format: OfficeFormat
-): WebView {
-    val token = UUID.randomUUID().toString()
-    val assetLoader = WebViewAssetLoader.Builder()
-        .setDomain(APP_ASSET_DOMAIN)
-        .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
-        .addPathHandler("/renderer/", RendererPathHandler(rendererRoot))
-        .addPathHandler("/document/", DocumentPathHandler(documentFile, token))
-        .build()
+@Composable
+private fun WordPageBreakMarker() {
+    Text(
+        stringResource(R.string.document_page_break),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center
+    )
+}
 
-    return WebView(context).apply {
-        settings.javaScriptEnabled = true
-        settings.domStorageEnabled = false
-        settings.allowFileAccess = false
-        settings.allowContentAccess = false
-        settings.javaScriptCanOpenWindowsAutomatically = false
-        settings.setSupportMultipleWindows(false)
-        settings.setSupportZoom(true)
-        settings.builtInZoomControls = true
-        settings.displayZoomControls = false
-        setBackgroundColor(0xFFECEEF2.toInt())
-        webViewClient = object : WebViewClient() {
-            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse =
-                assetLoader.shouldInterceptRequest(request.url) ?: blockedResponse()
-
-            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
-                request.url.host != APP_ASSET_DOMAIN
+@Composable
+private fun WordTableView(table: WordTable) {
+    Column(Modifier.fillMaxWidth()) {
+        table.rows.forEach { cells ->
+            if (cells.isNotEmpty()) {
+                Row(Modifier.fillMaxWidth()) {
+                    cells.forEach { cell ->
+                        Column(
+                            Modifier.weight(1f)
+                                .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                                .padding(8.dp)
+                        ) {
+                            Text(
+                                text = cell.text,
+                                style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.ContentOrRtl)
+                            )
+                            cell.images.forEach { image ->
+                                val aspectRatio = (image.widthPoints / image.heightPoints).coerceIn(0.15f, 8f)
+                                BoxWithConstraints(
+                                    Modifier.fillMaxWidth().aspectRatio(aspectRatio).heightIn(max = 240.dp)
+                                ) {
+                                    OfficeImageView(
+                                        bytes = image.imageBytes,
+                                        targetWidthDp = maxWidth.value,
+                                        targetHeightDp = maxHeight.value,
+                                        description = image.description
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-        loadUrl("https://$APP_ASSET_DOMAIN/assets/office-viewer.html?format=${format.extension}&token=$token")
     }
 }
 
-private class RendererPathHandler(private val root: File) : WebViewAssetLoader.PathHandler {
-    private val canonicalRoot = root.canonicalFile
+@Composable
+private fun WorkbookDocumentView(workbook: NativeWorkbook) {
+    var selectedSheet by remember(workbook) { mutableIntStateOf(0) }
+    val sheet = workbook.sheets.getOrNull(selectedSheet) ?: return
+    val horizontalScroll = rememberScrollState()
+    val maxColumns = maxOf(sheet.columnCount, 1)
+    val gridWidth = (56 + maxColumns * 132).coerceAtMost(67_640).dp
+    val mergesByRow = remember(sheet.horizontalMerges) {
+        sheet.horizontalMerges.groupBy { it.row }.mapValues { (_, merges) -> merges.associateBy { it.firstColumn } }
+    }
 
-    override fun handle(path: String): WebResourceResponse? {
-        val file = File(canonicalRoot, Uri.decode(path)).canonicalFile
-        if (!file.path.startsWith(canonicalRoot.path + File.separator) || !file.isFile) return null
-        return WebResourceResponse(officeMimeType(file.extension), null, file.inputStream())
+    Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+            workbook.sheets.forEachIndexed { index, item ->
+                TextButton(onClick = { selectedSheet = index }) {
+                    Text(
+                        item.name,
+                        fontWeight = if (index == selectedSheet) FontWeight.Bold else FontWeight.Normal,
+                        color = if (index == selectedSheet) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+        CompositionLocalProvider(
+            LocalLayoutDirection provides if (sheet.rightToLeft) LayoutDirection.Rtl else LayoutDirection.Ltr
+        ) {
+            Box(Modifier.fillMaxSize().horizontalScroll(horizontalScroll)) {
+                LazyColumn(Modifier.width(gridWidth).fillMaxSize()) {
+                    item {
+                        Row(Modifier.fillMaxWidth()) {
+                            Text(
+                                text = "",
+                                modifier = Modifier.width(56.dp).heightIn(min = 36.dp)
+                                    .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            )
+                            repeat(maxColumns) { column ->
+                                Text(
+                                    text = columnLabel(column),
+                                    modifier = Modifier.width(132.dp).heightIn(min = 36.dp)
+                                        .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                        .padding(8.dp),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
+                    }
+                    items(sheet.rows) { row ->
+                        Row(Modifier.fillMaxWidth()) {
+                            Text(
+                                text = (row.rowIndex + 1).toString(),
+                                modifier = Modifier.width(56.dp).heightIn(min = 44.dp)
+                                    .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(10.dp),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            var column = 0
+                            while (column < maxColumns) {
+                                val merge = mergesByRow[row.rowIndex]?.get(column)
+                                val columnSpan = merge?.let { it.lastColumn - it.firstColumn + 1 } ?: 1
+                                val cell = row.cells[column]
+                                Text(
+                                    text = cell?.value.orEmpty(),
+                                    modifier = Modifier.width((132 * columnSpan).dp).heightIn(min = 44.dp)
+                                        .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                                        .background(cell?.fillRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color.White)
+                                        .padding(8.dp),
+                                    maxLines = 4,
+                                    color = cell?.textRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color.Unspecified,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        textDirection = TextDirection.ContentOrRtl,
+                                        fontWeight = if (cell?.bold == true) FontWeight.Bold else FontWeight.Normal,
+                                        fontStyle = if (cell?.italic == true) FontStyle.Italic else FontStyle.Normal,
+                                        fontSize = cell?.fontSizePoints?.let { (it * 4f / 3f).sp }
+                                            ?: MaterialTheme.typography.bodySmall.fontSize
+                                    )
+                                )
+                                column += columnSpan
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
-private class DocumentPathHandler(private val file: File, private val token: String) : WebViewAssetLoader.PathHandler {
-    override fun handle(path: String): WebResourceResponse? {
-        if (path != "$token/file" || !file.isFile) return null
-        return WebResourceResponse("application/octet-stream", null, file.inputStream())
+private fun columnLabel(index: Int): String {
+    var value = index + 1
+    val label = StringBuilder()
+    while (value > 0) {
+        value--
+        label.append(('A'.code + value % 26).toChar())
+        value /= 26
     }
+    return label.reverse().toString()
 }
-
-private fun blockedResponse(): WebResourceResponse = WebResourceResponse(
-    "text/plain",
-    "utf-8",
-    403,
-    "Blocked",
-    mapOf("Cache-Control" to "no-store"),
-    ByteArrayInputStream(ByteArray(0))
-)
-
-private const val APP_ASSET_DOMAIN = "appassets.androidplatform.net"

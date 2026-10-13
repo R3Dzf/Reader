@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
+import androidx.core.graphics.createBitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -58,7 +60,7 @@ private class PdfRenderHandle(file: File) {
             ).coerceAtLeast(0.5f)
             val width = (page.width * scale).toInt().coerceAtLeast(1)
             val height = (page.height * scale).toInt().coerceAtLeast(1)
-            Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also { bitmap ->
+            createBitmap(width, height, Bitmap.Config.ARGB_8888).also { bitmap ->
                 bitmap.eraseColor(AndroidColor.WHITE)
                 page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
             }
@@ -95,7 +97,7 @@ fun PdfDocumentView(file: File, onClose: () -> Unit) {
                     Column {
                         Text(file.name, maxLines = 1)
                         Text(
-                            stringResource(R.string.page_count, handle.renderer.pageCount),
+                            pluralStringResource(R.plurals.page_count, handle.renderer.pageCount, handle.renderer.pageCount),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
