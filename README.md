@@ -28,7 +28,7 @@ Open the project in Android Studio and run the `app` configuration. With JDK 17 
 The project includes the Gradle 8.11.1 wrapper with the official distribution SHA-256 pinned. On Windows use `gradlew.bat`.
 The debug APK is generated at `app/build/outputs/apk/debug/app-debug.apk`.
 
-Version 0.3.0 passes 30 JVM unit tests, including independent Arabic merged-table and themed rich-text PPTX fixtures, damaged merge/style rejection, text budgets, invalid coordinates, viewport limits, and input-file preservation. Android device rendering and gesture tests remain part of the compatibility roadmap.
+Version 0.3.0 passes 31 JVM unit tests, including independent Arabic merged-table and themed rich-text PPTX fixtures, Unicode text direction, damaged merge/style rejection, text budgets, invalid coordinates, viewport limits, and input-file preservation. Android device rendering and gesture tests remain part of the compatibility roadmap.
 
 ## Project stack
 

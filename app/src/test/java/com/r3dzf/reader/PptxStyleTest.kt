@@ -81,6 +81,19 @@ class PptxStyleTest {
     }
 
     @Test
+    fun infersDirectionFromUnicodeWhenNoDirectionWasSaved() {
+        withFixture({ _, xml ->
+            xml.replace(Regex(" rtl=\"[01]\""), "").replace("عنوان ", "\u0750\uFB50").replace("عربي", "")
+        }) { file ->
+            val presentation = NativeOfficeEngine.open(file, OfficeFormat.PPTX) as NativePresentation
+            val paragraphs = presentation.slides[0].shapes.single { it.kind == NativeSlideShapeKind.TEXT }.paragraphs
+            assertTrue(paragraphs[0].rightToLeft)
+            assertFalse(paragraphs[1].rightToLeft)
+            assertEquals("serif", paragraphs[0].runs[0].fontFamilyName)
+        }
+    }
+
+    @Test
     fun rejectsThemeXmlEntityDeclarations() {
         withFixture({ path, xml ->
             if (path == "ppt/theme/theme1.xml") xml.replaceFirst("?>", "?><!DOCTYPE a:theme [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>") else xml

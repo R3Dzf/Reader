@@ -213,6 +213,21 @@ private data class PptxRunStyle(
     )
 }
 
+private fun pptxHasArabic(text: String): Boolean = text.codePoints().anyMatch {
+    Character.UnicodeScript.of(it) == Character.UnicodeScript.ARABIC
+}
+
+private fun pptxInferredRtl(runs: List<NativeSlideTextRun>): Boolean = runs.asSequence().mapNotNull { run ->
+    val strong = run.text.codePoints().filter {
+        Character.getDirectionality(it) in setOf(
+            Character.DIRECTIONALITY_LEFT_TO_RIGHT,
+            Character.DIRECTIONALITY_RIGHT_TO_LEFT,
+            Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC
+        )
+    }.findFirst().orElse(-1)
+    if (strong < 0) null else Character.getDirectionality(strong) != Character.DIRECTIONALITY_LEFT_TO_RIGHT
+}.firstOrNull() ?: false
+
 internal fun readPptxRichText(
     body: Element?, theme: PptxTheme, defaults: List<Element>, budget: PptxTextBudget
 ): List<NativeSlideTextParagraph> {
@@ -246,14 +261,14 @@ internal fun readPptxRichText(
             if (++bodyRuns > 10_000 || bodyCharacters > 100_000) {
                 throw InvalidOfficeDocumentException("A PowerPoint text body exceeds the text reading limit.")
             }
-            val arabic = text.any { it in '\u0600'..'\u06FF' || it in '\u0750'..'\u077F' || it in '\u08A0'..'\u08FF' }
+            val arabic = pptxHasArabic(text)
             style.overlay(child.directChild("rPr"), theme).run(text, theme, arabic)
         }
-        val hasArabic = runs.any { run -> run.text.any { it in '\u0600'..'\u06FF' || it in '\u08A0'..'\u08FF' } }
+        val hasArabic = runs.any { pptxHasArabic(it.text) }
         NativeSlideTextParagraph(
             runs,
             when (property("algn")) { "l" -> SlideParagraphAlignment.LEFT; "r" -> SlideParagraphAlignment.RIGHT; "ctr", "center" -> SlideParagraphAlignment.CENTER; "just", "dist", "justLow" -> SlideParagraphAlignment.JUSTIFY; else -> SlideParagraphAlignment.START },
-            when (property("rtl")) { "1", "true" -> true; "0", "false" -> false; else -> hasArabic },
+            when (property("rtl")) { "1", "true" -> true; "0", "false" -> false; else -> pptxInferredRtl(runs) },
             spacing("spcBef"), spacing("spcAft"),
             style.overlay(paragraph.directChild("endParaRPr"), theme).run("", theme, hasArabic)
         )
