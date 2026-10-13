@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.microsoft.identity.client.AuthenticationCallback
 import com.microsoft.identity.client.IAuthenticationResult
+import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.exception.MsalException
@@ -92,7 +93,7 @@ class MainActivity : ComponentActivity() {
         PublicClientApplication.createSingleAccountPublicClientApplication(
             applicationContext,
             R.raw.auth_config_single_account,
-            object : ISingleAccountPublicClientApplication.ISingleAccountApplicationCreatedListener {
+            object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
                 override fun onCreated(application: ISingleAccountPublicClientApplication) {
                     msalApp = application
                     uiState = uiState.copy(status = null)
