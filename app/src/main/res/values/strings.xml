@@ -28,4 +28,5 @@
     <string name="zoom_out">Zoom out</string>
     <string name="fit_slide">Fit</string>
     <string name="presentation_gesture_hint">Pinch to zoom. Double tap to zoom or fit the slide.</string>
+    <string name="workbook_format_fallback">Some cell formats are not supported yet. Those cells show their saved values.</string>
 </resources>

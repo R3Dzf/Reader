@@ -167,7 +167,7 @@ data class NativeWordImage(
 data class WordTable(val rows: List<List<WordTableCell>>) : WordBlock
 data class WordTableCell(val text: String, val images: List<NativeWordImage> = emptyList())
 
-data class NativeWorkbook(val sheets: List<NativeWorksheet>) : NativeOfficeDocument
+data class NativeWorkbook(val sheets: List<NativeWorksheet>, val date1904: Boolean = false) : NativeOfficeDocument
 data class NativeWorksheet(
     val name: String,
     val rows: List<NativeSheetRow>,
@@ -183,7 +183,11 @@ data class NativeSheetCell(
     val italic: Boolean = false,
     val fontSizePoints: Float? = null,
     val textRgb: Long? = null,
-    val fillRgb: Long? = null
+    val fillRgb: Long? = null,
+    val rawValue: String = value,
+    val numberFormatId: Int = 0,
+    val numberFormatCode: String? = "General",
+    val numberFormatUnsupported: Boolean = false
 )
 
 data class NativePresentation(
@@ -338,6 +342,9 @@ object NativeOfficeEngine {
                 val cellStyles = packageFile.getEntry("xl/styles.xml")?.let { entry ->
                     parseXlsxCellStyles(secureXml(readBounded(packageFile, entry)))
                 }.orEmpty()
+                val date1904 = workbook.documentElement.directChild("workbookPr")
+                    ?.attributeByLocalName("date1904")?.let(::isEnabled) ?: false
+                val numberFormatter = XlsxNumberFormatter(date1904)
 
                 val sheetElements = workbook.documentElement.directChild("sheets")
                     ?.elementChildren()?.filter { it.localName() == "sheet" }.orEmpty()
@@ -359,6 +366,7 @@ object NativeOfficeEngine {
                             name,
                             sharedStrings,
                             cellStyles,
+                            numberFormatter,
                             MAX_XLSX_CELLS - totalCells,
                             MAX_XLSX_ROW_ENTRIES - totalRows
                         )
@@ -368,7 +376,7 @@ object NativeOfficeEngine {
                     }
                 }
                 if (sheets.isEmpty()) throw InvalidOfficeDocumentException("The workbook contains no worksheets.")
-                return NativeWorkbook(sheets)
+                return NativeWorkbook(sheets, date1904)
             }
         } catch (error: InvalidOfficeDocumentException) {
             throw error
@@ -748,6 +756,7 @@ object NativeOfficeEngine {
         name: String,
         sharedStrings: List<String>,
         cellStyles: List<NativeSheetCell>,
+        numberFormatter: XlsxNumberFormatter,
         remainingCellLimit: Int,
         remainingRowLimit: Int
     ): ParsedWorksheet {
@@ -798,7 +807,14 @@ object NativeOfficeEngine {
                 }
                 val styleIndex = cell.attributeByLocalName("s")?.toIntOrNull() ?: 0
                 val style = cellStyles.getOrNull(styleIndex) ?: NativeSheetCell("")
-                if (value.isNotEmpty() || styleIndex > 0) rowCells[columnIndex] = style.copy(value = value)
+                val numeric = (type.isEmpty() || type == "n") && rawValue.isNotBlank()
+                val formatted = if (numeric) numberFormatter.format(rawValue, style.numberFormatCode) else XlsxFormattedNumber(value)
+                if (value.isNotEmpty() || styleIndex > 0) rowCells[columnIndex] = style.copy(
+                    value = formatted.text,
+                    rawValue = value,
+                    textRgb = formatted.colorRgb ?: style.textRgb,
+                    numberFormatUnsupported = !formatted.supported
+                )
                 maximumColumn = maxOf(maximumColumn, columnIndex)
                 cellCount++
                 if (cellCount > remainingCellLimit) {
@@ -870,6 +886,21 @@ object NativeOfficeEngine {
             else pattern.directChild("fgColor")?.attributeByLocalName("rgb")?.let(::parseOfficeRgb)
         }
         val xfs = childItems("cellXfs", "xf")
+        val baseXfs = childItems("cellStyleXfs", "xf")
+        val numberFormats = mutableMapOf<Int, String>()
+        childItems("numFmts", "numFmt").forEach { format ->
+            val id = format.attributeByLocalName("numFmtId")?.toIntOrNull()?.takeIf { it >= 0 }
+                ?: throw InvalidOfficeDocumentException("An Excel number format has an invalid identifier.")
+            val code = format.attributeByLocalName("formatCode")
+                ?: throw InvalidOfficeDocumentException("An Excel number format has no code.")
+            if (code.length > 512 || numberFormats.put(id, code) != null) {
+                throw InvalidOfficeDocumentException("An Excel number format is too long or duplicated.")
+            }
+        }
+        fun formatId(xf: Element?): Int = xf?.attributeByLocalName("numFmtId")?.let {
+            it.toIntOrNull()?.takeIf { id -> id >= 0 }
+                ?: throw InvalidOfficeDocumentException("A cell number format has an invalid identifier.")
+        } ?: 0
         if (xfs.isEmpty()) return listOf(NativeSheetCell(""))
         return xfs.map { xf ->
             val fontIndex = xf.attributeByLocalName("fontId")?.toIntOrNull() ?: 0
@@ -877,13 +908,18 @@ object NativeOfficeEngine {
             val font = fonts.getOrNull(fontIndex)
             val applyFont = xf.attributeByLocalName("applyFont")?.let(::isEnabled) != false
             val applyFill = xf.attributeByLocalName("applyFill")?.let(::isEnabled) != false
+            val base = baseXfs.getOrNull(xf.attributeByLocalName("xfId")?.toIntOrNull() ?: 0)
+            val applyNumber = xf.attributeByLocalName("applyNumberFormat")?.let(::isEnabled) != false
+            val numberId = if (applyNumber && xf.attributeByLocalName("numFmtId") != null) formatId(xf) else formatId(base)
             NativeSheetCell(
                 value = "",
                 bold = applyFont && font?.first == true,
                 italic = applyFont && font?.second == true,
                 fontSizePoints = if (applyFont) font?.third?.first else null,
                 textRgb = if (applyFont) font?.third?.second else null,
-                fillRgb = if (applyFill) fills.getOrNull(fillIndex) else null
+                fillRgb = if (applyFill) fills.getOrNull(fillIndex) else null,
+                numberFormatId = numberId,
+                numberFormatCode = numberFormats[numberId] ?: XlsxNumberFormatter.builtIn(numberId)
             )
         }
     }
