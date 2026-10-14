@@ -32,5 +32,8 @@
     <string name="zoom_out">تصغير</string>
     <string name="fit_slide">ملاءمة</string>
     <string name="presentation_gesture_hint">قرّب بإصبعين. اضغط مرتين للتكبير أو عرض الشريحة كاملة.</string>
-    <string name="workbook_format_fallback">بعض تنسيقات الخلايا غير مدعومة حتى الآن. تظهر هذه الخلايا بقيمها المحفوظة.</string>
+    <string name="workbook_format_fallback">بعض تنسيقات الخلايا غير مدعومة حتى الآن. تظل القيم المحفوظة متاحة للقراءة.</string>
+    <string name="sheet_reset">إعادة العرض</string>
+    <string name="sheet_zoom_for_small_cells">كبّر العرض لقراءة المزيد من هذه الخلايا الصغيرة جدًا.</string>
+    <string name="sheet_gesture_hint">اسحب للتمرير وقرّب بإصبعين للتكبير. اضغط خلية ثم قيمتها لقراءتها كاملة.</string>
 </resources>
