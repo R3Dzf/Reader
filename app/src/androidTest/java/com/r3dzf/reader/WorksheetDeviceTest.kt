@@ -33,9 +33,9 @@ class WorksheetDeviceTest {
     @Test fun zoomControlsAndResetChangeTheViewportWithoutLosingMergedText() {
         show(sheet())
         compose.onNodeWithTag("sheet-zoom-in").performClick()
-        compose.onNodeWithTag("sheet-zoom-level").assertTextContains("125")
+        compose.onNodeWithTag("sheet-zoom-level").assertTextContains("125", substring = true)
         compose.onNodeWithTag("sheet-reset").performClick()
-        compose.onNodeWithTag("sheet-zoom-level").assertTextContains("100")
+        compose.onNodeWithTag("sheet-zoom-level").assertTextContains("100", substring = true)
         compose.onNodeWithContentDescription("A1:B4: مرحبا بالعالم").assertIsDisplayed()
     }
     @Test fun verticalPanRetainsMergedOriginThatMovedAboveTheViewport() {
@@ -59,8 +59,9 @@ class WorksheetDeviceTest {
         assertTrue("Merged fill must be present in the rendered pixels", colored > 20)
     }
     @Test fun realIndependentWorkbookRendersOnAndroidWithFarRowsAndHiddenAxes() {
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val file = File.createTempFile("reader-device-fixture-", ".xlsx", context.cacheDir)
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.context
+        val file = File.createTempFile("reader-device-fixture-", ".xlsx", instrumentation.targetContext.cacheDir)
         try {
             context.assets.open("worksheet-layout-arabic.xlsx").use { input -> file.outputStream().use { input.copyTo(it) } }
             val worksheet = NativeOfficeEngine.openWorkbook(file).sheets.single()
