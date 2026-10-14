@@ -8,7 +8,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -37,16 +35,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -389,109 +383,3 @@ private fun WordTableView(table: WordTable) {
     }
 }
 
-@Composable
-private fun WorkbookDocumentView(workbook: NativeWorkbook) {
-    var selectedSheet by remember(workbook) { mutableIntStateOf(0) }
-    val sheet = workbook.sheets.getOrNull(selectedSheet) ?: return
-    val horizontalScroll = rememberScrollState()
-    val maxColumns = maxOf(sheet.columnCount, 1)
-    val gridWidth = (56 + maxColumns * 132).coerceAtMost(67_640).dp
-    val mergesByRow = remember(sheet.horizontalMerges) {
-        sheet.horizontalMerges.groupBy { it.row }.mapValues { (_, merges) -> merges.associateBy { it.firstColumn } }
-    }
-    val hasFormatFallbacks = remember(sheet) {
-        sheet.rows.any { row -> row.cells.values.any { it.numberFormatUnsupported } }
-    }
-
-    Column(Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-            workbook.sheets.forEachIndexed { index, item ->
-                TextButton(onClick = { selectedSheet = index }) {
-                    Text(
-                        item.name,
-                        fontWeight = if (index == selectedSheet) FontWeight.Bold else FontWeight.Normal,
-                        color = if (index == selectedSheet) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        }
-        if (hasFormatFallbacks) {
-            Text(stringResource(R.string.workbook_format_fallback), Modifier.fillMaxWidth().padding(12.dp),
-                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        CompositionLocalProvider(
-            LocalLayoutDirection provides if (sheet.rightToLeft) LayoutDirection.Rtl else LayoutDirection.Ltr
-        ) {
-            Box(Modifier.fillMaxSize().horizontalScroll(horizontalScroll)) {
-                LazyColumn(Modifier.width(gridWidth).fillMaxSize()) {
-                    item {
-                        Row(Modifier.fillMaxWidth()) {
-                            Text(
-                                text = "",
-                                modifier = Modifier.width(56.dp).heightIn(min = 36.dp)
-                                    .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                            )
-                            repeat(maxColumns) { column ->
-                                Text(
-                                    text = columnLabel(column),
-                                    modifier = Modifier.width(132.dp).heightIn(min = 36.dp)
-                                        .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                                        .padding(8.dp),
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            }
-                        }
-                    }
-                    items(sheet.rows) { row ->
-                        Row(Modifier.fillMaxWidth()) {
-                            Text(
-                                text = (row.rowIndex + 1).toString(),
-                                modifier = Modifier.width(56.dp).heightIn(min = 44.dp)
-                                    .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    .padding(10.dp),
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                            var column = 0
-                            while (column < maxColumns) {
-                                val merge = mergesByRow[row.rowIndex]?.get(column)
-                                val columnSpan = merge?.let { it.lastColumn - it.firstColumn + 1 } ?: 1
-                                val cell = row.cells[column]
-                                Text(
-                                    text = cell?.value.orEmpty(),
-                                    modifier = Modifier.width((132 * columnSpan).dp).heightIn(min = 44.dp)
-                                        .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
-                                        .background(cell?.fillRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color.White)
-                                        .padding(8.dp),
-                                    maxLines = 4,
-                                    color = cell?.textRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color.Unspecified,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        textDirection = TextDirection.ContentOrRtl,
-                                        fontWeight = if (cell?.bold == true) FontWeight.Bold else FontWeight.Normal,
-                                        fontStyle = if (cell?.italic == true) FontStyle.Italic else FontStyle.Normal,
-                                        fontSize = cell?.fontSizePoints?.let { (it * 4f / 3f).sp }
-                                            ?: MaterialTheme.typography.bodySmall.fontSize
-                                    )
-                                )
-                                column += columnSpan
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun columnLabel(index: Int): String {
-    var value = index + 1
-    val label = StringBuilder()
-    while (value > 0) {
-        value--
-        label.append(('A'.code + value % 26).toChar())
-        value /= 26
-    }
-    return label.reverse().toString()
-}

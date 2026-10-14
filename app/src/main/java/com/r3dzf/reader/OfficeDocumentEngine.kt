@@ -173,10 +173,24 @@ data class NativeWorksheet(
     val rows: List<NativeSheetRow>,
     val columnCount: Int,
     val rightToLeft: Boolean,
-    val horizontalMerges: List<NativeMergedRange> = emptyList()
-)
-data class NativeMergedRange(val row: Int, val firstColumn: Int, val lastColumn: Int)
-data class NativeSheetRow(val rowIndex: Int, val cells: Map<Int, NativeSheetCell>)
+    val mergedRanges: List<NativeMergedRange> = emptyList(),
+    val columnWidthsPoints: Map<Int, Float> = emptyMap(),
+    val defaultColumnWidthPoints: Float = 48f,
+    val defaultRowHeightPoints: Float = 15f,
+    val rowCount: Int = maxOf(rows.maxOfOrNull { it.rowIndex + 1 } ?: 0, mergedRanges.maxOfOrNull { it.lastRow + 1 } ?: 0),
+    val showGridLines: Boolean = true,
+    val columnStyles: Map<Int, NativeSheetCell> = emptyMap(),
+    val defaultCell: NativeSheetCell = NativeSheetCell("")
+) {
+    val horizontalMerges: List<NativeMergedRange> get() = mergedRanges.filter { it.row == it.lastRow }
+}
+data class NativeMergedRange(val row: Int, val firstColumn: Int, val lastColumn: Int, val lastRow: Int = row)
+data class NativeSheetRow(val rowIndex: Int, val cells: Map<Int, NativeSheetCell>, val heightPoints: Float? = null, val hidden: Boolean = false, val defaultCell: NativeSheetCell? = null)
+enum class SheetValueKind { TEXT, NUMBER, BOOLEAN, ERROR, FORMULA }
+enum class SheetHorizontalAlignment { GENERAL, LEFT, CENTER, RIGHT, JUSTIFY }
+enum class SheetVerticalAlignment { TOP, CENTER, BOTTOM }
+enum class SheetBorderDash { SOLID, DASH, DOT, DASH_DOT, DASH_DOT_DOT, DOUBLE }
+data class NativeSheetBorder(val widthPoints: Float, val rgb: Long? = null, val dash: SheetBorderDash = SheetBorderDash.SOLID)
 data class NativeSheetCell(
     val value: String,
     val bold: Boolean = false,
@@ -187,7 +201,20 @@ data class NativeSheetCell(
     val rawValue: String = value,
     val numberFormatId: Int = 0,
     val numberFormatCode: String? = "General",
-    val numberFormatUnsupported: Boolean = false
+    val numberFormatUnsupported: Boolean = false,
+    val valueKind: SheetValueKind = SheetValueKind.TEXT,
+    val fontFamilyName: String? = null,
+    val underline: Boolean = false,
+    val strikeThrough: Boolean = false,
+    val horizontalAlignment: SheetHorizontalAlignment = SheetHorizontalAlignment.GENERAL,
+    val verticalAlignment: SheetVerticalAlignment = SheetVerticalAlignment.BOTTOM,
+    val readingOrder: Int = 0,
+    val wrapText: Boolean = false,
+    val appearanceUnsupported: Boolean = false,
+    val borderLeft: NativeSheetBorder? = null,
+    val borderRight: NativeSheetBorder? = null,
+    val borderTop: NativeSheetBorder? = null,
+    val borderBottom: NativeSheetBorder? = null
 )
 
 data class NativePresentation(
@@ -295,7 +322,7 @@ private class OfficeImageCache {
 enum class WordAlignment { START, CENTER, END, JUSTIFY }
 
 private data class WordNumberingLevel(val format: String, val text: String)
-private data class ParsedWorksheet(val sheet: NativeWorksheet, val cellCount: Int, val rowCount: Int)
+private data class ParsedWorksheet(val sheet: NativeWorksheet, val cellCount: Int, val rowCount: Int, val textCharacters: Int = 0)
 private data class WordNumberingCatalog(
     val numberingById: Map<Int, Int>,
     val levelsByAbstractId: Map<Pair<Int, Int>, WordNumberingLevel>
@@ -353,6 +380,7 @@ object NativeOfficeEngine {
                 }
                 var totalCells = 0
                 var totalRows = 0
+                var totalText = 0
                 val sheets = buildList {
                     sheetElements.forEach { sheet ->
                     val name = sheet.attributeByLocalName("name")?.takeIf { it.isNotBlank() } ?: "Sheet"
@@ -368,10 +396,12 @@ object NativeOfficeEngine {
                             cellStyles,
                             numberFormatter,
                             MAX_XLSX_CELLS - totalCells,
-                            MAX_XLSX_ROW_ENTRIES - totalRows
+                            MAX_XLSX_ROW_ENTRIES - totalRows,
+                            4_000_000 - totalText
                         )
                         totalCells += parsedSheet.cellCount
                         totalRows += parsedSheet.rowCount
+                        totalText += parsedSheet.textCharacters
                         add(parsedSheet.sheet)
                     }
                 }
@@ -758,22 +788,30 @@ object NativeOfficeEngine {
         cellStyles: List<NativeSheetCell>,
         numberFormatter: XlsxNumberFormatter,
         remainingCellLimit: Int,
-        remainingRowLimit: Int
+        remainingRowLimit: Int,
+        remainingTextLimit: Int
     ): ParsedWorksheet {
         val entry = zip.getEntry(partName)
             ?: throw InvalidOfficeDocumentException("Worksheet '$name' is missing from the XLSX package.")
         val document = secureXml(readBounded(zip, entry))
-        val horizontalMerges = parseHorizontalMerges(document)
+        val mergedRanges = parseWorksheetMerges(document)
+        val dimensions = readXlsxDimensions(document.documentElement)
+        fun styleAt(index: Int): NativeSheetCell = cellStyles.getOrNull(index)
+            ?: if (index == 0) NativeSheetCell("") else throw InvalidOfficeDocumentException("An XLSX cell refers to a missing style.")
+        val columnStyles = dimensions.columnStyleIds.mapValues { (_, id) -> styleAt(id) }
         val isRtl = document.documentElement.directChild("sheetViews")
             ?.elementChildren()?.firstOrNull { it.localName() == "sheetView" }
             ?.attributeByLocalName("rightToLeft")?.let(::isEnabled) ?: false
         val sheetData = document.documentElement.directChild("sheetData")
-            ?: return ParsedWorksheet(NativeWorksheet(name, emptyList(), 0, isRtl, horizontalMerges), 0, 0)
         val rows = sortedMapOf<Int, MutableMap<Int, NativeSheetCell>>()
+        val rowSettings = mutableMapOf<Int, NativeSheetRow>()
         var maximumColumn = -1
         var cellCount = 0
-        sheetData.elementChildren().filter { it.localName() == "row" }.forEachIndexed { rowPosition, row ->
-            val rowIndex = row.attributeByLocalName("r")?.toIntOrNull()?.minus(1) ?: rowPosition
+        var textCharacters = 0
+        sheetData?.elementChildren()?.filter { it.localName() == "row" }?.forEachIndexed { rowPosition, row ->
+            val rowIndex = row.attributeByLocalName("r")?.let {
+                it.toIntOrNull()?.minus(1) ?: throw InvalidOfficeDocumentException("An XLSX row has an invalid address.")
+            } ?: rowPosition
             if (rowIndex !in 0 until MAX_XLSX_ROW_INDEX) {
                 throw InvalidOfficeDocumentException("An XLSX row address is outside the spreadsheet range.")
             }
@@ -784,7 +822,17 @@ object NativeOfficeEngine {
                 throw InvalidOfficeDocumentException("The workbook exceeds the current 100,000-row reading limit.")
             }
             val rowCells = rows.getOrPut(rowIndex) { sortedMapOf() }
+            val rowStyle = row.attributeByLocalName("s")?.let {
+                val id = it.toIntOrNull()?.takeIf { value -> value >= 0 }
+                    ?: throw InvalidOfficeDocumentException("An XLSX row has an invalid style.")
+                if (row.attributeByLocalName("customFormat")?.let(::isEnabled) != false) styleAt(id) else null
+            }
+            val hidden = row.attributeByLocalName("hidden")?.let(::isEnabled) ?: false
+            val rowHeight = row.attributeByLocalName("ht")?.let { xlsxDimension(it, 409f) }
+                ?: dimensions.normalRowHeight.takeIf { dimensions.defaultRowHeight == 0f && !hidden }
+            rowSettings[rowIndex] = NativeSheetRow(rowIndex, emptyMap(), rowHeight, hidden, rowStyle)
             var nextColumn = 0
+            val addressedColumns = mutableSetOf<Int>()
             row.elementChildren().filter { it.localName() == "c" }.forEach { cell ->
                 val reference = cell.attributeByLocalName("r")
                 val (columnIndex, referencedRow) = reference?.let(::parseCellReference)
@@ -795,6 +843,7 @@ object NativeOfficeEngine {
                 if (columnIndex !in 0 until MAX_XLSX_COLUMNS) {
                     throw InvalidOfficeDocumentException("The workbook exceeds the current 512-column reading limit.")
                 }
+                if (!addressedColumns.add(columnIndex)) throw InvalidOfficeDocumentException("The worksheet contains a duplicate cell address.")
                 nextColumn = columnIndex + 1
                 val type = cell.attributeByLocalName("t").orEmpty()
                 val rawValue = cell.directChild("v")?.textContent.orEmpty()
@@ -805,15 +854,28 @@ object NativeOfficeEngine {
                     "b" -> if (rawValue == "1") "TRUE" else if (rawValue == "0") "FALSE" else rawValue
                     else -> rawValue.ifBlank { formula?.let { "=$it" }.orEmpty() }
                 }
-                val styleIndex = cell.attributeByLocalName("s")?.toIntOrNull() ?: 0
-                val style = cellStyles.getOrNull(styleIndex) ?: NativeSheetCell("")
+                textCharacters += value.length
+                if (value.length > 32_767 || textCharacters > remainingTextLimit) {
+                    throw InvalidOfficeDocumentException("Excel cell text exceeds the current reading limit.")
+                }
+                val styleIndex = cell.attributeByLocalName("s")?.let {
+                    it.toIntOrNull()?.takeIf { id -> id >= 0 } ?: throw InvalidOfficeDocumentException("An XLSX cell has an invalid style.")
+                }
+                val style = styleIndex?.let(::styleAt) ?: rowStyle ?: columnStyles[columnIndex] ?: styleAt(0)
                 val numeric = (type.isEmpty() || type == "n") && rawValue.isNotBlank()
                 val formatted = if (numeric) numberFormatter.format(rawValue, style.numberFormatCode) else XlsxFormattedNumber(value)
-                if (value.isNotEmpty() || styleIndex > 0) rowCells[columnIndex] = style.copy(
+                if (value.isNotEmpty() || styleIndex != null) rowCells[columnIndex] = style.copy(
                     value = formatted.text,
                     rawValue = value,
                     textRgb = formatted.colorRgb ?: style.textRgb,
-                    numberFormatUnsupported = !formatted.supported
+                    numberFormatUnsupported = !formatted.supported,
+                    valueKind = when {
+                        numeric -> SheetValueKind.NUMBER
+                        type == "b" -> SheetValueKind.BOOLEAN
+                        type == "e" -> SheetValueKind.ERROR
+                        rawValue.isBlank() && formula != null -> SheetValueKind.FORMULA
+                        else -> SheetValueKind.TEXT
+                    }
                 )
                 maximumColumn = maxOf(maximumColumn, columnIndex)
                 cellCount++
@@ -822,26 +884,37 @@ object NativeOfficeEngine {
                 }
             }
         }
+        val columnCount = maxOf(maximumColumn, mergedRanges.maxOfOrNull { it.lastColumn } ?: -1, dimensions.columnWidths.keys.maxOrNull() ?: -1) + 1
+        val rowCount = maxOf(rows.keys.maxOrNull()?.plus(1) ?: 0, mergedRanges.maxOfOrNull { it.lastRow + 1 } ?: 0)
+        SheetMergeIndex(mergedRanges, columnCount, rowCount)
         return ParsedWorksheet(
             sheet = NativeWorksheet(
                 name = name,
-                rows = rows.map { (row, cells) -> NativeSheetRow(row, cells.toMap()) },
-                columnCount = maxOf(maximumColumn, horizontalMerges.maxOfOrNull { it.lastColumn } ?: -1) + 1,
+                rows = rows.map { (row, cells) -> rowSettings.getValue(row).copy(cells = cells.toMap()) },
+                columnCount = columnCount,
                 rightToLeft = isRtl,
-                horizontalMerges = horizontalMerges
+                mergedRanges = mergedRanges,
+                columnWidthsPoints = dimensions.columnWidths,
+                defaultColumnWidthPoints = dimensions.defaultColumnWidth,
+                defaultRowHeightPoints = dimensions.defaultRowHeight,
+                rowCount = rowCount,
+                showGridLines = dimensions.showGridLines,
+                columnStyles = columnStyles,
+                defaultCell = styleAt(0)
             ),
             cellCount = cellCount,
-            rowCount = rows.size
+            rowCount = rows.size,
+            textCharacters = textCharacters
         )
     }
 
-    private fun parseHorizontalMerges(document: org.w3c.dom.Document): List<NativeMergedRange> {
+    private fun parseWorksheetMerges(document: org.w3c.dom.Document): List<NativeMergedRange> {
         val mergeCells = document.documentElement.directChild("mergeCells") ?: return emptyList()
         val merges = mergeCells.elementChildren().filter { it.localName() == "mergeCell" }
         if (merges.size > MAX_XLSX_MERGED_RANGES) {
             throw InvalidOfficeDocumentException("The worksheet contains too many merged cell ranges.")
         }
-        return merges.mapNotNull { merge ->
+        return merges.map { merge ->
             val reference = merge.attributeByLocalName("ref")
                 ?: throw InvalidOfficeDocumentException("A merged cell range has no address.")
             val endpoints = reference.split(':')
@@ -856,9 +929,7 @@ object NativeOfficeEngine {
             if (firstColumn > lastColumn || firstRow > lastRow) {
                 throw InvalidOfficeDocumentException("A merged cell range has reversed boundaries.")
             }
-            if (firstRow == lastRow && firstColumn < lastColumn) {
-                NativeMergedRange(firstRow, firstColumn, lastColumn)
-            } else null
+            NativeMergedRange(firstRow, firstColumn, lastColumn, lastRow)
         }
     }
 
@@ -885,6 +956,8 @@ object NativeOfficeEngine {
             if (pattern?.attributeByLocalName("patternType") != "solid") null
             else pattern.directChild("fgColor")?.attributeByLocalName("rgb")?.let(::parseOfficeRgb)
         }
+        val fontElements = childItems("fonts", "font")
+        val borderElements = childItems("borders", "border")
         val xfs = childItems("cellXfs", "xf")
         val baseXfs = childItems("cellStyleXfs", "xf")
         val numberFormats = mutableMapOf<Int, String>()
@@ -903,24 +976,37 @@ object NativeOfficeEngine {
         } ?: 0
         if (xfs.isEmpty()) return listOf(NativeSheetCell(""))
         return xfs.map { xf ->
-            val fontIndex = xf.attributeByLocalName("fontId")?.toIntOrNull() ?: 0
-            val fillIndex = xf.attributeByLocalName("fillId")?.toIntOrNull() ?: 0
-            val font = fonts.getOrNull(fontIndex)
-            val applyFont = xf.attributeByLocalName("applyFont")?.let(::isEnabled) != false
-            val applyFill = xf.attributeByLocalName("applyFill")?.let(::isEnabled) != false
             val base = baseXfs.getOrNull(xf.attributeByLocalName("xfId")?.toIntOrNull() ?: 0)
+            fun inheritedIndex(name: String, apply: String): Int =
+                (if (xf.attributeByLocalName(apply)?.let(::isEnabled) == false) base?.attributeByLocalName(name)
+                else xf.attributeByLocalName(name) ?: base?.attributeByLocalName(name))?.toIntOrNull() ?: 0
+            val fontIndex = inheritedIndex("fontId", "applyFont")
+            val fillIndex = inheritedIndex("fillId", "applyFill")
+            val font = fonts.getOrNull(fontIndex)
+            val fontElement = fontElements.getOrNull(fontIndex)
+            val border = borderElements.getOrNull(inheritedIndex("borderId", "applyBorder"))
             val applyNumber = xf.attributeByLocalName("applyNumberFormat")?.let(::isEnabled) != false
             val numberId = if (applyNumber && xf.attributeByLocalName("numFmtId") != null) formatId(xf) else formatId(base)
-            NativeSheetCell(
+            val cell = NativeSheetCell(
                 value = "",
-                bold = applyFont && font?.first == true,
-                italic = applyFont && font?.second == true,
-                fontSizePoints = if (applyFont) font?.third?.first else null,
-                textRgb = if (applyFont) font?.third?.second else null,
-                fillRgb = if (applyFill) fills.getOrNull(fillIndex) else null,
+                bold = font?.first == true,
+                italic = font?.second == true,
+                fontSizePoints = font?.third?.first,
+                textRgb = font?.third?.second,
+                fillRgb = fills.getOrNull(fillIndex),
                 numberFormatId = numberId,
-                numberFormatCode = numberFormats[numberId] ?: XlsxNumberFormatter.builtIn(numberId)
+                numberFormatCode = numberFormats[numberId] ?: XlsxNumberFormatter.builtIn(numberId),
+                fontFamilyName = fontElement?.directChild("name")?.attributeByLocalName("val"),
+                underline = fontElement?.directChild("u")?.attributeByLocalName("val") != "none" && fontElement?.directChild("u") != null,
+                strikeThrough = fontElement?.directChild("strike")?.let { it.attributeByLocalName("val")?.let(::isEnabled) ?: true } ?: false,
+                borderLeft = readXlsxBorder(border?.directChild("left")), borderRight = readXlsxBorder(border?.directChild("right")),
+                borderTop = readXlsxBorder(border?.directChild("top")), borderBottom = readXlsxBorder(border?.directChild("bottom")),
+                appearanceUnsupported = border?.directChild("diagonal")?.attributeByLocalName("style")?.let { it != "none" } == true ||
+                    border?.elementChildren()?.any { edge -> edge.directChild("color")?.let { it.attributeByLocalName("theme") != null || it.attributeByLocalName("indexed") != null } == true } == true
             )
+            val alignmentSource = if (xf.attributeByLocalName("applyAlignment")?.let(::isEnabled) == false) base
+                else if (xf.directChild("alignment") != null) xf else base
+            readXlsxAppearance(alignmentSource, cell)
         }
     }
 

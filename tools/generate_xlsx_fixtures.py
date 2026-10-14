@@ -35,3 +35,35 @@ with ZipFile(target, "w", ZIP_DEFLATED) as archive:
     for name, data in parts.items():
         archive.writestr(name, data)
 print(target)
+
+# A second workbook exercises real worksheet geometry and saved cell appearance.
+from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+book = Workbook()
+sheet = book.active
+sheet.title = "دمج وتخطيط"
+sheet.sheet_view.rightToLeft = True
+sheet.sheet_view.showGridLines = False
+for column, width in [("A", 12), ("B", 24), ("C", 8), ("D", 16), ("E", 10), ("F", 20)]:
+    sheet.column_dimensions[column].width = width
+sheet.column_dimensions["E"].hidden = True
+for row, height in [(1, 24), (2, 36), (3, 18), (4, 27), (6, 30)]:
+    sheet.row_dimensions[row].height = height
+sheet.row_dimensions[5].hidden = True
+sheet.merge_cells("A1:B3")
+sheet["A1"] = "عنوان عربي مدمج"
+sheet["A1"].font = Font(name="Arial", size=16, bold=True, italic=True, underline="single", strike=True, color="112233")
+sheet["A1"].fill = PatternFill("solid", fgColor="FFF2CC")
+sheet["A1"].alignment = Alignment(horizontal="center", vertical="center", wrap_text=True, readingOrder=2)
+sheet["A1"].border = Border(left=Side(style="thick", color="FF0000"), right=Side(style="double", color="0000FF"),
+    top=Side(style="dashed", color="00AA00"), bottom=Side(style="dotted", color="222222"))
+sheet.merge_cells("C1:C2")
+sheet["C1"] = "عمودي"
+sheet["C1"].alignment = Alignment(horizontal="right", vertical="top", readingOrder=2)
+sheet.merge_cells("A4:D4")
+sheet["A4"] = "أفقي"
+sheet["D6"] = 1234.5
+sheet["D6"].number_format = "#,##0.00"
+sheet["F6"] = "Visible after hidden E"
+sheet["B1000000"] = "صف بعيد"
+book.save(root / "app/src/test/resources/fixtures/worksheet-layout-arabic.xlsx")
+print(root / "app/src/test/resources/fixtures/worksheet-layout-arabic.xlsx")
