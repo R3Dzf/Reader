@@ -140,7 +140,7 @@ internal class XlsxNumberFormatter(private val date1904: Boolean = false) {
     }
 
     private fun dateText(value: BigDecimal, tokens: List<Token>): String? {
-        if (value.signum() < 0 || value > BigDecimal(2_958_465)) return null
+        if (value.signum() < 0 || value >= BigDecimal(2_958_466)) return null
         val elapsed = tokens.filter { !it.literal && it.value.startsWith('[') }
         if (elapsed.size > 1) return null
         val fields = tokens.filter { !it.literal && it.value.firstOrNull()?.let { c -> c in "ymdhs" } == true }
@@ -192,8 +192,9 @@ internal class XlsxNumberFormatter(private val date1904: Boolean = false) {
                     v in listOf("h", "hh") -> append(padded((if (amPm) (hour + 11) % 12 + 1 else hour).toLong(), v.length))
                     v in listOf("s", "ss") -> append(padded(second.toLong(), v.length))
                     v.firstOrNull() == 'm' && v.length in 1..5 -> {
-                        val previous = tokens.take(i).lastOrNull { !it.literal && it.value != "." }
-                        val next = tokens.drop(i + 1).firstOrNull { !it.literal }
+                        fun isTimeField(token: Token) = !token.literal && (token.value.startsWith('[') || token.value.firstOrNull()?.let { it in "ymdhs" } == true)
+                        val previous = tokens.take(i).lastOrNull(::isTimeField)
+                        val next = tokens.drop(i + 1).firstOrNull(::isTimeField)
                         val isMinute = v.length <= 2 && (previous?.value?.trim('[', ']')?.startsWith('h') == true || next?.value?.startsWith('s') == true)
                         if (isMinute) append(padded(minute.toLong(), v.length))
                         else if (v.length <= 2) append(padded(month.toLong(), v.length))

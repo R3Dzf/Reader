@@ -70,6 +70,7 @@ class XlsxNumberFormatTest {
         shown("0.0625", "mm:ss", "30:00")
         shown("45292", "ddd, d-mmm-yyyy", "Mon, 1-Jan-2024")
         shown("45292", "dd.mm.yyyy", "01.01.2024")
+        shown("1.0625", "hh-mm-ss", "01-30-00")
     }
     @Test fun supportsElapsedTimeBeyond24HoursAndSubsecondPrecision() {
         shown("1.5", "[h]:mm:ss", "36:00:00")
@@ -101,6 +102,8 @@ class XlsxNumberFormatTest {
         }
     }
     @Test fun invalidDatesAreNeverWrappedOrTurnedIntoAnotherDate() {
+        shown("2958465.5", "yyyy-mm-dd hh:mm:ss", "9999-12-31 12:00:00")
+        shown("2957003.5", "yyyy-mm-dd hh:mm:ss", "9999-12-31 12:00:00", true)
         for (value in listOf("-1", "2958466", "1E100")) {
             assertFalse(XlsxNumberFormatter().format(value, "yyyy-mm-dd").supported)
         }
