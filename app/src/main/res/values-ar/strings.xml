@@ -32,4 +32,5 @@
     <string name="zoom_out">تصغير</string>
     <string name="fit_slide">ملاءمة</string>
     <string name="presentation_gesture_hint">قرّب بإصبعين. اضغط مرتين للتكبير أو عرض الشريحة كاملة.</string>
+    <string name="workbook_format_fallback">بعض تنسيقات الخلايا غير مدعومة حتى الآن. تظهر هذه الخلايا بقيمها المحفوظة.</string>
 </resources>

@@ -399,6 +399,9 @@ private fun WorkbookDocumentView(workbook: NativeWorkbook) {
     val mergesByRow = remember(sheet.horizontalMerges) {
         sheet.horizontalMerges.groupBy { it.row }.mapValues { (_, merges) -> merges.associateBy { it.firstColumn } }
     }
+    val hasFormatFallbacks = remember(sheet) {
+        sheet.rows.any { row -> row.cells.values.any { it.numberFormatUnsupported } }
+    }
 
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
@@ -411,6 +414,10 @@ private fun WorkbookDocumentView(workbook: NativeWorkbook) {
                     )
                 }
             }
+        }
+        if (hasFormatFallbacks) {
+            Text(stringResource(R.string.workbook_format_fallback), Modifier.fillMaxWidth().padding(12.dp),
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         CompositionLocalProvider(
             LocalLayoutDirection provides if (sheet.rightToLeft) LayoutDirection.Rtl else LayoutDirection.Ltr
