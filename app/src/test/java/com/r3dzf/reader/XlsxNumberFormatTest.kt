@@ -69,6 +69,7 @@ class XlsxNumberFormatTest {
         shown("0", "h:mm AM/PM", "12:00 AM")
         shown("0.0625", "mm:ss", "30:00")
         shown("45292", "ddd, d-mmm-yyyy", "Mon, 1-Jan-2024")
+        shown("45292", "dd.mm.yyyy", "01.01.2024")
     }
     @Test fun supportsElapsedTimeBeyond24HoursAndSubsecondPrecision() {
         shown("1.5", "[h]:mm:ss", "36:00:00")

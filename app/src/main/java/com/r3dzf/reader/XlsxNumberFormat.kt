@@ -185,6 +185,7 @@ internal class XlsxNumberFormatter(private val date1904: Boolean = false) {
                         append('.'); append(totalSeconds.remainder(BigDecimal.ONE).movePointRight(fractionalPlaces).toInt().toString().padStart(fractionalPlaces, '0'))
                         i += fractionalPlaces
                     }
+                    v in listOf("-", "+", ",", ".") -> append(v)
                     v in listOf("yy", "yyyy") -> append(padded(if (v == "yy") (year % 100).toLong() else year.toLong(), v.length))
                     v in listOf("d", "dd") -> append(padded(dayOfMonth.toLong(), v.length))
                     v == "ddd" || v == "dddd" -> append(weekday.getDisplayName(if (v == "ddd") TextStyle.SHORT else TextStyle.FULL, Locale.US))
