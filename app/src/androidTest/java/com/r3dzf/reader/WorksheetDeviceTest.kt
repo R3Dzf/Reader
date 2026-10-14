@@ -69,6 +69,11 @@ class WorksheetDeviceTest {
             compose.onNodeWithContentDescription("A1:B3: عنوان عربي مدمج").assertIsDisplayed()
             compose.onNodeWithTag("sheet-zoom-in").performClick()
             compose.onNodeWithTag("worksheet-grid").captureToImage()
+            compose.onNodeWithTag("sheet-jump").performScrollTo().performClick()
+            compose.onNodeWithTag("sheet-jump-address").performTextInput("B1000000")
+            compose.onNodeWithTag("sheet-jump-confirm").performClick()
+            compose.onNodeWithContentDescription("B1000000: صف بعيد").assertIsDisplayed()
+            compose.onNodeWithTag("sheet-selected-cell").assertIsDisplayed()
         } finally { file.delete() }
     }
 }

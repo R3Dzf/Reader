@@ -4,6 +4,20 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WorksheetLayoutTest {
+    @Test fun navigationAddressesAreBoundedAndSupportAbsoluteReferences() {
+        assertEquals(999_999 to 1, sheetAddress("b1000000"))
+        assertEquals(0 to 0, sheetAddress("\$A\$1"))
+        assertEquals(1_048_575 to 511, sheetAddress("SR1048576"))
+        for (address in listOf("A0", "A1048577", "SS1", "A1:B2", "A-1", "A999999999999")) assertNull(sheetAddress(address))
+    }
+    @Test fun contextAndExplicitCellDirectionDoNotDependOnSheetOrPhoneLanguage() {
+        assertTrue(sheetCellIsRtl(NativeSheetCell("  عنوان عربي")))
+        assertTrue(sheetCellIsRtl(NativeSheetCell("\uFB50")))
+        assertFalse(sheetCellIsRtl(NativeSheetCell("2024-01-01")))
+        assertFalse(sheetCellIsRtl(NativeSheetCell("1 عربي")))
+        assertFalse(sheetCellIsRtl(NativeSheetCell("عربي", readingOrder = 1)))
+        assertTrue(sheetCellIsRtl(NativeSheetCell("English", readingOrder = 2)))
+    }
     @Test fun sparseAxesKeepMissingRowsAndSkipHiddenIntervals() {
         val axis = SheetAxis(1_000_000, 15f, mapOf(0 to 24f, 1 to 36f, 4 to 0f))
         assertEquals(24.0, axis.offset(1), 0.001)

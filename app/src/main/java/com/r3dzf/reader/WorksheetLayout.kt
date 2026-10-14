@@ -120,3 +120,25 @@ internal fun sheetColumnLabel(index: Int): String {
     while (value > 0) { value--; label.append(('A'.code + value % 26).toChar()); value /= 26 }
     return label.reverse().toString()
 }
+
+/** SpreadsheetML context reading order uses the first non-whitespace character, independent of sheet direction. */
+internal fun sheetCellIsRtl(cell: NativeSheetCell): Boolean {
+    if (cell.readingOrder != 0) return cell.readingOrder == 2
+    var index = 0
+    while (index < cell.value.length) {
+        val code = cell.value.codePointAt(index)
+        index += Character.charCount(code)
+        if (Character.isWhitespace(code)) continue
+        return Character.getDirectionality(code) in listOf(Character.DIRECTIONALITY_RIGHT_TO_LEFT, Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC)
+    }
+    return false
+}
+
+/** User navigation accepts bounded A1 addresses, including optional absolute-reference markers. */
+internal fun sheetAddress(value: String): Pair<Int, Int>? {
+    val match = Regex("^\\$?([A-Za-z]{1,3})\\$?([1-9][0-9]{0,6})$").matchEntire(value.trim()) ?: return null
+    var column = 0
+    for (char in match.groupValues[1].uppercase()) column = column * 26 + char.code - 'A'.code + 1
+    val row = match.groupValues[2].toIntOrNull() ?: return null
+    return (row - 1 to column - 1).takeIf { row in 1..1_048_576 && column in 1..512 }
+}

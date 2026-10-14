@@ -30,6 +30,10 @@
     <string name="presentation_gesture_hint">Pinch to zoom. Double tap to zoom or fit the slide.</string>
     <string name="workbook_format_fallback">Some cell formatting is not supported yet. Saved values are preserved.</string>
     <string name="sheet_reset">Reset view</string>
+    <string name="sheet_go_to">Go to cell</string>
+    <string name="sheet_go">Go</string>
+    <string name="sheet_bad_address">Enter an address within this sheet, such as A1.</string>
+    <string name="sheet_select_cell">Select a cell to read its value</string>
     <string name="sheet_zoom_for_small_cells">Zoom in to read more of these very small cells.</string>
     <string name="sheet_gesture_hint">Drag to scroll. Pinch to zoom. Tap a cell, then its value to read it in full.</string>
 </resources>

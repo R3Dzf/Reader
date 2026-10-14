@@ -66,6 +66,9 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
     var size by remember { mutableStateOf(IntSize.Zero) }
     var selected by remember(sheet) { mutableStateOf<SheetPlacement?>(null) }
     var showCell by remember { mutableStateOf(false) }
+    var showJump by remember { mutableStateOf(false) }
+    var jumpAddress by remember { mutableStateOf("") }
+    var jumpInvalid by remember { mutableStateOf(false) }
     val headerWidth = with(density) { 44.dp.toPx() }
     val headerHeight = with(density) { 30.dp.toPx() }
     val pointsToPixels = density.density * 4f / 3f * viewport.zoom
@@ -99,11 +102,12 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
     fun yBottom(cell: SheetPlacement) = headerHeight + ((cell.bottom - viewport.y) * pointsToPixels).toFloat()
 
     Column(modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.SpaceEvenly) {
             TextButton(onClick = { transform(1f / 1.25f) }, modifier = Modifier.testTag("sheet-zoom-out")) { Text("−") }
             Text(stringResource(R.string.zoom_percent, (viewport.zoom * 100).roundToInt()), Modifier.padding(top = 12.dp).testTag("sheet-zoom-level"))
             TextButton(onClick = { transform(1.25f) }, modifier = Modifier.testTag("sheet-zoom-in")) { Text("+") }
             TextButton(onClick = { viewport = SheetViewport() }, modifier = Modifier.testTag("sheet-reset")) { Text(stringResource(R.string.sheet_reset)) }
+            TextButton(onClick = { jumpInvalid = false; showJump = true }, modifier = Modifier.testTag("sheet-jump")) { Text(stringResource(R.string.sheet_go_to)) }
         }
         if (hasFallbacks) Text(stringResource(R.string.workbook_format_fallback), Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.bodySmall)
         Text(stringResource(R.string.sheet_gesture_hint), Modifier.padding(horizontal = 12.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall)
@@ -143,7 +147,7 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
                                 fontFamily = family, fontWeight = if (cell.bold) FontWeight.Bold else FontWeight.Normal,
                                 fontStyle = if (cell.italic) FontStyle.Italic else FontStyle.Normal,
                                 textDecoration = TextDecoration.combine(listOfNotNull(TextDecoration.Underline.takeIf { cell.underline }, TextDecoration.LineThrough.takeIf { cell.strikeThrough })),
-                                textDirection = when (cell.readingOrder) { 1 -> TextDirection.Ltr; 2 -> TextDirection.Rtl; else -> if (sheet.rightToLeft) TextDirection.ContentOrRtl else TextDirection.ContentOrLtr },
+                                textDirection = if (sheetCellIsRtl(cell)) TextDirection.Rtl else TextDirection.Ltr,
                                 textAlign = horizontal)
                             val text = textMeasurer.measure(AnnotatedString(cell.value), style,
                                 overflow = TextOverflow.Clip, softWrap = cell.wrapText,
@@ -189,15 +193,30 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
                     .semantics { contentDescription = "${placement.address}: ${placement.cell.value}"; onClick { selected = placement; showCell = true; true } })
             }
         }
-        selected?.let { cell ->
-            TextButton(onClick = { showCell = true }, modifier = Modifier.fillMaxWidth().testTag("sheet-selected-cell")) {
-                Text("${cell.address}: ${cell.cell.value}", maxLines = 2, overflow = TextOverflow.Ellipsis)
-            }
+        TextButton(onClick = { showCell = true }, enabled = selected != null,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag("sheet-selected-cell")) {
+            Text(selected?.let { "${it.address}: ${it.cell.value}" } ?: stringResource(R.string.sheet_select_cell),
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
     if (showCell && selected != null) AlertDialog(onDismissRequest = { showCell = false },
         title = { Text(selected!!.address) }, text = { Text(selected!!.cell.value, Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) },
         confirmButton = { TextButton(onClick = { showCell = false }) { Text(stringResource(R.string.close)) } })
+    if (showJump) AlertDialog(onDismissRequest = { showJump = false }, title = { Text(stringResource(R.string.sheet_go_to)) },
+        text = { OutlinedTextField(jumpAddress, onValueChange = { jumpAddress = it.take(16); jumpInvalid = false },
+            modifier = Modifier.testTag("sheet-jump-address"), singleLine = true, isError = jumpInvalid,
+            label = { Text("A1") }, supportingText = { if (jumpInvalid) Text(stringResource(R.string.sheet_bad_address)) }) },
+        confirmButton = { TextButton(onClick = {
+            val address = sheetAddress(jumpAddress)
+            val destination = address?.let { layout.placement(it.first, it.second) }
+            if (destination == null) jumpInvalid = true else {
+                selected = destination
+                viewport = SheetViewport(viewport.zoom, destination.left, destination.top)
+                transform()
+                showJump = false
+            }
+        }, modifier = Modifier.testTag("sheet-jump-confirm")) { Text(stringResource(R.string.sheet_go)) } },
+        dismissButton = { TextButton(onClick = { showJump = false }) { Text(stringResource(R.string.close)) } })
 }
 
 internal fun sheetTextAlignment(cell: NativeSheetCell): TextAlign = when (cell.horizontalAlignment) {
@@ -205,7 +224,7 @@ internal fun sheetTextAlignment(cell: NativeSheetCell): TextAlign = when (cell.h
     SheetHorizontalAlignment.CENTER -> TextAlign.Center
     SheetHorizontalAlignment.RIGHT -> TextAlign.Right
     SheetHorizontalAlignment.JUSTIFY -> TextAlign.Justify
-    SheetHorizontalAlignment.GENERAL -> when (cell.valueKind) { SheetValueKind.NUMBER -> TextAlign.Right; SheetValueKind.BOOLEAN, SheetValueKind.ERROR -> TextAlign.Center; else -> TextAlign.Left }
+    SheetHorizontalAlignment.GENERAL -> when (cell.valueKind) { SheetValueKind.NUMBER -> TextAlign.Right; SheetValueKind.BOOLEAN, SheetValueKind.ERROR -> TextAlign.Center; else -> if (sheetCellIsRtl(cell)) TextAlign.Right else TextAlign.Left }
 }
 private fun sheetColor(rgb: Long) = Color((0xFF000000L or rgb).toInt())
 

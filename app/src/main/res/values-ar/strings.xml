@@ -34,6 +34,10 @@
     <string name="presentation_gesture_hint">قرّب بإصبعين. اضغط مرتين للتكبير أو عرض الشريحة كاملة.</string>
     <string name="workbook_format_fallback">بعض تنسيقات الخلايا غير مدعومة حتى الآن. تظل القيم المحفوظة متاحة للقراءة.</string>
     <string name="sheet_reset">إعادة العرض</string>
+    <string name="sheet_go_to">انتقال إلى خلية</string>
+    <string name="sheet_go">انتقال</string>
+    <string name="sheet_bad_address">اكتب عنوانًا داخل هذه الورقة، مثل A1.</string>
+    <string name="sheet_select_cell">اختر خلية لقراءة قيمتها</string>
     <string name="sheet_zoom_for_small_cells">كبّر العرض لقراءة المزيد من هذه الخلايا الصغيرة جدًا.</string>
     <string name="sheet_gesture_hint">اسحب للتمرير وقرّب بإصبعين للتكبير. اضغط خلية ثم قيمتها لقراءتها كاملة.</string>
 </resources>
