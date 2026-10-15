@@ -81,6 +81,7 @@ class ChartDeviceTest {
         val clusters=mutableListOf<MutableList<Int>>()
         columns.forEach { x -> if(clusters.isEmpty() || x>clusters.last().last()+1) clusters.add(mutableListOf(x)) else clusters.last().add(x) }
         assertEquals("Only three point clusters should be drawn",3,clusters.size)
+        assertTrue("The point centered on the saved maximum X must keep its full marker width",clusters.last().size>=clusters.first().size-1)
         val centers=clusters.map { it.average() }
         assertTrue("The 2-to-10 gap must exceed the 1-to-2 gap",(centers[2]-centers[1])/(centers[1]-centers[0])>4)
         save("chart-scatter.png",image.asAndroidBitmap())

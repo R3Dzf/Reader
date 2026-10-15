@@ -131,4 +131,12 @@ class PptxChartTest {
         assertTrue(extremeUnit.minimum.isFinite() && extremeUnit.maximum.isFinite())
         assertTrue(extremeUnit.maximum>extremeUnit.minimum && extremeUnit.ticks.all { it.isFinite() })
     }
+    @Test fun ordinaryAxisNumbersUseDecimalTextWithoutLosingTinyNonzeroValues() {
+        assertEquals("10",chartNumber(10.0,"General",false))
+        assertEquals("20",chartNumber(20.0,"General",false))
+        assertEquals("-10",chartNumber(-10.0,"General",false))
+        assertEquals("0.25",chartNumber(.25,"General",false))
+        assertEquals("25%",chartNumber(.25,"0%",false))
+        assertNotEquals("0",chartNumber(1e-90,"General",false))
+    }
 }

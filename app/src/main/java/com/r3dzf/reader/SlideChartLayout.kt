@@ -1,6 +1,13 @@
 package com.r3dzf.reader
 
+import java.math.BigDecimal
+import java.math.MathContext
 import kotlin.math.*
+
+internal fun chartNumber(value: Double, format: String, date1904: Boolean, compact: Boolean = true): String {
+    val raw=if(compact) BigDecimal.valueOf(if(value==0.0) 0.0 else value).round(MathContext(7)).stripTrailingZeros().toPlainString() else value.toString()
+    return XlsxNumberFormatter(date1904).format(raw,format).text
+}
 
 internal data class ChartRange(val minimum: Double, val maximum: Double, val ticks: List<Double>) {
     fun fraction(value: Double, reversed: Boolean = false): Float {

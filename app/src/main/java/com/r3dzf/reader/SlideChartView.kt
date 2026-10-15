@@ -31,8 +31,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import java.math.BigDecimal
-import java.math.MathContext
 import kotlin.math.*
 
 @Composable
@@ -71,11 +69,6 @@ internal fun SlideChartView(chart: NativeSlideChart, pointScale: Float, modifier
                 if(rows.isEmpty()) item { Text(stringResource(R.string.chart_missing_values)) }
             }},confirmButton={TextButton(onClick={showData=false}) { Text(stringResource(R.string.close)) }})
     }
-}
-
-private fun chartNumber(value: Double, format: String, date1904: Boolean, compact: Boolean = true): String {
-    val raw=if(compact) BigDecimal.valueOf(if(value==0.0) 0.0 else value).round(MathContext(7)).stripTrailingZeros().toString() else value.toString()
-    return XlsxNumberFormatter(date1904).format(raw,format).text
 }
 
 /** Native canvas text uses the same offline registry as slide text and Android's bidi/shaping. */
@@ -202,6 +195,8 @@ internal fun drawNativeChart(canvas: NativeCanvas, chart: NativeSlideChart, widt
     line(left,bottom,right,bottom);line(left,top,left,bottom)
     if(chart.categoryAxis.title.isNotBlank()) text(chart.categoryAxis.title,left,bottom+height*.09f,plotW,height*.06f,size=9f)
     if(chart.valueAxis.title.isNotBlank()) text(chart.valueAxis.title,left,top-height*.06f,plotW,height*.06f,size=9f)
+    val markers=mutableListOf<Triple<Float,Float,Long>>()
+    val dataLabels=mutableListOf<() -> Unit>()
     val save=canvas.save();canvas.clipRect(left,top,right,bottom)
     if(chart.kind in setOf(SlideChartKind.COLUMN,SlideChartKind.BAR)) {
         val band=(if(horizontal) plotH else plotW)/count
@@ -216,8 +211,10 @@ internal fun drawNativeChart(canvas: NativeCanvas, chart: NativeSlideChart, widt
             else canvas.drawRect(position,minOf(vy(segment.start),vy(segment.end)),position+bar,maxOf(vy(segment.start),vy(segment.end)),paint)
             if(chart.showValues && segments.size<=64) {
                 val label=chartNumber(segment.value,series.format,chart.date1904)
-                if(horizontal) text(label,vx(segment.end)-20*pointPx,position,40*pointPx,bar,size=9f)
-                else text(label,position,vy(segment.end)-14*pointPx,bar,14*pointPx,size=9f)
+                dataLabels += {
+                    if(horizontal) text(label,(vx(segment.end)-20*pointPx).coerceIn(left,maxOf(left,right-40*pointPx)),position,40*pointPx,bar,size=9f)
+                    else text(label,position,(vy(segment.end)-14*pointPx).coerceIn(titleHeight,maxOf(titleHeight,bottom-14*pointPx)),bar,14*pointPx,size=9f)
+                }
             }
         }
     } else chart.series.forEachIndexed { seriesIndex,series ->
@@ -238,9 +235,14 @@ internal fun drawNativeChart(canvas: NativeCanvas, chart: NativeSlideChart, widt
                 paint.style=Paint.Style.STROKE;paint.color=rgb(series.colorRgb);paint.strokeWidth=maxOf(1f,1.5f*pointPx);canvas.drawPath(path,paint)
             }
             if(series.markerVisible || scatter && !series.lineVisible) group.forEach { p ->
-                paint.style=Paint.Style.FILL;paint.color=rgb(series.pointColors[p.first.index] ?: series.colorRgb);canvas.drawCircle(p.second,p.third,maxOf(1.5f,2.5f*pointPx),paint)
+                if(p.second in left..right && p.third in top..bottom)
+                    markers.add(Triple(p.second,p.third,series.pointColors[p.first.index] ?: series.colorRgb))
             }
         }
     }
     canvas.restoreToCount(save)
+    markers.forEach { (x,y,color) ->
+        paint.style=Paint.Style.FILL;paint.color=rgb(color);canvas.drawCircle(x,y,maxOf(1.5f,2.5f*pointPx),paint)
+    }
+    dataLabels.forEach { it() }
 }
