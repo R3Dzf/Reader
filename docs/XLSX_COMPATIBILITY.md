@@ -1,4 +1,4 @@
-# Native Excel compatibility — 0.11.0
+# Native Excel compatibility — 0.11.1
 
 Reader parses and displays workbooks offline using its own Kotlin code. It reads saved formula results and does not calculate formulas or modify the selected workbook.
 
@@ -47,3 +47,9 @@ Saved frozen panes use separate clipped corner, row, column and scrolling region
 Unwrapped text may flow into up to 32 adjacent empty, unfilled, unmerged cells. Saved values, fills and vertical borders stop overflow. Backgrounds render before text so empty cells do not paint over an earlier label. Wrapped, rotated, numeric and shrink-to-fit cells retain their own clip. Text rotation is a local rendering approximation; complex rich text and exact Office font metrics remain limitations.
 
 The parser follows workbook relationships for shared strings, styles and themes, including nonstandard part filenames. Table regions remain sparse, including tables ending at row 1,000,000. Custom table definitions and pane coordinates are bounded and validated. New regression tests cover table styling and direct overrides, custom part paths, cached formulas, alignment, invalid panes/ranges, sparse geometry, hidden-axis search and overflow barriers. Native device tests exercise diagonal scrolling with frozen headers, Arabic tables, fit-to-screen and formula search/full-value reading.
+
+## Whole-sheet formatting and hidden worksheets
+
+Legal column formatting through XFD (16,384) is validated and clipped to the supported reading window. A trailing whole-sheet format does not inflate the used range or reject an otherwise small workbook. Actual stored cells, tables and merges retain the 512-column reading limit. Overlapping or out-of-range column declarations are rejected, including overlaps beyond that window.
+
+Hidden and veryHidden worksheets remain in the parsed model, with their contents intact, and are omitted from normal reader tabs. A malformed workbook with no visible sheets falls back to its first sheet so it can still be inspected. Synthetic regression packages cover a tall wrapped header, frozen first column, a merged footer, cached zero results and full-sheet column formatting without storing a user's workbook in the repository.

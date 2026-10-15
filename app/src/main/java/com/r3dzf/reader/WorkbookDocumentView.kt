@@ -51,13 +51,14 @@ import kotlin.math.roundToInt
 
 @Composable
 internal fun WorkbookDocumentView(workbook: NativeWorkbook,initialProgress: ReadingProgress = ReadingProgress(),onProgress: (ReadingProgress) -> Unit = {}) {
-    var selectedSheet by remember(workbook) { mutableIntStateOf(initialProgress.index.coerceIn(0,workbook.sheets.lastIndex.coerceAtLeast(0))) }
-    LaunchedEffect(selectedSheet) { onProgress(ReadingProgress(selectedSheet,0,workbook.sheets.size)) }
+    val sheets = remember(workbook) { workbook.visibleSheets }
+    var selectedSheet by remember(workbook) { mutableIntStateOf(initialProgress.index.coerceIn(0,sheets.lastIndex.coerceAtLeast(0))) }
+    LaunchedEffect(selectedSheet) { onProgress(ReadingProgress(selectedSheet,0,sheets.size)) }
     Column(Modifier.fillMaxSize()) {
-        workbook.sheets.getOrNull(selectedSheet)?.let { sheet -> key(sheet) { WorksheetView(sheet, Modifier.weight(1f)) } }
+        sheets.getOrNull(selectedSheet)?.let { sheet -> key(sheet) { WorksheetView(sheet, Modifier.weight(1f)) } }
         HorizontalDivider()
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).heightIn(min = 44.dp)) {
-            workbook.sheets.forEachIndexed { index, sheet ->
+            sheets.forEachIndexed { index, sheet ->
                 TextButton(onClick = { selectedSheet = index }) {
                     Text(sheet.name, fontWeight = if (index == selectedSheet) FontWeight.Bold else FontWeight.Normal)
                 }
