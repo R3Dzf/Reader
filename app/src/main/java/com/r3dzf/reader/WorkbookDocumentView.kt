@@ -51,20 +51,36 @@ import kotlin.math.roundToInt
 
 @Composable
 internal fun WorkbookDocumentView(workbook: NativeWorkbook,initialProgress: ReadingProgress = ReadingProgress(),onProgress: (ReadingProgress) -> Unit = {}) {
-    val sheets = remember(workbook) { workbook.visibleSheets }
-    var selectedSheet by remember(workbook) { mutableIntStateOf(initialProgress.index.coerceIn(0,sheets.lastIndex.coerceAtLeast(0))) }
+    val sheets = workbook.sheets
+    var selectedSheet by remember(workbook) { mutableIntStateOf(workbookSheetIndex(workbook,initialProgress.index,initialProgress.total)) }
+    var showSheets by remember(workbook) { mutableStateOf(false) }
+    val tabs = remember(workbook,selectedSheet) { sheets.indices.filter { !sheets[it].hidden || it == selectedSheet } }
     LaunchedEffect(selectedSheet) { onProgress(ReadingProgress(selectedSheet,0,sheets.size)) }
     Column(Modifier.fillMaxSize()) {
         sheets.getOrNull(selectedSheet)?.let { sheet -> key(sheet) { WorksheetView(sheet, Modifier.weight(1f)) } }
         HorizontalDivider()
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).heightIn(min = 44.dp)) {
-            sheets.forEachIndexed { index, sheet ->
+        Row(Modifier.fillMaxWidth().heightIn(min = 44.dp),verticalAlignment = Alignment.CenterVertically) {
+            TextButton(onClick = { showSheets = true },modifier = Modifier.testTag("workbook-sheets")) { Text(stringResource(R.string.workbook_all_sheets)) }
+            Row(Modifier.weight(1f).horizontalScroll(rememberScrollState())) { tabs.forEach { index ->
+                val sheet = sheets[index]
                 TextButton(onClick = { selectedSheet = index }) {
                     Text(sheet.name, fontWeight = if (index == selectedSheet) FontWeight.Bold else FontWeight.Normal)
                 }
-            }
+            } }
         }
     }
+    if (showSheets) AlertDialog(onDismissRequest = { showSheets = false },
+        title = { Text(stringResource(R.string.workbook_all_sheets)) },
+        text = { Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
+            sheets.forEachIndexed { index,sheet -> TextButton(onClick = { selectedSheet = index;showSheets = false },modifier = Modifier.fillMaxWidth().testTag("workbook-sheet-$index")) {
+                Column(Modifier.weight(1f),horizontalAlignment = Alignment.Start) {
+                    Text(sheet.name,fontWeight = if (index == selectedSheet) FontWeight.Bold else FontWeight.Normal)
+                    if (sheet.hidden) Text(stringResource(R.string.workbook_hidden_sheet),style = MaterialTheme.typography.labelSmall)
+                }
+                if (index == selectedSheet) ReaderIcon(R.drawable.ic_check)
+            } }
+        } },
+        confirmButton = { TextButton(onClick = { showSheets = false }) { Text(stringResource(R.string.close)) } })
 }
 
 @Composable
@@ -74,6 +90,7 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    var improveContrast by remember(sheet) { mutableStateOf(true) }
     val origin=remember(sheet) { sheet.rows.asSequence().filterNot {it.hidden}.flatMap { row -> row.cells.asSequence().filter {it.value.value.isNotBlank() && layout.columns.offset(it.key+1)>layout.columns.offset(it.key)}.map {row.rowIndex to it.key} }.firstOrNull() }
     var viewport by remember(sheet) { mutableStateOf(if(origin!=null && (origin.first>=20 || origin.second>=8)) SheetViewport(x=layout.columns.offset(origin.second),y=layout.rows.offset(origin.first)) else SheetViewport()) }
     var size by remember { mutableStateOf(IntSize.Zero) }
@@ -157,6 +174,9 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
                     DropdownMenuItem(text = { Text(stringResource(R.string.sheet_fit_columns)) }, onClick = { fitColumns(); showOptions = false }, modifier = Modifier.testTag("sheet-fit"))
                     DropdownMenuItem(text = { Text(stringResource(R.string.sheet_reset)) }, onClick = { viewport = SheetViewport(); showOptions = false }, modifier = Modifier.testTag("sheet-reset"))
                     if (sheet.frozenRows > 0 || sheet.frozenColumns > 0) DropdownMenuItem(text = { Text(stringResource(if (freeze) R.string.sheet_unfreeze else R.string.sheet_freeze)) }, onClick = { freeze = !freeze; showOptions = false }, modifier = Modifier.testTag("sheet-freeze"))
+                    DropdownMenuItem(text = { Text(stringResource(R.string.sheet_improve_contrast)) },
+                        trailingIcon = { Checkbox(checked = improveContrast,onCheckedChange = null) },
+                        onClick = { improveContrast = !improveContrast;showOptions = false },modifier = Modifier.testTag("sheet-contrast"))
                     if (hasFallbacks) Text(stringResource(R.string.workbook_format_fallback), Modifier.widthIn(max = 280.dp).padding(12.dp), style = MaterialTheme.typography.bodySmall)
                 }
             }
@@ -222,7 +242,7 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
                                 if(families.size>=128) families.clear()
                                 FontFamily(DocumentFonts.typeface(context,cell.fontFamilyName,cell.bold,cell.italic,arabic))
                             }
-                            var style = TextStyle(color = cell.textRgb?.let(::sheetColor) ?: Color(0xFF111827),
+                            var style = TextStyle(color = sheetColor(sheetReadableTextRgb(cell,improveContrast)),
                                 fontSize = slideFontSize(cell.fontSizePoints ?: 11f, viewport.zoom * 4f / 3f, density),
                                 fontFamily = family, fontWeight = if (cell.bold) FontWeight.Bold else FontWeight.Normal,
                                 fontStyle = if (cell.italic) FontStyle.Italic else FontStyle.Normal,

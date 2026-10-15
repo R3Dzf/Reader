@@ -152,4 +152,7 @@
     <string name="sheet_freeze">تفعيل التثبيت المحفوظ</string>
     <string name="sheet_unfreeze">إلغاء تثبيت الأجزاء</string>
     <string name="sheet_saved_formula">المعادلة المحفوظة · لا يُعاد حساب النتيجة</string>
+    <string name="workbook_all_sheets">كل الأوراق</string>
+    <string name="workbook_hidden_sheet">ورقة مخفية</string>
+    <string name="sheet_improve_contrast">زيادة وضوح النص</string>
 </resources>

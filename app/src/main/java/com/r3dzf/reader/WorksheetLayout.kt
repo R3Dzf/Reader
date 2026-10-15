@@ -1,6 +1,35 @@
 package com.r3dzf.reader
 
 import kotlin.math.floor
+import kotlin.math.pow
+
+/** Migrate the former visible-tab history positions to original workbook indices. */
+internal fun workbookSheetIndex(workbook: NativeWorkbook, index: Int, savedTotal: Int): Int {
+    val visible = workbook.sheets.indices.filter { !workbook.sheets[it].hidden }
+    if (savedTotal <= 0) return visible.firstOrNull() ?: 0
+    if (savedTotal == visible.size && savedTotal != workbook.sheets.size && visible.isNotEmpty()) {
+        return visible[index.coerceIn(0,visible.lastIndex)]
+    }
+    return index.coerceIn(0,workbook.sheets.lastIndex.coerceAtLeast(0))
+}
+
+/** Reader-only assistance for near-invisible saved text. The parsed cell keeps its original colors. */
+internal fun sheetReadableTextRgb(cell: NativeSheetCell, improveContrast: Boolean): Long {
+    val text = cell.textRgb ?: 0x111827L
+    if (!improveContrast) return text
+    val fill = cell.fillRgb ?: 0xFFFFFFL
+    fun luminance(rgb: Long): Double {
+        fun channel(shift: Int): Double {
+            val value = ((rgb shr shift) and 255).toDouble() / 255
+            return if (value <= .04045) value / 12.92 else ((value + .055) / 1.055).pow(2.4)
+        }
+        return .2126 * channel(16) + .7152 * channel(8) + .0722 * channel(0)
+    }
+    val ink = luminance(text);val background = luminance(fill)
+    val contrast = (maxOf(ink,background) + .05) / (minOf(ink,background) + .05)
+    if (contrast >= 1.5) return text
+    return if ((background + .05) / .05 >= 1.05 / (background + .05)) 0x111827L else 0xFFFFFFL
+}
 
 /** SpreadsheetML width conversion using Calibri 11's reference maximum digit width (7 px at 96 dpi). */
 internal fun xlsxColumnPoints(width: Float): Float = (floor((256 * width + floor(128.0 / 7)) / 256 * 7) * 0.75).toFloat()
