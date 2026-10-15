@@ -112,5 +112,8 @@ class PptxChartTest {
         val saved=chartRange(listOf(2.0,3.0),SlideChartAxis(minimum=1000.0),false);assertEquals(1000.0,saved.minimum,0.0);assertTrue(saved.maximum>1000)
         val tiny=chartRange(listOf(1e-90,2e-90),SlideChartAxis(),false)
         assertTrue(tiny.minimum.isFinite() && tiny.maximum>tiny.minimum);assertTrue(tiny.ticks.size<=11)
+        val subnormal=chartRange(listOf(1e-323,2e-323),SlideChartAxis(),false)
+        assertTrue(subnormal.minimum.isFinite() && subnormal.maximum>subnormal.minimum)
+        assertTrue(subnormal.ticks.all { it.isFinite() })
     }
 }

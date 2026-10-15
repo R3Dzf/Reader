@@ -74,7 +74,7 @@ internal fun SlideChartView(chart: NativeSlideChart, pointScale: Float, modifier
 }
 
 private fun chartNumber(value: Double, format: String, date1904: Boolean, compact: Boolean = true): String {
-    val raw=if(compact) BigDecimal.valueOf(if(abs(value)<1e-14) 0.0 else value).round(MathContext(7)).stripTrailingZeros().toString() else value.toString()
+    val raw=if(compact) BigDecimal.valueOf(if(value==0.0) 0.0 else value).round(MathContext(7)).stripTrailingZeros().toString() else value.toString()
     return XlsxNumberFormatter(date1904).format(raw,format).text
 }
 

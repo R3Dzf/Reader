@@ -22,8 +22,9 @@ internal fun chartRange(values: List<Double>, axis: SlideChartAxis, includeZero:
         }
     }
     if(low>=high) return ChartRange(0.0,1.0,listOf(0.0,1.0))
-    val ideal=(high-low)/5
-    val power=10.0.pow(floor(log10(ideal)))
+    val span=high-low
+    val ideal=(span/5).takeIf { it>0 } ?: span
+    val power=10.0.pow(floor(log10(ideal))).takeIf { it>0 } ?: Double.MIN_VALUE
     val step=axis.majorUnit ?: (listOf(1.0,2.0,5.0,10.0).first { it*power>=ideal }*power)
     if(axis.minimum==null) low=floor(low/step)*step
     if(axis.maximum==null) high=ceil(high/step)*step

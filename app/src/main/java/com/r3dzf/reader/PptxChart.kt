@@ -119,6 +119,7 @@ internal fun readPptxChart(root: Element, theme: PptxTheme, budget: PptxChartBud
     var categoryLabels = emptyList<String>()
     var cachedPoints = 0
     val seriesNodes = plots.flatMap { it.elementChildren().filter { e -> e.localName() == "ser" } }
+        .withIndex().sortedBy { it.value.chartValue("order")?.toIntOrNull() ?: it.index }.map { it.value }
     if(seriesNodes.size > 32) invalidChart("Too many chart series")
     val palette = listOf(0x4472C4L,0xED7D31L,0xA5A5A5L,0xFFC000L,0x5B9BD5L,0x70AD47L)
     val series = seriesNodes.mapIndexed { index, node ->
@@ -158,6 +159,7 @@ internal fun readPptxChart(root: Element, theme: PptxTheme, budget: PptxChartBud
     if(kind == SlideChartKind.SCATTER && series.any { it.xValues.size != it.values.size }) notices += SlideChartNotice.PARTIAL_VALUES
     val grouping = when(type.chartValue("grouping")) { "stacked" -> SlideChartGrouping.STACKED; "percentStacked" -> SlideChartGrouping.PERCENT; else -> SlideChartGrouping.STANDARD }
     if(kind in setOf(SlideChartKind.PIE,SlideChartKind.DOUGHNUT) && (series.size != 1 || series.any { s -> s.values.any { it != null && it < 0 } })) notices += SlideChartNotice.UNSUPPORTED_DATA
+    if(kind in setOf(SlideChartKind.PIE,SlideChartKind.DOUGHNUT) && series.all { s -> s.values.none { it != null && it > 0 } }) notices += SlideChartNotice.UNSUPPORTED_DATA
     if(grouping == SlideChartGrouping.PERCENT && series.any { s -> s.values.any { it != null && it < 0 } }) notices += SlideChartNotice.UNSUPPORTED_DATA
     val axisIds = type?.elementChildren()?.filter { it.localName() == "axId" }?.mapNotNull { it.attributeByLocalName("val") }.orEmpty()
     val axes = plot.elementChildren().filter { it.localName() in setOf("catAx","dateAx","valAx") && (axisIds.isEmpty() || it.chartValue("axId") in axisIds) }

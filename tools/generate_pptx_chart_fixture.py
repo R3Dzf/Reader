@@ -36,7 +36,9 @@ c=category(XL_CHART_TYPE.PIE,'توزيع الأقسام',['قسم أ','قسم ب
 c.plots[0].has_data_labels=True;c.plots[0].data_labels.show_percentage=True;c.plots[0].data_labels.show_value=False
 for point,color in zip(c.series[0].points,['1464C8','DA492A','469C35']):point.format.fill.solid();point.format.fill.fore_color.rgb=RGBColor.from_string(color)
 c=category(XL_CHART_TYPE.DOUGHNUT,'حلقة القيم',['أ','ب','ج'],[('الدونات',[10,20,30])])
-c.plots[0].hole_size=60
+# python-pptx has no hole_size property; write the actual DrawingML value.
+c._chartSpace.xpath('//c:holeSize')[0].set('val','60')
+assert c._chartSpace.xpath('//c:holeSize')[0].get('val')=='60'
 xy=XyChartData();s=xy.add_series('القياسات')
 for x,y in [(1,2),(2,4),(10,3)]:s.add_data_point(x,y)
 c=add(XL_CHART_TYPE.XY_SCATTER,'قياسات غير متساوية',xy)
