@@ -291,6 +291,8 @@ data class NativeSlideShape(
     val outline: NativeSlideCellBorder? = null,
     val rotationDegrees: Float = 0f,
     val shearX: Float = 0f,
+    val drawingScaleX: Float = 1f,
+    val drawingScaleY: Float = 1f,
     val flipHorizontal: Boolean = false,
     val flipVertical: Boolean = false,
     val textBox: SlideTextBox = SlideTextBox(),
@@ -639,7 +641,7 @@ object NativeOfficeEngine {
             val firstScale = kotlin.math.hypot(transform.a, transform.b).coerceAtLeast(1e-12)
             val perpendicular = (transform.a * transform.d - transform.b * transform.c) / firstScale
             val mappedHeight = height * kotlin.math.abs(perpendicular)
-            val shear = ((transform.a * transform.c + transform.b * transform.d) / firstScale / kotlin.math.abs(perpendicular).coerceAtLeast(1e-12)).toFloat()
+            val shear = ((transform.a * transform.c + transform.b * transform.d) / firstScale / firstScale).toFloat()
             val rotation = Math.toDegrees(kotlin.math.atan2(transform.b, transform.a)).toFloat()
             val flipped = transform.a * transform.d - transform.b * transform.c < 0
             val textBody = shape.directChild("txBody")
@@ -691,6 +693,8 @@ object NativeOfficeEngine {
                 outline = readSlideOutline(shape, style.theme),
                 rotationDegrees = rotation,
                 shearX = shear.coerceIn(-1000f,1000f),
+                drawingScaleX = firstScale.toFloat().coerceIn(0.000001f,1_000_000f),
+                drawingScaleY = kotlin.math.abs(perpendicular).toFloat().coerceIn(0.000001f,1_000_000f),
                 flipVertical = flipped,
                 textBox = readSlideTextBox(inheritedShapes),
                 imageCrop = SlideImageCrop(cropValue("l"),cropValue("t"),cropValue("r"),cropValue("b"))

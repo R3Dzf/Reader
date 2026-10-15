@@ -149,8 +149,12 @@ internal fun SlideContent(presentation: NativePresentation, slide: NativeSlide, 
         val scale = maxWidth.value / presentation.slideWidthPoints
         val density = LocalDensity.current
         slide.shapes.forEach { shape ->
-            val width = maxWidth * shape.widthFraction
-            val height = maxHeight * shape.heightFraction
+            // Lay text, margins and strokes out in the original child coordinate space.
+            // Apply the group's affine scale to the whole drawing, including glyphs.
+            val width = maxWidth * (shape.widthFraction / shape.drawingScaleX)
+            val height = maxHeight * (shape.heightFraction / shape.drawingScaleY)
+            val x = maxWidth * (shape.xFraction + shape.widthFraction / 2) - width / 2
+            val y = maxHeight * (shape.yFraction + shape.heightFraction / 2) - height / 2
             val unsupportedLabel = when (shape.kind) {
                 NativeSlideShapeKind.IMAGE -> if (shape.imageBytes == null) R.string.presentation_image_unavailable else null
                 NativeSlideShapeKind.TABLE -> if (shape.table == null) R.string.presentation_table_unavailable else null
@@ -158,12 +162,12 @@ internal fun SlideContent(presentation: NativePresentation, slide: NativeSlide, 
                 else -> null
             }
             Box(
-                Modifier.absoluteOffset(x = maxWidth * shape.xFraction, y = maxHeight * shape.yFraction)
+                Modifier.absoluteOffset(x = x, y = y)
                     .width(if (shape.geometry == "line" && width < 1.dp) 1.dp else width).height(if (shape.geometry == "line" && height < 1.dp) 1.dp else height)
                     .graphicsLayer {
                         rotationZ = shape.rotationDegrees
-                        scaleX = if (shape.flipHorizontal) -1f else 1f
-                        scaleY = if (shape.flipVertical) -1f else 1f
+                        scaleX = shape.drawingScaleX * if (shape.flipHorizontal) -1f else 1f
+                        scaleY = shape.drawingScaleY * if (shape.flipVertical) -1f else 1f
                     }
                     .drawWithContent {
                         val canvas = drawContext.canvas.nativeCanvas
@@ -203,7 +207,7 @@ internal fun SlideContent(presentation: NativePresentation, slide: NativeSlide, 
                         )
                     )
                     shape.imageBytes != null -> OfficeImageView(
-                        shape.imageBytes, width.value * imageScale, height.value * imageScale, null, shape.imageCrop
+                        shape.imageBytes, width.value * imageScale * shape.drawingScaleX, height.value * imageScale * shape.drawingScaleY, null, shape.imageCrop
                     )
                     unsupportedLabel != null -> Text(
                         stringResource(unsupportedLabel), color = Color(0xFF8B3E1A),

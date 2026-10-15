@@ -30,6 +30,8 @@ class PptxDrawingTest {
         assertEquals(0.2f,text.yFraction,0.001f)
         assertEquals(0.2f,text.widthFraction,0.001f)
         assertEquals(0.4f,text.heightFraction,0.001f)
+        assertEquals(1f,text.drawingScaleX,0.001f)
+        assertEquals(2f,text.drawingScaleY,0.001f)
         assertEquals(SlideCellVerticalAlignment.CENTER,text.textBox.vertical)
         assertEquals(0f,text.textBox.left,0f)
         assertEquals("Cairo",text.paragraphs[0].runs[0].fontFamilyName)

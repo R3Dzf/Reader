@@ -76,15 +76,37 @@ class PresentationDeviceTest {
         assertTrue("Grouped ellipse must be drawn",red>30)
         assertTrue("Master decoration must be drawn",blue>30)
     }
+    @Test fun groupScaleTransformsTheGlyphsAlongWithTheirFrames() {
+        val paragraph=NativeSlideTextParagraph(listOf(NativeSlideTextRun("Reader",fontSizePoints=24f,fontFamilyName="Lato")))
+        val base=NativeSlideShape(NativeSlideShapeKind.TEXT,"Reader",.05f,.1f,.4f,.2f,
+            paragraphs=listOf(paragraph),textBox=SlideTextBox(0f,0f,0f,0f))
+        val scaled=base.copy(xFraction=.55f,heightFraction=.4f,drawingScaleY=2f)
+        val document=NativePresentation(listOf(NativeSlide(1,listOf(base,scaled))),400f,200f)
+        compose.setContent { ReaderTheme { SlideContent(document,document.slides[0],1f,Modifier.width(400.dp).height(200.dp)) } }
+        val pixels=compose.onNodeWithTag("slide-1").captureToImage().toPixelMap()
+        fun inkHeight(left: Float,right: Float): Int {
+            var top=pixels.height;var bottom=-1
+            for(y in 0 until pixels.height) for(x in (left*pixels.width).toInt() until (right*pixels.width).toInt()) {
+                val c=pixels[x,y]
+                if(c.red<.3f && c.green<.3f && c.blue<.3f) { top=minOf(top,y);bottom=maxOf(bottom,y) }
+            }
+            return if(bottom<top) 0 else bottom-top+1
+        }
+        val normal=inkHeight(0f,.48f);val doubled=inkHeight(.52f,1f)
+        assertTrue("Regular glyphs must be visible",normal>5)
+        assertTrue("Group-scaled glyphs must double in height: $normal -> $doubled",doubled.toFloat()/normal in 1.8f..2.2f)
+    }
     @Test fun pdfPaperStaysWhiteInDarkTheme() {
         val file=File.createTempFile("white-paper-", ".pdf", instrumentation.targetContext.cacheDir)
         try {
-            android.graphics.pdf.PdfDocument().use { document ->
+            val pdf=android.graphics.pdf.PdfDocument()
+            try {
+                val document=pdf
                 val page=document.startPage(android.graphics.pdf.PdfDocument.PageInfo.Builder(300,300,1).create())
                 page.canvas.drawColor(android.graphics.Color.WHITE)
                 document.finishPage(page)
                 file.outputStream().use { document.writeTo(it) }
-            }
+            } finally { pdf.close() }
             compose.setContent { MaterialTheme(colorScheme=darkColorScheme()) { PdfDocumentView(file) {} } }
             compose.waitUntil(15000) { compose.onAllNodesWithTag("pdf-page-image-0").fetchSemanticsNodes().isNotEmpty() }
             assertWhite("pdf-page-image-0")
