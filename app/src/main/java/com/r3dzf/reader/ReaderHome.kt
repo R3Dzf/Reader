@@ -79,8 +79,11 @@ fun ReaderHome(documents: List<LibraryDocument>,busy: Boolean = false,error: Str
             }
             Column(Modifier.weight(1f)) {
                 val wordmark=remember { FontFamily(DocumentFonts.typeface(context,"Manrope",bold=true)) }
-                Text("Rafolio",fontFamily=wordmark,fontSize=25.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onBackground)
-                Text(stringResource(R.string.brand_tagline),style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Rafolio",fontFamily=wordmark,fontSize=25.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onBackground,maxLines=1,overflow=TextOverflow.Ellipsis)
+                Text(stringResource(R.string.brand_tagline),style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=1,overflow=TextOverflow.Ellipsis)
+            }
+            if(documents.isNotEmpty() && tab==LibraryTab.HOME) IconButton(onClick={if(!busy) onOpen()},enabled=!busy,modifier=Modifier.testTag("open-file")) {
+                if(busy) CircularProgressIndicator(Modifier.size(20.dp),strokeWidth=2.dp) else ReaderIcon(R.drawable.ic_add,stringResource(R.string.open_file),tint=MaterialTheme.colorScheme.primary)
             }
             IconButton(onClick={showSettings=true},modifier=Modifier.testTag("home-settings")) { ReaderIcon(R.drawable.ic_settings,stringResource(R.string.settings)) }
         } },
@@ -90,19 +93,19 @@ fun ReaderHome(documents: List<LibraryDocument>,busy: Boolean = false,error: Str
                     label={Text(stringResource(label),style=MaterialTheme.typography.labelMedium)},modifier=Modifier.testTag("nav-${item.name.lowercase(Locale.ROOT)}"))
             }
         } },
-        floatingActionButton={ if(documents.isNotEmpty()) ExtendedFloatingActionButton(onClick={if(!busy) onOpen()},
+        floatingActionButton={ if(documents.isNotEmpty() && tab!=LibraryTab.HOME) ExtendedFloatingActionButton(onClick={if(!busy) onOpen()},
             containerColor=MaterialTheme.colorScheme.primary,contentColor=MaterialTheme.colorScheme.onPrimary,
             icon={if(busy) CircularProgressIndicator(Modifier.size(20.dp),color=MaterialTheme.colorScheme.onPrimary,strokeWidth=2.dp) else ReaderIcon(R.drawable.ic_add,tint=MaterialTheme.colorScheme.onPrimary)},
             text={Text(stringResource(if(busy) R.string.importing else R.string.open_file))},modifier=Modifier.testTag("open-file")) },
         snackbarHost={SnackbarHost(snackbar)}
     ) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding).testTag("library-list"),contentPadding=PaddingValues(start=22.dp,end=22.dp,top=14.dp,bottom=100.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
-            item {
+            if(documents.isNotEmpty() || tab!=LibraryTab.HOME) item {
                 Text(stringResource(when(tab) { LibraryTab.HOME -> R.string.your_library;LibraryTab.HISTORY -> R.string.reading_history;LibraryTab.FAVORITES -> R.string.your_favorites }),
                     style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold)
                 Text(pluralStringResource(R.plurals.library_file_count,documents.size,documents.size),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.padding(top=4.dp))
             }
-            item {
+            if(documents.isNotEmpty()) item {
                 OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().testTag("library-search"),singleLine=true,keyboardOptions=KeyboardOptions(imeAction=ImeAction.Search),keyboardActions=KeyboardActions(onSearch={keyboard?.hide();focus.clearFocus()}),
                     placeholder={Text(stringResource(R.string.search_files),style=MaterialTheme.typography.bodyMedium)},
                     leadingIcon={ReaderIcon(R.drawable.ic_search)},trailingIcon={if(query.isNotEmpty()) IconButton(onClick={query=""}) { ReaderIcon(R.drawable.ic_close,stringResource(R.string.clear_search)) }},
@@ -112,7 +115,7 @@ fun ReaderHome(documents: List<LibraryDocument>,busy: Boolean = false,error: Str
             if(showHero) item {
                 if(featured==null) WelcomeCard(busy,onOpen) else ContinueCard(featured,{onOpenDocument(featured)})
             }
-            item {
+            if(documents.isNotEmpty()) item {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).testTag("file-filters"),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     FilterChip(selected=kind==null,onClick={kind=null},label={Text(stringResource(R.string.all_files))},modifier=Modifier.testTag("filter-all"))
                     DocumentKind.entries.forEach { option -> FilterChip(selected=kind==option,onClick={kind=option},
@@ -133,6 +136,8 @@ fun ReaderHome(documents: List<LibraryDocument>,busy: Boolean = false,error: Str
                     previousGroup=group
                     item(key=document.id) { DocumentRow(document,busy,{onOpenDocument(document)},{onFavorite(document)},{remove=document}) }
                 }
+            } else if(showHero && documents.isEmpty()) item {
+                Text(stringResource(R.string.history_hint),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant,modifier=Modifier.padding(horizontal=8.dp,vertical=8.dp))
             } else if(!(showHero && featured!=null)) item {
                 EmptyLibrary(tab,query.isNotBlank() || kind!=null,documents.isEmpty(),onOpen) { query="";kind=null }
             }
@@ -144,7 +149,7 @@ fun ReaderHome(documents: List<LibraryDocument>,busy: Boolean = false,error: Str
         confirmButton={TextButton(onClick={remove=null;onRemove(document)},modifier=Modifier.testTag("confirm-remove")) { Text(stringResource(R.string.remove),color=MaterialTheme.colorScheme.error) }},
         dismissButton={TextButton(onClick={remove=null}) { Text(stringResource(R.string.cancel)) }}) }
     if(clear) AlertDialog(onDismissRequest={clear=false},title={Text(stringResource(R.string.clear_library))},text={Text(stringResource(R.string.clear_library_message))},
-        confirmButton={TextButton(onClick={clear=false;onClear()},modifier=Modifier.testTag("confirm-clear")) { Text(stringResource(R.string.clear_library),color=MaterialTheme.colorScheme.error) }},
+        confirmButton={TextButton(onClick={clear=false;query="";kind=null;onClear()},modifier=Modifier.testTag("confirm-clear")) { Text(stringResource(R.string.clear_library),color=MaterialTheme.colorScheme.error) }},
         dismissButton={TextButton(onClick={clear=false}) { Text(stringResource(R.string.cancel)) }})
 }
 
@@ -265,7 +270,7 @@ private fun AppearanceDialog(documents: List<LibraryDocument>,onDismiss: () -> U
     AlertDialog(onDismissRequest=onDismiss,modifier=Modifier.testTag("appearance-dialog"),title={Text(stringResource(R.string.settings),fontWeight=FontWeight.Bold)},
         text={ Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(6.dp)) {
             Text(stringResource(R.string.appearance),style=MaterialTheme.typography.titleSmall)
-            ReaderThemeMode.entries.forEach { option -> Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(role=Role.RadioButton) { mode=option;saveReaderTheme(context,option) }.padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically) {
+            ReaderThemeMode.entries.forEach { option -> Row(Modifier.fillMaxWidth().heightIn(min=48.dp).clip(RoundedCornerShape(12.dp)).clickable(role=Role.RadioButton) { mode=option;saveReaderTheme(context,option) }.padding(vertical=4.dp),verticalAlignment=Alignment.CenterVertically) {
                 RadioButton(selected=option==mode,onClick=null)
                 Spacer(Modifier.width(12.dp));Text(stringResource(when(option) { ReaderThemeMode.SYSTEM -> R.string.theme_system;ReaderThemeMode.LIGHT -> R.string.theme_light;ReaderThemeMode.DARK -> R.string.theme_dark }))
             } }

@@ -46,7 +46,7 @@
     <string name="home">Home</string>
     <string name="history">History</string>
     <string name="favorites">Favorites</string>
-    <string name="your_library">A little more organized.</string>
+    <string name="your_library">Your library.</string>
     <string name="reading_history">Pick up where you left off.</string>
     <string name="your_favorites">Keep the good ones close.</string>
     <string name="search_files">Search your documents</string>
@@ -55,7 +55,7 @@
     <string name="importing">Adding file…</string>
     <string name="open_first_file">Open your first file</string>
     <string name="welcome_eyebrow">A quieter place for your files</string>
-    <string name="welcome_title">Your files.\nA fresh perspective.</string>
+    <string name="welcome_title">Your files.\nRight here.</string>
     <string name="continue_reading">CONTINUE READING</string>
     <string name="resume_reading">Continue reading</string>
     <string name="all_files">All files</string>

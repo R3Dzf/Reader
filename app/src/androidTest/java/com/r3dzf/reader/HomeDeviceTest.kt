@@ -42,6 +42,7 @@ class HomeDeviceTest {
         }
     }
     private fun save(name: String,tag: String?=null) {
+        if(android.os.Build.VERSION.SDK_INT<29) return
         val bitmap=(if(tag==null) compose.onRoot() else compose.onNodeWithTag(tag)).captureToImage().asAndroidBitmap()
         val resolver=context.contentResolver
         val values=android.content.ContentValues().apply {
@@ -68,11 +69,11 @@ class HomeDeviceTest {
         compose.onNodeWithTag("library-search").performImeAction()
         compose.onNodeWithTag("document-slides").assertIsDisplayed()
         compose.onNodeWithTag("document-pdf").assertDoesNotExist()
-        compose.onNodeWithTag("document-menu-slides").performClick()
+        compose.onNodeWithTag("document-menu-slides").performScrollTo().performClick()
         compose.onNodeWithText("Add to favorites").performClick()
         compose.onNodeWithTag("nav-favorites").performClick()
         compose.onNodeWithTag("document-slides").assertIsDisplayed()
-        compose.onNodeWithTag("document-menu-slides").performClick()
+        compose.onNodeWithTag("document-menu-slides").performScrollTo().performClick()
         compose.onNodeWithText("Remove from library").performClick()
         compose.onNodeWithTag("document-slides").assertExists()
         compose.onNodeWithTag("confirm-remove").performClick()
@@ -81,7 +82,7 @@ class HomeDeviceTest {
     @Test fun arabicHistoryUsesRtlAndKeepsArabicNamesReadable() {
         show(documents(),true)
         compose.onNodeWithTag("nav-history").performClick()
-        compose.onNodeWithText("محاضرات الذكاء الاصطناعي.pptx").assertIsDisplayed()
+        compose.onNodeWithText("محاضرات الذكاء الاصطناعي.pptx").performScrollTo().assertIsDisplayed()
         save("rafolio-history-ar.png")
     }
     @Test fun darkHomeKeepsDocumentActionsReadable() {

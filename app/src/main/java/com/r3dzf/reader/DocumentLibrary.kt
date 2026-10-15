@@ -67,10 +67,10 @@ class DocumentLibrary internal constructor(private val context: Context) {
     }
     private fun importStream(input: InputStream,name: String,extension: String): LibraryDocument {
         if(extension!="pdf" && OfficeFormat.entries.none { it.extension==extension }) throw LibraryException(LibraryProblem.UNSUPPORTED)
+        // This worker serializes imports. Any pre-existing pending copy belongs to an interrupted import.
+        directory.listFiles()?.filter { it.name.startsWith(".pending-") }?.forEach { it.delete() }
         val pending=File(directory,".pending-${UUID.randomUUID()}")
         try {
-            // Only interrupted imports older than a day are collected; active imports are never removed.
-            directory.listFiles()?.filter { it.name.startsWith(".pending-") && System.currentTimeMillis()-it.lastModified()>86_400_000 }?.forEach { it.delete() }
             val digest=MessageDigest.getInstance("SHA-256").apply { update(extension.toByteArray(Charsets.UTF_8));update(byteArrayOf(0)) };var size=0L
             pending.outputStream().use { output ->
                 val buffer=ByteArray(64*1024)
