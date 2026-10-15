@@ -1,4 +1,4 @@
-# Native Excel compatibility — 0.11.1
+# Native Excel compatibility — 0.11.2
 
 Reader parses and displays workbooks offline using its own Kotlin code. It reads saved formula results and does not calculate formulas or modify the selected workbook.
 
@@ -52,4 +52,10 @@ The parser follows workbook relationships for shared strings, styles and themes,
 
 Legal column formatting through XFD (16,384) is validated and clipped to the supported reading window. A trailing whole-sheet format does not inflate the used range or reject an otherwise small workbook. Actual stored cells, tables and merges retain the 512-column reading limit. Overlapping or out-of-range column declarations are rejected, including overlaps beyond that window.
 
-Hidden and veryHidden worksheets remain in the parsed model, with their contents intact, and are omitted from normal reader tabs. A malformed workbook with no visible sheets falls back to its first sheet so it can still be inspected. Synthetic regression packages cover a tall wrapped header, frozen first column, a merged footer, cached zero results and full-sheet column formatting without storing a user's workbook in the repository.
+Hidden and veryHidden worksheets remain in the parsed model, with their contents intact. The All sheets chooser opens every worksheet, with a hidden badge; selecting a hidden sheet also makes its tab available. Reading history uses the original workbook index so a selected hidden sheet can be restored. A malformed workbook with no visible sheets falls back to its first sheet so it can still be inspected. Synthetic regression packages cover a tall wrapped header, frozen first column, a merged footer, cached zero results and full-sheet column formatting without storing a user's workbook in the repository.
+
+## Reader text contrast assistance
+
+Increase text contrast is enabled for each worksheet view. It changes only the displayed foreground when saved text and its background are nearly identical (luminance contrast below 1.5). Original cell values and colors remain in the model, and the selected file is never changed. The worksheet menu can disable the assistance to show the exact saved text color. Existing readable colors, including white on blue table headers, stay unchanged.
+
+A modified workbook may have different saved styles from an earlier supplied copy. Synthetic Android regressions recreate white text on white header fills, 50% zoom, table stripes and frozen columns; these verify readability assistance rather than establishing exact rendering of an unavailable modified file.

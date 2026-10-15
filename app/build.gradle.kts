@@ -12,8 +12,8 @@ android {
         applicationId = "com.r3dzf.reader"
         minSdk = 26
         targetSdk = 35
-        versionCode = providers.gradleProperty("rafolioVersionCode").orElse("12").get().toInt()
-        versionName = providers.gradleProperty("rafolioVersionName").orElse("0.11.1").get()
+        versionCode = providers.gradleProperty("rafolioVersionCode").orElse("13").get().toInt()
+        versionName = providers.gradleProperty("rafolioVersionName").orElse("0.11.2").get()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
