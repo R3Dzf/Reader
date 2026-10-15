@@ -225,7 +225,7 @@ data class NativePresentation(
 
 data class NativeSlide(val number: Int, val shapes: List<NativeSlideShape>, val backgroundRgb: Long? = null, val backgroundFill: SlideFill? = null)
 
-enum class NativeSlideShapeKind { TEXT, SHAPE, IMAGE, TABLE, OTHER }
+enum class NativeSlideShapeKind { TEXT, SHAPE, IMAGE, TABLE, CHART, OTHER }
 enum class SlideCellVerticalAlignment { TOP, CENTER, BOTTOM }
 enum class SlideBorderDash { SOLID, DASH, DOT }
 
@@ -295,7 +295,8 @@ data class NativeSlideShape(
     val flipHorizontal: Boolean = false,
     val flipVertical: Boolean = false,
     val textBox: SlideTextBox = SlideTextBox(),
-    val imageCrop: SlideImageCrop = SlideImageCrop()
+    val imageCrop: SlideImageCrop = SlideImageCrop(),
+    val chart: NativeSlideChart? = null
 ) {
     val tableRows: List<List<NativeSlideTableCell>> get() = table?.rows.orEmpty()
 }
@@ -554,6 +555,7 @@ object NativeOfficeEngine {
                 val imageCache = OfficeImageCache()
                 val styleParts = PptxStyleParts(packageFile, presentation.documentElement)
                 val textBudget = PptxTextBudget()
+                val chartBudget = PptxChartBudget()
                 val slides = slideIds.mapIndexed { index, slideId ->
                     val relationshipId = slideId.relationshipAttribute("id")
                         ?: throw InvalidOfficeDocumentException("A slide has no relationship identifier.")
@@ -562,7 +564,7 @@ object NativeOfficeEngine {
                     val remainingShapes = MAX_PPTX_TOTAL_SHAPES - totalShapes
                     val slide = readSlide(
                         packageFile, target, index + 1, widthEmu, heightEmu,
-                        remainingShapes, remainingTableCells, imageCache, styleParts, textBudget
+                        remainingShapes, remainingTableCells, imageCache, styleParts, textBudget, chartBudget
                     )
                     totalShapes += slide.shapes.size
                     remainingTableCells -= slide.shapes.sumOf { shape -> shape.tableRows.sumOf { it.size } }
@@ -587,7 +589,8 @@ object NativeOfficeEngine {
         remainingTableCellLimit: Int,
         imageCache: OfficeImageCache,
         styleParts: PptxStyleParts,
-        textBudget: PptxTextBudget
+        textBudget: PptxTextBudget,
+        chartBudget: PptxChartBudget
     ): NativeSlide {
         val entry = zip.getEntry(partName)
             ?: throw InvalidOfficeDocumentException("Slide $slideNumber is missing from the PPTX package.")
@@ -660,11 +663,18 @@ object NativeOfficeEngine {
             } else {
                 null
             }
+            val chartId = shape.directChild("graphic")?.directChild("graphicData")?.directChild("chart")?.relationshipAttribute("id")
+            val chart = chartId?.let(relationships::get)?.let { chartPart ->
+                val chartRoot = styleParts.xml(chartPart)?.documentElement
+                    ?: throw InvalidOfficeDocumentException("A PowerPoint chart part is missing.")
+                val chartTheme = styleParts.related(chartPart,"themeOverride")?.let { styleParts.xml(it)?.documentElement }
+                readPptxChart(chartRoot,style.theme.overlay(chartTheme),chartBudget)
+            }
             val imageRelationshipId = shape.directChild("blipFill")?.directChild("blip")?.relationshipAttribute("embed")
             val imageBytes = imageRelationshipId?.let(relationships::get)?.let { imagePart -> imageCache.read(zip, imagePart) }
             val kind = when (shape.localName()) {
                 "pic" -> NativeSlideShapeKind.IMAGE
-                "graphicFrame" -> if (table != null) NativeSlideShapeKind.TABLE else NativeSlideShapeKind.OTHER
+                "graphicFrame" -> when { table != null -> NativeSlideShapeKind.TABLE; chart != null -> NativeSlideShapeKind.CHART; else -> NativeSlideShapeKind.OTHER }
                 "sp", "cxnSp" -> if (text != null) NativeSlideShapeKind.TEXT else NativeSlideShapeKind.SHAPE
                 else -> NativeSlideShapeKind.OTHER
             }
@@ -703,7 +713,8 @@ object NativeOfficeEngine {
                 flipHorizontal = drawing.scaleX < 0,
                 flipVertical = drawing.scaleY < 0,
                 textBox = readSlideTextBox(inheritedShapes),
-                imageCrop = SlideImageCrop(cropValue("l"),cropValue("t"),cropValue("r"),cropValue("b"))
+                imageCrop = SlideImageCrop(cropValue("l"),cropValue("t"),cropValue("r"),cropValue("b")),
+                chart = chart
             )
         }
         val background = listOfNotNull(document.documentElement, style.layout, style.master).firstNotNullOfOrNull {

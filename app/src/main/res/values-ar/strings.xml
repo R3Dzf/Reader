@@ -40,4 +40,8 @@
     <string name="sheet_select_cell">اختر خلية لقراءة قيمتها</string>
     <string name="sheet_zoom_for_small_cells">كبّر العرض لقراءة المزيد من هذه الخلايا الصغيرة جدًا.</string>
     <string name="sheet_gesture_hint">اسحب للتمرير وقرّب بإصبعين للتكبير. اضغط خلية ثم قيمتها لقراءتها كاملة.</string>
+    <string name="chart_read_data">قراءة قيم المخطط المحفوظة</string>
+    <string name="chart_missing_values">لا توجد قيم محفوظة لهذا المخطط.</string>
+    <string name="chart_unsupported">تخطيط المخطط غير مدعوم حاليًا. يمكنك قراءة القيم المحفوظة.</string>
+    <string name="chart_partial_values">بعض قيم المخطط المحفوظة غير موجودة.</string>
 </resources>

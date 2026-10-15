@@ -169,7 +169,7 @@ internal fun SlideContent(presentation: NativePresentation, slide: NativeSlide, 
                     .drawBehind { drawSlideShape(shape, scale) }
                     .then(if (unsupportedLabel != null) Modifier.border(1.dp, Color(0xFFB65A28)) else Modifier)
                     .clipToBounds()
-                    .then(if (shape.table != null || shape.imageBytes != null) Modifier else Modifier.padding(
+                    .then(if (shape.table != null || shape.imageBytes != null || shape.chart != null) Modifier else Modifier.padding(
                         start = (shape.textBox.left * scale).dp, end = (shape.textBox.right * scale).dp,
                         top = (shape.textBox.top * scale).dp, bottom = (shape.textBox.bottom * scale).dp
                     )),
@@ -180,6 +180,7 @@ internal fun SlideContent(presentation: NativePresentation, slide: NativeSlide, 
                 }
             ) {
                 when {
+                    shape.chart != null -> SlideChartView(shape.chart,scale,Modifier.fillMaxSize())
                     shape.table != null -> SlideTableView(shape.table, scale)
                     shape.paragraphs.isNotEmpty() -> SlideTextBlock(shape.paragraphs, scale, 14f, Modifier.fillMaxWidth())
                     shape.text != null -> Text(

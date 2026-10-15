@@ -36,4 +36,8 @@
     <string name="sheet_select_cell">Select a cell to read its value</string>
     <string name="sheet_zoom_for_small_cells">Zoom in to read more of these very small cells.</string>
     <string name="sheet_gesture_hint">Drag to scroll. Pinch to zoom. Tap a cell, then its value to read it in full.</string>
+    <string name="chart_read_data">Read saved chart values</string>
+    <string name="chart_missing_values">No saved chart values are available.</string>
+    <string name="chart_unsupported">This chart layout is not supported yet. Saved values can still be read.</string>
+    <string name="chart_partial_values">Some saved chart values are missing.</string>
 </resources>
