@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.platform.LocalDensity
@@ -69,6 +71,8 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
     val layout = remember(sheet) { WorksheetLayout(sheet,minimumRows=100,minimumColumns=26) }
     val density = LocalDensity.current
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val origin=remember(sheet) { sheet.rows.asSequence().filterNot {it.hidden}.flatMap { row -> row.cells.asSequence().filter {it.value.value.isNotBlank() && layout.columns.offset(it.key+1)>layout.columns.offset(it.key)}.map {row.rowIndex to it.key} }.firstOrNull() }
     var viewport by remember(sheet) { mutableStateOf(if(origin!=null && (origin.first>=20 || origin.second>=8)) SheetViewport(x=layout.columns.offset(origin.second),y=layout.rows.offset(origin.first)) else SheetViewport()) }
     var size by remember { mutableStateOf(IntSize.Zero) }
@@ -80,6 +84,7 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
     var matchIndex by remember(sheet) { mutableIntStateOf(0) }
     val matches = remember(sheet, query) { searchWorksheet(sheet, query) }
     var showCell by remember { mutableStateOf(false) }
+    LaunchedEffect(showCell) { if (showCell) { focusManager.clearFocus(); keyboardController?.hide() } }
     var showJump by remember { mutableStateOf(false) }
     var jumpAddress by remember { mutableStateOf("") }
     var jumpInvalid by remember { mutableStateOf(false) }
