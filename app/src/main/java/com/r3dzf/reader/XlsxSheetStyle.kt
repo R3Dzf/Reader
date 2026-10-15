@@ -3,7 +3,8 @@ package com.r3dzf.reader
 import org.w3c.dom.Element
 
 internal data class XlsxDimensions(val defaultColumnWidth: Float, val defaultRowHeight: Float, val normalRowHeight: Float,
-    val columnWidths: Map<Int, Float>, val columnStyleIds: Map<Int, Int>, val showGridLines: Boolean)
+    val columnWidths: Map<Int, Float>, val columnStyleIds: Map<Int, Int>, val showGridLines: Boolean,
+    val definedColumnCount: Int)
 
 internal fun xlsxDimension(value: String, maximum: Float): Float = value.toFloatOrNull()?.takeIf { it.isFinite() && it in 0f..maximum }
     ?: throw InvalidOfficeDocumentException("An Excel row or column has an invalid size.")
@@ -15,22 +16,30 @@ internal fun readXlsxDimensions(root: Element): XlsxDimensions {
     val normalHeight = format?.attributeByLocalName("defaultRowHeight")?.let { xlsxDimension(it, 409f) } ?: 15f
     val defaultHeight = if (format != null && enabled(format, "zeroHeight")) 0f else normalHeight
     val widths = mutableMapOf<Int, Float>(); val styles = mutableMapOf<Int, Int>()
+    val definedRanges = mutableListOf<IntRange>()
+    var definedColumnCount = 0
     val columns = root.directChild("cols")?.elementChildren()?.filter { it.localName() == "col" }.orEmpty()
     if (columns.size > 512) throw InvalidOfficeDocumentException("Too many Excel column definitions.")
     for (column in columns) {
         val first = column.attributeByLocalName("min")?.toIntOrNull() ?: 0
         val last = column.attributeByLocalName("max")?.toIntOrNull() ?: 0
-        if (first !in 1..512 || last !in first..512) throw InvalidOfficeDocumentException("An Excel column range exceeds the supported limits.")
+        // Excel routinely saves a default format through XFD even when only column A has data.
+        // Validate the full Excel range, then materialize only our supported reading window.
+        if (first !in 1..16_384 || last !in first..16_384) throw InvalidOfficeDocumentException("An Excel column range is outside the spreadsheet range.")
+        if (definedRanges.any { first <= it.last && last >= it.first }) throw InvalidOfficeDocumentException("Excel column definitions overlap.")
+        definedRanges += first..last
+        // A trailing format must not turn a small document into a 512-column used range.
+        if (last <= 512) definedColumnCount = maxOf(definedColumnCount, last)
         val size = column.attributeByLocalName("width")?.let { xlsxColumnPoints(xlsxDimension(it, 255f)) } ?: defaultWidth
         val style = column.attributeByLocalName("style")?.let { it.toIntOrNull()?.takeIf { id -> id >= 0 }
             ?: throw InvalidOfficeDocumentException("An Excel column has an invalid style.") }
-        for (index in first - 1 until last) {
+        for (index in first - 1 until minOf(last, 512)) {
             if (widths.put(index, if (enabled(column, "hidden")) 0f else size) != null) throw InvalidOfficeDocumentException("Excel column definitions overlap.")
             if (style != null) styles[index] = style
         }
     }
     val view = root.directChild("sheetViews")?.elementChildren()?.firstOrNull { it.localName() == "sheetView" }
-    return XlsxDimensions(defaultWidth, defaultHeight, normalHeight, widths, styles, view?.let { enabled(it, "showGridLines", true) } ?: true)
+    return XlsxDimensions(defaultWidth, defaultHeight, normalHeight, widths, styles, view?.let { enabled(it, "showGridLines", true) } ?: true, definedColumnCount)
 }
 
 internal fun readXlsxBorder(edge: Element?,colors: XlsxColors = XlsxColors()): NativeSheetBorder? {

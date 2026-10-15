@@ -167,7 +167,9 @@ data class NativeWordImage(
 data class WordTable(val rows: List<List<WordTableCell>>) : WordBlock
 data class WordTableCell(val text: String, val images: List<NativeWordImage> = emptyList())
 
-data class NativeWorkbook(val sheets: List<NativeWorksheet>, val date1904: Boolean = false) : NativeOfficeDocument
+data class NativeWorkbook(val sheets: List<NativeWorksheet>, val date1904: Boolean = false) : NativeOfficeDocument {
+    val visibleSheets: List<NativeWorksheet> get() = sheets.filterNot { it.hidden }.ifEmpty { sheets.take(1) }
+}
 data class NativeWorksheet(
     val name: String,
     val rows: List<NativeSheetRow>,
@@ -183,7 +185,8 @@ data class NativeWorksheet(
     val defaultCell: NativeSheetCell = NativeSheetCell(""),
     val frozenRows: Int = 0,
     val frozenColumns: Int = 0,
-    val tables: List<NativeSheetTable> = emptyList()
+    val tables: List<NativeSheetTable> = emptyList(),
+    val hidden: Boolean = false
 ) {
     val horizontalMerges: List<NativeMergedRange> get() = mergedRanges.filter { it.row == it.lastRow }
 }
@@ -424,7 +427,7 @@ object NativeOfficeEngine {
                         totalCells += parsedSheet.cellCount
                         totalRows += parsedSheet.rowCount
                         totalText += parsedSheet.textCharacters
-                        add(parsedSheet.sheet)
+                        add(parsedSheet.sheet.copy(hidden = sheet.attributeByLocalName("state") in listOf("hidden", "veryHidden")))
                     }
                 }
                 if (sheets.isEmpty()) throw InvalidOfficeDocumentException("The workbook contains no worksheets.")
@@ -978,7 +981,7 @@ object NativeOfficeEngine {
                 }
             }
         }
-        val columnCount = maxOf(maximumColumn, mergedRanges.maxOfOrNull { it.lastColumn } ?: -1, dimensions.columnWidths.keys.maxOrNull() ?: -1, tables.maxOfOrNull { it.range.lastColumn } ?: -1) + 1
+        val columnCount = maxOf(maximumColumn, mergedRanges.maxOfOrNull { it.lastColumn } ?: -1, dimensions.definedColumnCount - 1, tables.maxOfOrNull { it.range.lastColumn } ?: -1) + 1
         val rowCount = maxOf(rows.keys.maxOrNull()?.plus(1) ?: 0, mergedRanges.maxOfOrNull { it.lastRow + 1 } ?: 0, tables.maxOfOrNull { it.range.lastRow + 1 } ?: 0)
         SheetMergeIndex(mergedRanges, columnCount, rowCount)
         return ParsedWorksheet(
@@ -988,7 +991,7 @@ object NativeOfficeEngine {
                 columnCount = columnCount,
                 rightToLeft = isRtl,
                 mergedRanges = mergedRanges,
-                columnWidthsPoints = dimensions.columnWidths,
+                columnWidthsPoints = dimensions.columnWidths.filterKeys { it < maxOf(columnCount, 26) },
                 defaultColumnWidthPoints = dimensions.defaultColumnWidth,
                 defaultRowHeightPoints = dimensions.defaultRowHeight,
                 rowCount = rowCount,
