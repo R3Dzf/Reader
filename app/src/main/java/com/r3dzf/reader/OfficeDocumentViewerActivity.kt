@@ -132,7 +132,7 @@ private fun NativeOfficeViewer(file: File, displayName: String, format: OfficeFo
     }
 
     Column(Modifier.fillMaxSize().navigationBarsPadding().background(MaterialTheme.colorScheme.background)) {
-        DocumentTopBar(displayName,format.extension.uppercase(),onClose)
+        if(presentation==null) DocumentTopBar(displayName,format.extension.uppercase(),onClose)
 
         when {
             error != null -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
@@ -149,7 +149,7 @@ private fun NativeOfficeViewer(file: File, displayName: String, format: OfficeFo
             }
             document != null -> WordDocumentView(document!!,initialProgress,onProgress)
             workbook != null -> WorkbookDocumentView(workbook!!,initialProgress,onProgress)
-            presentation != null -> PresentationDocumentView(presentation!!,initialProgress,onProgress)
+            presentation != null -> PresentationDocumentView(presentation!!,initialProgress,onProgress,displayName,onClose)
             else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(stringResource(R.string.office_empty_document))
             }

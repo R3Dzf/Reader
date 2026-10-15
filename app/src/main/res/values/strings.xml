@@ -134,4 +134,13 @@
     <string name="update_untrusted">The update failed verification and was not installed. Check for updates again.</string>
     <string name="update_network">Check your internet connection and try again.</string>
     <string name="update_privacy_hint">Reading stays offline. Only update checks and downloads use the internet. Updates are verified before installation; your documents are never uploaded.</string>
+    <string name="reader_position">%1$d of %2$d</string>
+    <string name="reader_mode">Reading mode</string>
+    <string name="reader_continuous">Continuous scroll</string>
+    <string name="reader_horizontal">One page · swipe sideways</string>
+    <string name="reader_vertical">One page · swipe vertically</string>
+    <string name="reader_previous">Previous</string>
+    <string name="reader_next">Next</string>
+    <string name="reader_go_to">Go to page</string>
+    <string name="reader_reset_zoom">Reset zoom</string>
 </resources>

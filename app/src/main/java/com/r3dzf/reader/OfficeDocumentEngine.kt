@@ -377,8 +377,9 @@ object NativeOfficeEngine {
                     xml.documentElement.elementChildren().filter { it.localName() == "si" }
                         .map(::allTextContent)
                 }.orEmpty()
+                val themeRoot = packageFile.getEntry("xl/theme/theme1.xml")?.let { secureXml(readBounded(packageFile,it)).documentElement }
                 val cellStyles = packageFile.getEntry("xl/styles.xml")?.let { entry ->
-                    parseXlsxCellStyles(secureXml(readBounded(packageFile, entry)))
+                    parseXlsxCellStyles(secureXml(readBounded(packageFile, entry)),themeRoot)
                 }.orEmpty()
                 val date1904 = workbook.documentElement.directChild("workbookPr")
                     ?.attributeByLocalName("date1904")?.let(::isEnabled) ?: false
@@ -1003,7 +1004,8 @@ object NativeOfficeEngine {
         }
     }
 
-    private fun parseXlsxCellStyles(document: org.w3c.dom.Document): List<NativeSheetCell> {
+    private fun parseXlsxCellStyles(document: org.w3c.dom.Document,theme: Element?): List<NativeSheetCell> {
+        val colors=XlsxColors(theme,document.documentElement)
         fun childItems(parentName: String, itemName: String): List<Element> {
             val items = document.documentElement.directChild(parentName)
                 ?.elementChildren()?.filter { it.localName() == itemName }.orEmpty()
@@ -1016,7 +1018,7 @@ object NativeOfficeEngine {
         val fonts = childItems("fonts", "font").map { font ->
             val size = font.directChild("sz")?.attributeByLocalName("val")?.toFloatOrNull()
                 ?.takeIf { it in 4f..288f }
-            val color = font.directChild("color")?.attributeByLocalName("rgb")?.let(::parseOfficeRgb)
+            val color = colors.read(font.directChild("color"))
             val bold = font.directChild("b")?.let { it.attributeByLocalName("val")?.let(::isEnabled) ?: true } ?: false
             val italic = font.directChild("i")?.let { it.attributeByLocalName("val")?.let(::isEnabled) ?: true } ?: false
             Triple(bold, italic, size to color)
@@ -1024,7 +1026,7 @@ object NativeOfficeEngine {
         val fills = childItems("fills", "fill").map { fill ->
             val pattern = fill.directChild("patternFill")
             if (pattern?.attributeByLocalName("patternType") != "solid") null
-            else pattern.directChild("fgColor")?.attributeByLocalName("rgb")?.let(::parseOfficeRgb)
+            else colors.read(pattern.directChild("fgColor"))
         }
         val fontElements = childItems("fonts", "font")
         val borderElements = childItems("borders", "border")
@@ -1069,10 +1071,9 @@ object NativeOfficeEngine {
                 fontFamilyName = fontElement?.directChild("name")?.attributeByLocalName("val"),
                 underline = fontElement?.directChild("u")?.attributeByLocalName("val") != "none" && fontElement?.directChild("u") != null,
                 strikeThrough = fontElement?.directChild("strike")?.let { it.attributeByLocalName("val")?.let(::isEnabled) ?: true } ?: false,
-                borderLeft = readXlsxBorder(border?.directChild("left")), borderRight = readXlsxBorder(border?.directChild("right")),
-                borderTop = readXlsxBorder(border?.directChild("top")), borderBottom = readXlsxBorder(border?.directChild("bottom")),
-                appearanceUnsupported = border?.directChild("diagonal")?.attributeByLocalName("style")?.let { it != "none" } == true ||
-                    border?.elementChildren()?.any { edge -> edge.directChild("color")?.let { it.attributeByLocalName("theme") != null || it.attributeByLocalName("indexed") != null } == true } == true
+                borderLeft = readXlsxBorder(border?.directChild("left"),colors), borderRight = readXlsxBorder(border?.directChild("right"),colors),
+                borderTop = readXlsxBorder(border?.directChild("top"),colors), borderBottom = readXlsxBorder(border?.directChild("bottom"),colors),
+                appearanceUnsupported = border?.directChild("diagonal")?.attributeByLocalName("style")?.let { it != "none" } == true
             )
             val alignmentSource = if (xf.attributeByLocalName("applyAlignment")?.let(::isEnabled) == false) base
                 else if (xf.directChild("alignment") != null) xf else base
