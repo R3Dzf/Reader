@@ -45,6 +45,8 @@ class LibraryDeviceTest {
             val interrupted=File(context.filesDir,"library/.pending-interrupted").apply { writeBytes(ByteArray(1024)) }
             val document=store.import(Uri.fromFile(original))
             assertFalse(interrupted.exists())
+            val unnamed=File(context.filesDir,"no-extension").apply { writeBytes(pdf) }
+            assertEquals(document.id,store.import(Uri.fromFile(unnamed),"APPLICATION/PDF").id)
             context.cacheDir.deleteRecursively()
             assertArrayEquals(pdf,original.readBytes())
             val (_,saved)=store.open(document.id);assertArrayEquals(pdf,saved.readBytes())

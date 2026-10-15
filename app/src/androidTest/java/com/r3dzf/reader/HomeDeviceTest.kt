@@ -79,10 +79,20 @@ class HomeDeviceTest {
         compose.onNodeWithTag("confirm-remove").performClick()
         compose.onNodeWithTag("document-slides").assertDoesNotExist()
     }
+    @Test fun returningHomeFromLongHistoryRevealsContinueReading() {
+        val many=documents()+(0 until 50).map { index -> LibraryDocument("extra-$index","Document $index.pdf","pdf",1000,System.currentTimeMillis()-index*1000) }
+        show(many)
+        compose.onNodeWithTag("nav-history").performClick()
+        compose.onNodeWithTag("library-list").performScrollToIndex(30)
+        compose.onNodeWithTag("nav-home").performClick()
+        compose.onNodeWithTag("continue-reading").assertIsDisplayed()
+        compose.onNodeWithTag("resume-file").assertIsDisplayed()
+    }
     @Test fun arabicHistoryUsesRtlAndKeepsArabicNamesReadable() {
         show(documents(),true)
         compose.onNodeWithTag("nav-history").performClick()
-        compose.onNodeWithText("محاضرات الذكاء الاصطناعي.pptx").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("library-list").performScrollToNode(hasText("محاضرات الذكاء الاصطناعي.pptx"))
+        compose.onNodeWithText("محاضرات الذكاء الاصطناعي.pptx").assertIsDisplayed()
         save("rafolio-history-ar.png")
     }
     @Test fun darkHomeKeepsDocumentActionsReadable() {

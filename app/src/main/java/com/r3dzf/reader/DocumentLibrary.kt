@@ -55,7 +55,7 @@ class DocumentLibrary internal constructor(private val context: Context) {
         val extension=when {
             rawName.substringAfterLast('.',"").equals("pdf",true) -> "pdf"
             OfficeFormat.fromName(rawName)!=null -> OfficeFormat.fromName(rawName)!!.extension
-            mime=="application/pdf" -> "pdf"
+            mime?.equals("application/pdf",ignoreCase=true)==true -> "pdf"
             else -> OfficeFormat.fromMimeType(mime)?.extension ?: throw LibraryException(LibraryProblem.UNSUPPORTED)
         }
         val input=resolver.openInputStream(uri) ?: throw LibraryException(LibraryProblem.UNREADABLE)

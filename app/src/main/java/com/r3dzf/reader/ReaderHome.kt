@@ -14,6 +14,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -65,6 +66,8 @@ fun ReaderHome(documents: List<LibraryDocument>,busy: Boolean = false,error: Str
     val keyboard=LocalSoftwareKeyboardController.current
     val focus=LocalFocusManager.current
     val snackbar=remember { SnackbarHostState() }
+    val listState=rememberLazyListState()
+    LaunchedEffect(tab,query,kind) { listState.scrollToItem(0) }
     LaunchedEffect(error) { if(error!=null) { snackbar.showSnackbar(error);onErrorDismissed() } }
     val filtered=remember(documents,query,kind,tab) { selectDocuments(documents,query,kind,tab==LibraryTab.FAVORITES) }
     val featured=documents.firstOrNull { it.available }
@@ -82,7 +85,7 @@ fun ReaderHome(documents: List<LibraryDocument>,busy: Boolean = false,error: Str
                 Text("Rafolio",fontFamily=wordmark,fontSize=25.sp,fontWeight=FontWeight.Bold,color=MaterialTheme.colorScheme.onBackground,maxLines=1,overflow=TextOverflow.Ellipsis)
                 Text(stringResource(R.string.brand_tagline),style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=1,overflow=TextOverflow.Ellipsis)
             }
-            if(documents.isNotEmpty() && tab==LibraryTab.HOME) IconButton(onClick={if(!busy) onOpen()},enabled=!busy,modifier=Modifier.testTag("open-file")) {
+            if(documents.isNotEmpty()) IconButton(onClick={if(!busy) onOpen()},enabled=!busy,modifier=Modifier.testTag("open-file")) {
                 if(busy) CircularProgressIndicator(Modifier.size(20.dp),strokeWidth=2.dp) else ReaderIcon(R.drawable.ic_add,stringResource(R.string.open_file),tint=MaterialTheme.colorScheme.primary)
             }
             IconButton(onClick={showSettings=true},modifier=Modifier.testTag("home-settings")) { ReaderIcon(R.drawable.ic_settings,stringResource(R.string.settings)) }
@@ -93,13 +96,9 @@ fun ReaderHome(documents: List<LibraryDocument>,busy: Boolean = false,error: Str
                     label={Text(stringResource(label),style=MaterialTheme.typography.labelMedium)},modifier=Modifier.testTag("nav-${item.name.lowercase(Locale.ROOT)}"))
             }
         } },
-        floatingActionButton={ if(documents.isNotEmpty() && tab!=LibraryTab.HOME) ExtendedFloatingActionButton(onClick={if(!busy) onOpen()},
-            containerColor=MaterialTheme.colorScheme.primary,contentColor=MaterialTheme.colorScheme.onPrimary,
-            icon={if(busy) CircularProgressIndicator(Modifier.size(20.dp),color=MaterialTheme.colorScheme.onPrimary,strokeWidth=2.dp) else ReaderIcon(R.drawable.ic_add,tint=MaterialTheme.colorScheme.onPrimary)},
-            text={Text(stringResource(if(busy) R.string.importing else R.string.open_file))},modifier=Modifier.testTag("open-file")) },
         snackbarHost={SnackbarHost(snackbar)}
     ) { padding ->
-        LazyColumn(Modifier.fillMaxSize().padding(padding).testTag("library-list"),contentPadding=PaddingValues(start=22.dp,end=22.dp,top=14.dp,bottom=100.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
+        LazyColumn(Modifier.fillMaxSize().padding(padding).testTag("library-list"),state=listState,contentPadding=PaddingValues(start=22.dp,end=22.dp,top=14.dp,bottom=24.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
             if(documents.isNotEmpty() || tab!=LibraryTab.HOME) item {
                 Text(stringResource(when(tab) { LibraryTab.HOME -> R.string.your_library;LibraryTab.HISTORY -> R.string.reading_history;LibraryTab.FAVORITES -> R.string.your_favorites }),
                     style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold)
@@ -278,7 +277,7 @@ private fun AppearanceDialog(documents: List<LibraryDocument>,onDismiss: () -> U
             Text(stringResource(R.string.local_library),style=MaterialTheme.typography.titleSmall)
             Text(stringResource(R.string.library_storage,Formatter.formatShortFileSize(context,documents.sumOf { it.bytes })),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             Text(stringResource(R.string.library_private_hint),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-            TextButton(onClick=onClear,enabled=documents.isNotEmpty(),modifier=Modifier.testTag("clear-library")) { ReaderIcon(R.drawable.ic_trash,tint=MaterialTheme.colorScheme.error);Spacer(Modifier.width(8.dp));Text(stringResource(R.string.clear_library),color=MaterialTheme.colorScheme.error) }
+            TextButton(onClick=onClear,enabled=documents.isNotEmpty(),colors=ButtonDefaults.textButtonColors(contentColor=MaterialTheme.colorScheme.error),modifier=Modifier.testTag("clear-library")) { ReaderIcon(R.drawable.ic_trash,tint=LocalContentColor.current);Spacer(Modifier.width(8.dp));Text(stringResource(R.string.clear_library)) }
             Text("Rafolio · 0.8.0",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
         } },confirmButton={TextButton(onClick=onDismiss) { Text(stringResource(R.string.done)) }})
 }
