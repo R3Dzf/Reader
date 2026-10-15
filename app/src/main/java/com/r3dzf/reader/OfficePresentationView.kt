@@ -1,6 +1,7 @@
 package com.r3dzf.reader
 
 
+import androidx.core.graphics.withTranslation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -166,12 +167,13 @@ internal fun SlideContent(presentation: NativePresentation, slide: NativeSlide, 
                     }
                     .drawWithContent {
                         val canvas = drawContext.canvas.nativeCanvas
-                        canvas.save()
-                        canvas.translate(size.width/2,size.height/2)
-                        canvas.skew(shape.shearX,0f)
-                        canvas.translate(-size.width/2,-size.height/2)
-                        drawContent()
-                        canvas.restore()
+                        val content = this
+                        val centerX = size.width/2
+                        val centerY = size.height/2
+                        canvas.withTranslation(centerX,centerY) {
+                            skew(shape.shearX,0f)
+                            withTranslation(-centerX,-centerY) { content.drawContent() }
+                        }
                     }
                     .drawBehind { drawSlideShape(shape, scale) }
                     .then(if (unsupportedLabel != null) Modifier.border(1.dp, Color(0xFFB65A28)) else Modifier)

@@ -62,7 +62,13 @@ internal object DocumentFonts {
         val builder = Typeface.Builder(context.assets, face.asset).setWeight(if (face.variableWeight) weight else face.weight).setItalic(face.italic)
         if (face.variableWeight) builder.setFontVariationSettings("'wght' $weight")
         val loaded = checkNotNull(builder.build()) { "Cannot load bundled font: ${face.asset}" }
-        val result = Typeface.create(loaded, (if (bold) Typeface.BOLD else 0) or (if (italic) Typeface.ITALIC else 0))
+        val style = when {
+            bold && italic -> Typeface.BOLD_ITALIC
+            bold -> Typeface.BOLD
+            italic -> Typeface.ITALIC
+            else -> Typeface.NORMAL
+        }
+        val result = Typeface.create(loaded, style)
         cache.put(cacheKey, result)
         return result
     }
