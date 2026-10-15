@@ -44,8 +44,9 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
 @Composable
-internal fun WorkbookDocumentView(workbook: NativeWorkbook) {
-    var selectedSheet by remember(workbook) { mutableIntStateOf(0) }
+internal fun WorkbookDocumentView(workbook: NativeWorkbook,initialProgress: ReadingProgress = ReadingProgress(),onProgress: (ReadingProgress) -> Unit = {}) {
+    var selectedSheet by remember(workbook) { mutableIntStateOf(initialProgress.index.coerceIn(0,workbook.sheets.lastIndex.coerceAtLeast(0))) }
+    LaunchedEffect(selectedSheet) { onProgress(ReadingProgress(selectedSheet,0,workbook.sheets.size)) }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
             workbook.sheets.forEachIndexed { index, sheet ->

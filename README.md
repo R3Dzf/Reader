@@ -1,8 +1,14 @@
-# Reader for Android
+# Rafolio for Android
 
 Reader is being rebuilt as an offline, read-only document reader. It does not launch Office apps, convert Office files through a cloud service, or bundle a third-party Office rendering engine.
 
-## Current milestone
+## Rafolio 0.8.0: your local reading shelf
+
+Rafolio (رافوليو) is the new app identity. A custom vector page-fold R mark, coordinated light/dark themes and Arabic/English home screens bring search, file-type filters, favorites and reading history into one native interface. The package remains `com.r3dzf.reader`.
+
+Opening a file keeps a private, read-only snapshot in app files storage, with durable SQLite metadata. Repeated identical imports of the same format reuse one entry. Reading position is restored for PDF pages, PPTX slides and DOCX scroll positions; XLSX restores the selected sheet (not its cell viewport). Favorites and positions survive activity recreation and cache eviction. The library is limited to 200 documents/1 GiB, with 250 MiB per file; removal/clear controls delete private copies and metadata. Uninstalling clears this app data. No broad storage permission or internet permission is required. See [library behavior](docs/LIBRARY_AND_DESIGN.md).
+
+## Current engine milestone
 
 - PDF files open inside Reader with Android's `PdfRenderer`.
 - The native DOCX reader parses paragraphs, Arabic text direction, common run formatting, numbered lists, basic page settings, page breaks, simple tables, and embedded raster images using Kotlin code in this app. Images render beneath their paragraph or table cell text.
@@ -30,7 +36,7 @@ The first build downloads hash-verified font assets from pinned upstream sources
 The project includes the Gradle 8.11.1 wrapper with the official distribution SHA-256 pinned. On Windows use `gradlew.bat`.
 The debug APK is generated at `app/build/outputs/apk/debug/app-debug.apk`.
 
-Version 0.7.0 adds native cached chart parsing/rendering and regression tests, alongside PowerPoint drawing/font/color regression tests to the existing 75 JVM and five Android tests. The completed CI results are recorded in the release pull request. Independent Arabic PPTX/XLSX fixtures cover styles, geometry, cell text direction, hidden/sparse axes, merge validation, viewports, saved values, extraction limits and input-file preservation. Android tests exercise merged Arabic text, accessibility/full-cell reading, zoom/reset, pan, RTL fill pixels and a workbook with a million-row address range. GitHub Actions runs JVM tests/lint/build, then an Android 35 emulator. Wider device/API compatibility and visual comparisons with Office remain future work.
+Version 0.8.0 adds the Rafolio interface, persistent library and reading-position tests to the native engine regression suite. The completed CI results are recorded in the release pull request. Independent Arabic PPTX/XLSX fixtures cover styles, geometry, cell text direction, hidden/sparse axes, merge validation, viewports, saved values, extraction limits and input-file preservation. Android tests exercise merged Arabic text, accessibility/full-cell reading, zoom/reset, pan, RTL fill pixels and a workbook with a million-row address range. GitHub Actions runs JVM tests/lint/build, then an Android 35 emulator. Wider device/API compatibility and visual comparisons with Office remain future work.
 
 ## Project stack
 

@@ -23,6 +23,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.rememberScrollState
@@ -60,6 +64,7 @@ import java.io.File
 import kotlin.math.sqrt
 
 class OfficeDocumentViewerActivity : ComponentActivity() {
+    private lateinit var session: ReadingSession
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val path = intent.getStringExtra(EXTRA_PATH)
@@ -68,36 +73,36 @@ class OfficeDocumentViewerActivity : ComponentActivity() {
             OfficeFormat.entries.firstOrNull { it.extension == ext }
         }
         val file = runCatching { path?.let { File(it).canonicalFile } }.getOrNull()
-        val allowedDirectory = File(cacheDir, "office-input").canonicalFile
-        if (file == null || format == null || !file.isFile ||
-            !file.path.startsWith(allowedDirectory.path + File.separator)
-        ) {
+        if (file == null || format == null || !isReaderPrivateFile(this,file,"office-input")) {
             finish()
             return
         }
 
-        setContent {
-            ReaderTheme {
-                NativeOfficeViewer(file, name.ifBlank { file.name }, format, ::finish)
-            }
+        session=ReadingSession(this,intent.getStringExtra(EXTRA_ID),lifecycleScope)
+        lifecycleScope.launch {
+            val progress=session.initial()
+            setContent { ReaderTheme { NativeOfficeViewer(file,name.ifBlank { file.name },format,progress,session::changed,::finish) } }
         }
     }
+    override fun onStop() { if(::session.isInitialized) session.stop();super.onStop() }
 
     companion object {
         private const val EXTRA_PATH = "reader.office.path"
         private const val EXTRA_NAME = "reader.office.name"
         private const val EXTRA_FORMAT = "reader.office.format"
+        private const val EXTRA_ID = "reader.library.id"
 
-        fun intent(context: Context, document: PreparedOfficeDocument): Intent =
+        fun intent(context: Context, document: PreparedOfficeDocument, historyId: String? = null): Intent =
             Intent(context, OfficeDocumentViewerActivity::class.java)
                 .putExtra(EXTRA_PATH, document.file.absolutePath)
                 .putExtra(EXTRA_NAME, document.displayName)
                 .putExtra(EXTRA_FORMAT, document.format.extension)
+                .putExtra(EXTRA_ID, historyId)
     }
 }
 
 @Composable
-private fun NativeOfficeViewer(file: File, displayName: String, format: OfficeFormat, onClose: () -> Unit) {
+private fun NativeOfficeViewer(file: File, displayName: String, format: OfficeFormat, initialProgress: ReadingProgress, onProgress: (ReadingProgress) -> Unit, onClose: () -> Unit) {
     var document by remember(file.path) { mutableStateOf<NativeWordDocument?>(null) }
     var workbook by remember(file.path) { mutableStateOf<NativeWorkbook?>(null) }
     var presentation by remember(file.path) { mutableStateOf<NativePresentation?>(null) }
@@ -126,20 +131,8 @@ private fun NativeOfficeViewer(file: File, displayName: String, format: OfficeFo
             }
     }
 
-    Column(Modifier.fillMaxSize()) {
-        Surface(color = MaterialTheme.colorScheme.surface) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(displayName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                    Text(format.extension.uppercase(), style = MaterialTheme.typography.labelSmall)
-                }
-                TextButton(onClick = onClose) { Text(stringResource(R.string.close)) }
-            }
-        }
+    Column(Modifier.fillMaxSize().navigationBarsPadding().background(MaterialTheme.colorScheme.background)) {
+        DocumentTopBar(displayName,format.extension.uppercase(),onClose)
 
         when {
             error != null -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
@@ -154,9 +147,9 @@ private fun NativeOfficeViewer(file: File, displayName: String, format: OfficeFo
             !loaded -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-            document != null -> WordDocumentView(document!!)
-            workbook != null -> WorkbookDocumentView(workbook!!)
-            presentation != null -> PresentationDocumentView(presentation!!)
+            document != null -> WordDocumentView(document!!,initialProgress,onProgress)
+            workbook != null -> WorkbookDocumentView(workbook!!,initialProgress,onProgress)
+            presentation != null -> PresentationDocumentView(presentation!!,initialProgress,onProgress)
             else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(stringResource(R.string.office_empty_document))
             }
@@ -227,7 +220,7 @@ private fun decodeOfficeImage(bytes: ByteArray, targetWidth: Int, targetHeight: 
 }
 
 @Composable
-internal fun WordDocumentView(document: NativeWordDocument) {
+internal fun WordDocumentView(document: NativeWordDocument,initialProgress: ReadingProgress = ReadingProgress(),onProgress: (ReadingProgress) -> Unit = {}) {
     if (document.blocks.isEmpty()) {
         Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
             Text(stringResource(R.string.office_empty_document))
@@ -235,7 +228,10 @@ internal fun WordDocumentView(document: NativeWordDocument) {
         return
     }
 
+    val listState=rememberLazyListState(initialProgress.index.coerceIn(0,document.blocks.size+1),initialProgress.offset)
+    ObserveReadingProgress(listState,document.blocks.size+2,onProgress)
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize().background(Color(0xFFECEEF2)).testTag("word-document"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(0.dp)

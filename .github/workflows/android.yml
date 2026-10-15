@@ -100,11 +100,7 @@ jobs:
           target: google_apis
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: |
-            ./gradlew connectedDebugAndroidTest
-            mkdir -p app/build/reports/reader-visuals
-            adb pull /sdcard/Pictures/ReaderTestVisuals/. app/build/reports/reader-visuals/
-            python3 -c "from pathlib import Path; p=Path('app/build/reports/reader-visuals'); assert all((p/n).read_bytes()[:8] == bytes([137,80,78,71,13,10,26,10]) for n in ['powerpoint-reference.png','fonts-reference.png','chart-columns.png','chart-doughnut.png','chart-scatter.png','charts-gallery.png'])"
+          script: bash tools/run_device_tests.sh
       - name: Upload Android device test reports
         if: always()
         uses: actions/upload-artifact@v4

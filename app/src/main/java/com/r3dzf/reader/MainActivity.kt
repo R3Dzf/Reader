@@ -3,94 +3,61 @@ package com.r3dzf.reader
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.*
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
 
 class MainActivity : ComponentActivity() {
-    private val pdfPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) openLocalPdf(uri)
-    }
-
-    private val officePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) openOfficeDocument(uri)
-    }
-
+    private val library by lazy { DocumentLibrary.get(this) }
+    private var documents by mutableStateOf<List<LibraryDocument>>(emptyList())
+    private var busy by mutableStateOf(false)
+    private var error by mutableStateOf<String?>(null)
+    private val picker=registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> uri?.let { importFile(it) } }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            ReaderTheme {
-                ReaderHome(
-                    onOpenPdf = { pdfPicker.launch(arrayOf("application/pdf")) },
-                    onOpenOffice = {
-                        officePicker.launch(OfficeFormat.entries.map { it.mimeType }.toTypedArray())
-                    }
-                )
-            }
-        }
-        handleIncomingIntent(intent)
+        setContent { ReaderTheme { ReaderHome(documents,busy,error,
+            onOpen={picker.launch((listOf("application/pdf")+OfficeFormat.entries.map { it.mimeType.lowercase(java.util.Locale.ROOT) }).distinct().toTypedArray())},
+            onOpenDocument={document -> open(document.id)},
+            onFavorite={document -> mutate { library.favorite(document.id,!document.favorite) }},
+            onRemove={document -> mutate { library.remove(document.id) }},onClear={mutate { library.clear() }},onErrorDismissed={error=null}) } }
+        if(savedInstanceState==null) handleIncomingIntent(intent)
     }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        handleIncomingIntent(intent)
-    }
-
+    override fun onResume() { super.onResume();refresh() }
+    override fun onNewIntent(intent: Intent) { super.onNewIntent(intent);setIntent(intent);handleIncomingIntent(intent) }
     private fun handleIncomingIntent(intent: Intent?) {
-        if (intent?.action == Intent.ACTION_VIEW && intent.type == "application/pdf") {
-            intent.data?.let(::openLocalPdf)
-        }
+        if(intent?.action==Intent.ACTION_VIEW) intent.data?.takeIf { it.scheme=="content" }?.let { importFile(it,intent.type) }
     }
-
-    private fun openLocalPdf(uri: Uri) {
+    private fun refresh() { lifecycleScope.launch { runCatching { library.documents() }.onSuccess { documents=it }.onFailure { showError(it) } } }
+    private fun mutate(action: suspend () -> Unit) {
+        if(busy) return
+        lifecycleScope.launch { busy=true;try { action();documents=library.documents() } catch(failure: Exception) { showError(failure) } finally { busy=false } }
+    }
+    private fun importFile(uri: Uri,mimeHint: String?=null) {
+        if(busy) return
         lifecycleScope.launch {
-            val result = runCatching {
-                withContext(Dispatchers.IO) { copyToCache(uri, "local-pdf", ".pdf") }
-            }
-            result.onSuccess { startActivity(PdfViewerActivity.intent(this@MainActivity, it)) }
-                .onFailure {
-                    Toast.makeText(this@MainActivity, getString(R.string.pdf_failed), Toast.LENGTH_LONG).show()
-                }
+            busy=true
+            try { val document=library.import(uri,mimeHint);documents=library.documents();launchDocument(document.id) }
+            catch(failure: Exception) { showError(failure) }
+            finally { busy=false }
         }
     }
-
-    private fun openOfficeDocument(uri: Uri) {
-        lifecycleScope.launch {
-            val prepared = runCatching {
-                withContext(Dispatchers.IO) { prepareOfficeDocument(this@MainActivity, uri) }
-            }
-            prepared.onSuccess { document ->
-                startActivity(OfficeDocumentViewerActivity.intent(this@MainActivity, document))
-            }.onFailure { error ->
-                Toast.makeText(
-                    this@MainActivity,
-                    error.message ?: getString(R.string.open_failed),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
+    private fun open(id: String) {
+        if(busy) return
+        lifecycleScope.launch { busy=true;try { launchDocument(id);documents=library.documents() } catch(failure: Exception) { showError(failure);refresh() } finally { busy=false } }
     }
-
-    private fun copyToCache(uri: Uri, prefix: String, suffix: String): File {
-        val directory = File(cacheDir, "incoming").apply { mkdirs() }
-        val outputFile = File.createTempFile(prefix, suffix, directory)
-        try {
-            contentResolver.openInputStream(uri).use { input ->
-                requireNotNull(input) { "Could not read the selected file." }
-                FileOutputStream(outputFile).use { output -> input.copyTo(output) }
-            }
-            return outputFile
-        } catch (error: Throwable) {
-            outputFile.delete()
-            throw error
-        }
+    private suspend fun launchDocument(id: String) {
+        val (document,file)=library.open(id)
+        startActivity(if(document.kind==DocumentKind.PDF) PdfViewerActivity.intent(this,file,document.displayName,document.id)
+            else OfficeDocumentViewerActivity.intent(this,PreparedOfficeDocument(file,document.displayName,OfficeFormat.fromName("file.${document.extension}")!!),document.id))
+    }
+    private fun showError(failure: Throwable) {
+        error=getString(when((failure as? LibraryException)?.problem) {
+            LibraryProblem.TOO_LARGE -> R.string.library_too_large;LibraryProblem.FULL -> R.string.library_full
+            LibraryProblem.MISSING -> R.string.library_missing;LibraryProblem.UNSUPPORTED -> R.string.library_unsupported
+            else -> R.string.open_failed
+        })
     }
 }

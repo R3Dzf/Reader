@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -49,8 +51,13 @@ import kotlin.math.min
 
 private class PdfRenderHandle(file: File) {
     private val descriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
-    val renderer = PdfRenderer(descriptor)
+    val renderer = try { PdfRenderer(descriptor) } catch(error: Exception) { descriptor.close();throw error }
     private val renderLock = Any()
+
+    fun aspectRatio(index: Int): Float = synchronized(renderLock) {
+        val page=renderer.openPage(index)
+        try { page.width.toFloat()/page.height.coerceAtLeast(1) } finally { page.close() }
+    }
 
     fun renderPage(index: Int, requestedWidth: Int): Bitmap = synchronized(renderLock) {
         val page = renderer.openPage(index)
@@ -58,9 +65,9 @@ private class PdfRenderHandle(file: File) {
             val scale = min(
                 min(requestedWidth.toFloat() / page.width, 1.8f),
                 2600f / page.height
-            ).coerceAtLeast(0.5f)
-            val width = (page.width * scale).toInt().coerceAtLeast(1)
-            val height = (page.height * scale).toInt().coerceAtLeast(1)
+            ).coerceAtLeast(0.000001f)
+            val width = (page.width * scale).toInt().coerceIn(1,2600)
+            val height = (page.height * scale).toInt().coerceIn(1,2600)
             createBitmap(width, height, Bitmap.Config.ARGB_8888).also { bitmap ->
                 bitmap.eraseColor(AndroidColor.WHITE)
                 page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
@@ -70,15 +77,15 @@ private class PdfRenderHandle(file: File) {
         }
     }
 
-    fun close() {
+    fun close() = synchronized(renderLock) {
         runCatching { renderer.close() }
-        runCatching { descriptor.close() }
+        runCatching { descriptor.close() };Unit
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PdfDocumentView(file: File, onClose: () -> Unit) {
+fun PdfDocumentView(file: File, displayName: String = file.name, initialProgress: ReadingProgress = ReadingProgress(), onProgress: (ReadingProgress) -> Unit = {}, onClose: () -> Unit) {
     val handle = remember(file) { runCatching { PdfRenderHandle(file) }.getOrNull() }
     DisposableEffect(handle) {
         onDispose { handle?.close() }
@@ -91,32 +98,17 @@ fun PdfDocumentView(file: File, onClose: () -> Unit) {
         return
     }
 
+    val listState=rememberLazyListState(initialProgress.index.coerceIn(0,(handle.renderer.pageCount-1).coerceAtLeast(0)),initialProgress.offset)
+    ObserveReadingProgress(listState,handle.renderer.pageCount,onProgress)
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(file.name, maxLines = 1)
-                        Text(
-                            pluralStringResource(R.plurals.page_count, handle.renderer.pageCount, handle.renderer.pageCount),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onClose) {
-                        Text("‹", style = MaterialTheme.typography.headlineMedium)
-                    }
-                }
-            )
-        }
+        topBar = { DocumentTopBar(displayName,pluralStringResource(R.plurals.page_count,handle.renderer.pageCount,handle.renderer.pageCount),onClose) }
     ) { padding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(padding),
+                .padding(padding).testTag("pdf-list"),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items((0 until handle.renderer.pageCount).toList()) { pageIndex ->
@@ -129,6 +121,9 @@ fun PdfDocumentView(file: File, onClose: () -> Unit) {
 @Composable
 private fun PdfPage(handle: PdfRenderHandle, index: Int) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
+        // Stable placeholders prevent LazyColumn from resetting a restored page before its bitmap loads.
+        val ratio=remember(handle,index) { handle.aspectRatio(index).coerceAtLeast(.001f) }
+        val pageHeight=minOf((maxWidth-16.dp)/ratio+12.dp,4000.dp)
         val density = LocalDensity.current
         val targetWidth = with(density) { maxWidth.roundToPx() }.coerceIn(720, 1800)
         var bitmap by remember(handle, index, targetWidth) { mutableStateOf<Bitmap?>(null) }
@@ -143,7 +138,7 @@ private fun PdfPage(handle: PdfRenderHandle, index: Int) {
         }
 
         Surface(
-            modifier = Modifier.fillMaxWidth().testTag("pdf-page-$index"),
+            modifier = Modifier.fillMaxWidth().height(pageHeight).testTag("pdf-page-$index"),
             color = androidx.compose.ui.graphics.Color.White,
             tonalElevation = 0.dp,
             shadowElevation = 2.dp
@@ -152,8 +147,8 @@ private fun PdfPage(handle: PdfRenderHandle, index: Int) {
                 bitmap != null -> Image(
                     bitmap = bitmap!!.asImageBitmap(),
                     contentDescription = stringResource(R.string.page_number, index + 1),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp).testTag("pdf-page-image-$index"),
-                    contentScale = ContentScale.FillWidth
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 6.dp).testTag("pdf-page-image-$index"),
+                    contentScale = ContentScale.Fit
                 )
                 failed -> Text(
                     stringResource(R.string.pdf_failed),
