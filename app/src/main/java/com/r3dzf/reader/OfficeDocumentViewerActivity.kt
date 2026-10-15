@@ -39,6 +39,8 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -167,7 +169,8 @@ internal fun OfficeImageView(
     bytes: ByteArray,
     targetWidthDp: Float,
     targetHeightDp: Float,
-    description: String?
+    description: String?,
+    crop: SlideImageCrop? = null
 ) {
     val density = androidx.compose.ui.platform.LocalDensity.current.density
     val rawWidth = (targetWidthDp * density).toInt().coerceIn(1, 4096)
@@ -189,8 +192,15 @@ internal fun OfficeImageView(
         androidx.compose.foundation.Image(
             bitmap = image,
             contentDescription = description,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Fit
+            modifier = Modifier.fillMaxSize().then(if (crop == null) Modifier else Modifier.graphicsLayer {
+                val horizontal = (1f - crop.left - crop.right).coerceAtLeast(0.01f)
+                val vertical = (1f - crop.top - crop.bottom).coerceAtLeast(0.01f)
+                scaleX = 1f / horizontal
+                scaleY = 1f / vertical
+                translationX = (crop.right - crop.left) * size.width / (2 * horizontal)
+                translationY = (crop.bottom - crop.top) * size.height / (2 * vertical)
+            }),
+            contentScale = if (crop == null) ContentScale.Fit else ContentScale.FillBounds
         )
     }
 }
@@ -217,7 +227,7 @@ private fun decodeOfficeImage(bytes: ByteArray, targetWidth: Int, targetHeight: 
 }
 
 @Composable
-private fun WordDocumentView(document: NativeWordDocument) {
+internal fun WordDocumentView(document: NativeWordDocument) {
     if (document.blocks.isEmpty()) {
         Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
             Text(stringResource(R.string.office_empty_document))
@@ -226,7 +236,7 @@ private fun WordDocumentView(document: NativeWordDocument) {
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFECEEF2)),
+        modifier = Modifier.fillMaxSize().background(Color(0xFFECEEF2)).testTag("word-document"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {

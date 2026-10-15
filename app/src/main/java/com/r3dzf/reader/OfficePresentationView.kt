@@ -1,6 +1,5 @@
 package com.r3dzf.reader
 
-import android.graphics.Typeface
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,6 +18,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -28,6 +29,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -134,15 +142,14 @@ private fun ZoomableSlide(presentation: NativePresentation, slide: NativeSlide) 
 }
 
 @Composable
-private fun SlideContent(presentation: NativePresentation, slide: NativeSlide, imageScale: Float, modifier: Modifier) {
-    val background = slide.backgroundRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color.White
-    BoxWithConstraints(modifier.background(background).clipToBounds()) {
+internal fun SlideContent(presentation: NativePresentation, slide: NativeSlide, imageScale: Float, modifier: Modifier) {
+    val background = slide.backgroundRgb?.takeIf { slide.backgroundFill == null }?.let { Color((0xFF000000L or it).toInt()) } ?: Color.White
+    BoxWithConstraints(modifier.background(background).drawBehind { slide.backgroundFill?.let { drawSlideFill(it) } }.clipToBounds().testTag("slide-${slide.number}")) {
         val scale = maxWidth.value / presentation.slideWidthPoints
         val density = LocalDensity.current
         slide.shapes.forEach { shape ->
             val width = maxWidth * shape.widthFraction
             val height = maxHeight * shape.heightFraction
-            val fill = shape.fillRgb?.let { Color((0xFF000000L or it).toInt()) }
             val unsupportedLabel = when (shape.kind) {
                 NativeSlideShapeKind.IMAGE -> if (shape.imageBytes == null) R.string.presentation_image_unavailable else null
                 NativeSlideShapeKind.TABLE -> if (shape.table == null) R.string.presentation_table_unavailable else null
@@ -151,14 +158,37 @@ private fun SlideContent(presentation: NativePresentation, slide: NativeSlide, i
             }
             Box(
                 Modifier.absoluteOffset(x = maxWidth * shape.xFraction, y = maxHeight * shape.yFraction)
-                    .width(width).height(height)
-                    .then(if (fill != null) Modifier.background(fill) else Modifier)
+                    .width(width).height(if (shape.geometry == "line" && height < 1.dp) 1.dp else height)
+                    .graphicsLayer {
+                        rotationZ = shape.rotationDegrees
+                        scaleX = if (shape.flipHorizontal) -1f else 1f
+                        scaleY = if (shape.flipVertical) -1f else 1f
+                    }
+                    .drawWithContent {
+                        val canvas = drawContext.canvas.nativeCanvas
+                        canvas.save()
+                        canvas.translate(size.width/2,size.height/2)
+                        canvas.skew(shape.shearX,0f)
+                        canvas.translate(-size.width/2,-size.height/2)
+                        drawContent()
+                        canvas.restore()
+                    }
+                    .drawBehind { drawSlideShape(shape, scale) }
                     .then(if (unsupportedLabel != null) Modifier.border(1.dp, Color(0xFFB65A28)) else Modifier)
-                    .clipToBounds().padding(if (shape.table != null) 0.dp else 3.dp)
+                    .clipToBounds()
+                    .then(if (shape.table != null || shape.imageBytes != null) Modifier else Modifier.padding(
+                        start = (shape.textBox.left * scale).dp, end = (shape.textBox.right * scale).dp,
+                        top = (shape.textBox.top * scale).dp, bottom = (shape.textBox.bottom * scale).dp
+                    )),
+                contentAlignment = when (shape.textBox.vertical) {
+                    SlideCellVerticalAlignment.TOP -> Alignment.TopStart
+                    SlideCellVerticalAlignment.CENTER -> Alignment.CenterStart
+                    SlideCellVerticalAlignment.BOTTOM -> Alignment.BottomStart
+                }
             ) {
                 when {
                     shape.table != null -> SlideTableView(shape.table, scale)
-                    shape.paragraphs.isNotEmpty() -> SlideTextBlock(shape.paragraphs, scale, 14f, Modifier.fillMaxSize())
+                    shape.paragraphs.isNotEmpty() -> SlideTextBlock(shape.paragraphs, scale, 14f, Modifier.fillMaxWidth())
                     shape.text != null -> Text(
                         shape.text, modifier = Modifier.fillMaxSize(),
                         color = shape.textRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color(0xFF202124),
@@ -171,7 +201,7 @@ private fun SlideContent(presentation: NativePresentation, slide: NativeSlide, i
                         )
                     )
                     shape.imageBytes != null -> OfficeImageView(
-                        shape.imageBytes, width.value * imageScale, height.value * imageScale, null
+                        shape.imageBytes, width.value * imageScale, height.value * imageScale, null, shape.imageCrop
                     )
                     unsupportedLabel != null -> Text(
                         stringResource(unsupportedLabel), color = Color(0xFF8B3E1A),
@@ -213,14 +243,18 @@ private fun SlideTableView(table: NativeSlideTable, scale: Float) {
 @Composable
 private fun SlideTextBlock(paragraphs: List<NativeSlideTextParagraph>, scale: Float, fallbackSize: Float, modifier: Modifier) {
     val density = LocalDensity.current
-    val families = remember(paragraphs) {
-        paragraphs.flatMap { it.runs + it.defaultStyle }.mapNotNull { it.fontFamilyName }.distinct()
-            .associateWith { FontFamily(Typeface.create(it, Typeface.NORMAL)) }
+    val context = LocalContext.current
+    val families = remember(paragraphs, context) {
+        paragraphs.flatMap { it.runs + it.defaultStyle }.distinct().associateWith { run ->
+            FontFamily(DocumentFonts.typeface(context, run.fontFamilyName, run.bold, run.italic,
+                run.text.codePoints().anyMatch { Character.UnicodeScript.of(it) == Character.UnicodeScript.ARABIC }))
+        }
     }
     fun size(points: Float?) = slideFontSize(points ?: fallbackSize, scale, density)
     Column(modifier) {
         paragraphs.forEach { paragraph ->
             val text = buildAnnotatedString {
+                paragraph.bulletMarker?.let { append(it); append(" ") }
                 paragraph.runs.forEach { run ->
                     val decorations = listOfNotNull(
                         TextDecoration.Underline.takeIf { run.underline },
@@ -231,7 +265,7 @@ private fun SlideTextBlock(paragraphs: List<NativeSlideTextParagraph>, scale: Fl
                         fontSize = size(run.fontSizePoints),
                         fontWeight = if (run.bold) FontWeight.Bold else FontWeight.Normal,
                         fontStyle = if (run.italic) FontStyle.Italic else FontStyle.Normal,
-                        fontFamily = families[run.fontFamilyName],
+                        fontFamily = families[run],
                         textDecoration = if (decorations.isEmpty()) TextDecoration.None else TextDecoration.combine(decorations)
                     )) { append(run.text) }
                 }
@@ -245,7 +279,7 @@ private fun SlideTextBlock(paragraphs: List<NativeSlideTextParagraph>, scale: Fl
                 ),
                 color = paragraph.defaultStyle.textRgb?.let { Color((0xFF000000L or it).toInt()) } ?: Color(0xFF202124),
                 fontSize = size(paragraph.defaultStyle.fontSizePoints),
-                fontFamily = families[paragraph.defaultStyle.fontFamilyName],
+                fontFamily = families[paragraph.defaultStyle],
                 textAlign = when (paragraph.alignment) {
                     SlideParagraphAlignment.START -> TextAlign.Start
                     SlideParagraphAlignment.LEFT -> TextAlign.Left
@@ -254,7 +288,13 @@ private fun SlideTextBlock(paragraphs: List<NativeSlideTextParagraph>, scale: Fl
                     SlideParagraphAlignment.JUSTIFY -> TextAlign.Justify
                 },
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    lineHeight = TextUnit.Unspecified,
+                    lineHeight = paragraph.lineSpacingPoints?.let { size(it) }
+                        ?: paragraph.lineSpacingMultiplier?.let { multiplier -> size((paragraph.runs.maxOfOrNull { it.fontSizePoints ?: fallbackSize } ?: fallbackSize) * multiplier) }
+                        ?: TextUnit.Unspecified,
+                    textIndent = TextIndent(
+                        firstLine = slideFontSize((paragraph.marginStartPoints + paragraph.indentPoints).coerceAtLeast(0f), scale, density),
+                        restLine = slideFontSize(paragraph.marginStartPoints, scale, density)
+                    ),
                     textDirection = if (paragraph.rightToLeft) TextDirection.Rtl else TextDirection.Ltr
                 )
             )
@@ -287,4 +327,48 @@ private fun DrawScope.drawSlideCellBorders(cell: NativeSlideTableCell, scale: Fl
     edge(cell.borderRight, 1)
     edge(cell.borderTop, 2)
     edge(cell.borderBottom, 3)
+}
+
+private fun DrawScope.fillBrush(fill: SlideFill): Brush {
+    if (fill.stops.isEmpty()) return Brush.linearGradient(listOf(
+        Color((0xFF000000L or (fill.rgb ?: 0xFFFFFF)).toInt()).copy(alpha = fill.alpha),
+        Color((0xFF000000L or (fill.rgb ?: 0xFFFFFF)).toInt()).copy(alpha = fill.alpha)))
+    val angle = Math.toRadians(fill.angleDegrees.toDouble())
+    val dx = kotlin.math.cos(angle).toFloat(); val dy = kotlin.math.sin(angle).toFloat()
+    val length = kotlin.math.abs(size.width * dx) + kotlin.math.abs(size.height * dy)
+    val center = Offset(size.width / 2, size.height / 2)
+    val vector = Offset(dx * length / 2, dy * length / 2)
+    val stops = fill.stops.map { it.position to Color((0xFF000000L or it.rgb).toInt()).copy(alpha=it.alpha * fill.alpha) }.toTypedArray()
+    return Brush.linearGradient(*stops, start=center-vector, end=center+vector)
+}
+
+private fun DrawScope.drawSlideFill(fill: SlideFill) {
+    if (fill.alpha > 0f && (fill.rgb != null || fill.stops.isNotEmpty())) drawRect(fillBrush(fill))
+}
+
+private fun DrawScope.drawSlideShape(shape: NativeSlideShape, scale: Float) {
+    val fill = shape.fill ?: shape.fillRgb?.let { SlideFill(it) }
+    val geometry = shape.geometry
+    val path = Path().apply {
+        when (geometry) {
+            "ellipse" -> addOval(androidx.compose.ui.geometry.Rect(Offset.Zero,size))
+            "roundRect" -> addRoundRect(androidx.compose.ui.geometry.RoundRect(0f,0f,size.width,size.height,
+                androidx.compose.ui.geometry.CornerRadius(minOf(size.width,size.height)*0.16f)))
+            "triangle" -> { moveTo(size.width/2,0f); lineTo(size.width,size.height); lineTo(0f,size.height); close() }
+            "rtTriangle" -> { moveTo(0f,0f); lineTo(size.width,size.height); lineTo(0f,size.height); close() }
+            "diamond" -> { moveTo(size.width/2,0f); lineTo(size.width,size.height/2); lineTo(size.width/2,size.height); lineTo(0f,size.height/2); close() }
+            "line" -> { moveTo(0f,0f); lineTo(size.width,size.height) }
+            else -> addRect(androidx.compose.ui.geometry.Rect(Offset.Zero,size))
+        }
+    }
+    if (geometry != "line" && fill != null && fill.alpha > 0f && (fill.rgb != null || fill.stops.isNotEmpty())) drawPath(path,fillBrush(fill))
+    shape.outline?.takeIf { it.widthPoints > 0f }?.let { border ->
+        val width = (border.widthPoints * scale).dp.toPx()
+        val effect = when (border.dash) {
+            SlideBorderDash.DASH -> PathEffect.dashPathEffect(floatArrayOf(width*4,width*3))
+            SlideBorderDash.DOT -> PathEffect.dashPathEffect(floatArrayOf(width,width*2))
+            else -> null
+        }
+        drawPath(path,Color((0xFF000000L or (border.colorRgb ?: 0L)).toInt()),style=Stroke(width,pathEffect=effect))
+    }
 }

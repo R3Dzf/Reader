@@ -12,14 +12,15 @@ android {
         applicationId = "com.r3dzf.reader"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "0.5.0"
+        versionCode = 6
+        versionName = "0.6.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
         compose = true
     }
+    sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/readerFonts/assets"))
     sourceSets.getByName("androidTest").assets.srcDir("src/test/resources/fixtures")
 
     compileOptions {
@@ -50,3 +51,12 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
+
+// Fonts are packaged inside the APK. Runtime reading never downloads anything.
+val prepareReaderFonts by tasks.registering(Exec::class) {
+    inputs.files(rootProject.file("tools/prepare_fonts.py"), rootProject.file("tools/fonts-manifest.json"))
+    outputs.dir(layout.buildDirectory.dir("generated/readerFonts/assets"))
+    commandLine("python3", rootProject.file("tools/prepare_fonts.py").absolutePath,
+        "--output", layout.buildDirectory.dir("generated/readerFonts/assets").get().asFile.absolutePath)
+}
+tasks.named("preBuild").configure { dependsOn(prepareReaderFonts) }

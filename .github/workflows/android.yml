@@ -31,6 +31,11 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4.0.4
 
+      - name: Cache verified offline font assets
+        uses: actions/cache@v4
+        with:
+          path: app/build/generated/readerFonts/assets
+          key: reader-fonts-${{ hashFiles('tools/fonts-manifest.json', 'tools/prepare_fonts.py') }}
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -73,6 +78,11 @@ jobs:
           java-version: '17'
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4.0.4
+      - name: Cache verified offline font assets
+        uses: actions/cache@v4
+        with:
+          path: app/build/generated/readerFonts/assets
+          key: reader-fonts-${{ hashFiles('tools/fonts-manifest.json', 'tools/prepare_fonts.py') }}
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:

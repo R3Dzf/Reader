@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -142,15 +143,16 @@ private fun PdfPage(handle: PdfRenderHandle, index: Int) {
         }
 
         Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.fillMaxWidth().testTag("pdf-page-$index"),
+            color = androidx.compose.ui.graphics.Color.White,
+            tonalElevation = 0.dp,
             shadowElevation = 2.dp
         ) {
             when {
                 bitmap != null -> Image(
                     bitmap = bitmap!!.asImageBitmap(),
                     contentDescription = stringResource(R.string.page_number, index + 1),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp).testTag("pdf-page-image-$index"),
                     contentScale = ContentScale.FillWidth
                 )
                 failed -> Text(

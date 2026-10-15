@@ -223,7 +223,7 @@ data class NativePresentation(
     val slideHeightPoints: Float
 ) : NativeOfficeDocument
 
-data class NativeSlide(val number: Int, val shapes: List<NativeSlideShape>, val backgroundRgb: Long? = null)
+data class NativeSlide(val number: Int, val shapes: List<NativeSlideShape>, val backgroundRgb: Long? = null, val backgroundFill: SlideFill? = null)
 
 enum class NativeSlideShapeKind { TEXT, SHAPE, IMAGE, TABLE, OTHER }
 enum class SlideCellVerticalAlignment { TOP, CENTER, BOTTOM }
@@ -285,7 +285,16 @@ data class NativeSlideShape(
     val rightToLeft: Boolean = false,
     val imageBytes: ByteArray? = null,
     val table: NativeSlideTable? = null,
-    val paragraphs: List<NativeSlideTextParagraph> = emptyList()
+    val paragraphs: List<NativeSlideTextParagraph> = emptyList(),
+    val fill: SlideFill? = null,
+    val geometry: String = "rect",
+    val outline: NativeSlideCellBorder? = null,
+    val rotationDegrees: Float = 0f,
+    val shearX: Float = 0f,
+    val flipHorizontal: Boolean = false,
+    val flipVertical: Boolean = false,
+    val textBox: SlideTextBox = SlideTextBox(),
+    val imageCrop: SlideImageCrop = SlideImageCrop()
 ) {
     val tableRows: List<List<NativeSlideTableCell>> get() = table?.rows.orEmpty()
 }
@@ -497,7 +506,7 @@ object NativeOfficeEngine {
                 mapped = if (override?.directChild("masterClrMapping") != null) masterMap
                     else mapped.mapColors(override?.directChild("overrideClrMapping"))
             }
-            return PptxSlideStyleContext(mapped, presentation.directChild("defaultTextStyle"), master, layout)
+            return PptxSlideStyleContext(mapped, presentation.directChild("defaultTextStyle"), master, layout, masterName, layoutName)
         }
     }
 
@@ -585,29 +594,54 @@ object NativeOfficeEngine {
         val style = styleParts.context(partName, document.documentElement)
         val shapeTree = document.documentElement.directChild("cSld")?.directChild("spTree")
             ?: throw InvalidOfficeDocumentException("Slide $slideNumber has no shape tree.")
-        val shapes = shapeTree.elementChildren().filter {
-            it.localName() in setOf("sp", "pic", "graphicFrame", "cxnSp", "grpSp")
+        data class Source(val shape: Element, val parent: SlideTransform, val part: String, val inherited: Boolean)
+        val sources = mutableListOf<Source>()
+        var nodes = 0
+        fun collect(tree: Element?, parent: SlideTransform, sourcePart: String, inherited: Boolean, depth: Int = 0) {
+            if (depth > 32) throw InvalidOfficeDocumentException("PowerPoint groups exceed the nesting limit.")
+            tree?.elementChildren()?.filter { it.localName() in setOf("sp", "pic", "graphicFrame", "cxnSp", "grpSp") }?.forEach { shape ->
+                if (++nodes > MAX_PPTX_SHAPES_PER_SLIDE || nodes > remainingShapeLimit) {
+                    throw InvalidOfficeDocumentException("The presentation exceeds the shape reading limit at slide $slideNumber.")
+                }
+                val placeholder = shape.elementChildren().firstOrNull { it.localName().startsWith("nv") }
+                    ?.directChild("nvPr")?.directChild("ph") != null
+                if (inherited && placeholder) return@forEach
+                if (shape.localName() == "grpSp") {
+                    collect(shape, parent.then(SlideTransform.from(shape.directChild("grpSpPr")?.directChild("xfrm"), true)), sourcePart, inherited, depth + 1)
+                } else sources += Source(shape, parent, sourcePart, inherited)
+            }
         }
-        if (shapes.size > MAX_PPTX_SHAPES_PER_SLIDE || shapes.size > remainingShapeLimit) {
-            throw InvalidOfficeDocumentException("The presentation exceeds the current shape reading limit at slide $slideNumber.")
+        fun visible(root: Element?) = root?.attributeByLocalName("showMasterSp") !in setOf("0", "false")
+        if (visible(document.documentElement)) {
+            if (visible(style.layout)) style.masterPart?.let { collect(style.master?.directChild("cSld")?.directChild("spTree"), SlideTransform(), it, true) }
+            style.layoutPart?.let { collect(style.layout?.directChild("cSld")?.directChild("spTree"), SlideTransform(), it, true) }
         }
-        val relationshipPart = officeRelationshipPart(partName)
-        val relationships = styleParts.xml(relationshipPart)?.let { relationshipDocument ->
-            readRelationships(relationshipDocument, partName)
-        }.orEmpty()
+        collect(shapeTree, SlideTransform(), partName, false)
+        val relations = mutableMapOf<String, Map<String, String>>()
         var tableCellsRead = 0
-        val parsed = shapes.mapNotNull { shape ->
-            val inheritedShapes = style.inheritedShapes(shape)
+        val parsed = sources.map { source ->
+            val shape = source.shape
+            val relationships = relations.getOrPut(source.part) {
+                styleParts.xml(officeRelationshipPart(source.part))?.let { readRelationships(it, source.part) }.orEmpty()
+            }
+            val inheritedShapes = if (source.inherited) listOf(shape) else style.inheritedShapes(shape)
             val transforms = inheritedShapes.mapNotNull { it.directChild("spPr")?.directChild("xfrm") ?: it.directChild("xfrm") }
-            val offset = transforms.firstNotNullOfOrNull { it.directChild("off") }
             val extent = transforms.firstNotNullOfOrNull { it.directChild("ext") }
-            val x = slideCoordinate(offset, "x")
-            val y = slideCoordinate(offset, "y")
             val width = slideCoordinate(extent, "cx")
             val height = slideCoordinate(extent, "cy")
             if (width < 0f || height < 0f) {
                 throw InvalidOfficeDocumentException("A slide element has invalid dimensions.")
             }
+            val transformElement = transforms.firstOrNull()
+            val transform = source.parent.then(SlideTransform.from(transformElement))
+            val center = transform.point(width / 2.0, height / 2.0)
+            val mappedWidth = width * kotlin.math.hypot(transform.a, transform.b)
+            val firstScale = kotlin.math.hypot(transform.a, transform.b).coerceAtLeast(1e-12)
+            val perpendicular = (transform.a * transform.d - transform.b * transform.c) / firstScale
+            val mappedHeight = height * kotlin.math.abs(perpendicular)
+            val shear = ((transform.a * transform.c + transform.b * transform.d) / firstScale / kotlin.math.abs(perpendicular).coerceAtLeast(1e-12)).toFloat()
+            val rotation = Math.toDegrees(kotlin.math.atan2(transform.b, transform.a)).toFloat()
+            val flipped = transform.a * transform.d - transform.b * transform.c < 0
             val textBody = shape.directChild("txBody")
             val paragraphs = readPptxRichText(textBody, style.theme, style.textDefaults(shape), textBudget)
             val text = paragraphs.joinToString("\n") { it.plainText }.takeIf { it.isNotBlank() }
@@ -629,16 +663,20 @@ object NativeOfficeEngine {
             val properties = inheritedShapes.mapNotNull { it.directChild("spPr") }.firstOrNull { element ->
                 element.elementChildren().any { it.localName() in setOf("solidFill", "noFill", "gradFill", "pattFill", "blipFill") }
             }
+            val explicitFill = style.theme.readFill(properties)
+            val fill = explicitFill ?: style.theme.referencedFill(shape.directChild("style")?.directChild("fillRef"))
             val firstParagraph = paragraphs.firstOrNull()
             val firstRun = paragraphs.flatMap { it.runs }.firstOrNull { it.text.isNotEmpty() } ?: firstParagraph?.defaultStyle
+            val crop = shape.directChild("blipFill")?.directChild("srcRect")
+            fun cropValue(name: String) = crop?.attributeByLocalName(name)?.toFloatOrNull()?.div(100000)?.takeIf { it.isFinite() }?.coerceIn(0f, 0.99f) ?: 0f
             NativeSlideShape(
                 kind = kind,
                 text = text,
-                xFraction = (x / slideWidthEmu).coerceIn(-1f, 1f),
-                yFraction = (y / slideHeightEmu).coerceIn(-1f, 1f),
-                widthFraction = (width / slideWidthEmu).coerceIn(0f, 2f),
-                heightFraction = (height / slideHeightEmu).coerceIn(0f, 2f),
-                fillRgb = style.theme.solidFill(properties),
+                xFraction = ((center.first - mappedWidth / 2) / slideWidthEmu).toFloat().coerceIn(-2f, 2f),
+                yFraction = ((center.second - mappedHeight / 2) / slideHeightEmu).toFloat().coerceIn(-2f, 2f),
+                widthFraction = (mappedWidth / slideWidthEmu).toFloat().coerceIn(0f, 4f),
+                heightFraction = (mappedHeight / slideHeightEmu).toFloat().coerceIn(0f, 4f),
+                fillRgb = fill?.rgb,
                 textRgb = firstRun?.textRgb,
                 fontSizePoints = firstRun?.fontSizePoints,
                 bold = firstRun?.bold ?: false,
@@ -647,13 +685,24 @@ object NativeOfficeEngine {
                 rightToLeft = firstParagraph?.rightToLeft ?: false,
                 imageBytes = imageBytes,
                 table = table,
-                paragraphs = paragraphs
+                paragraphs = paragraphs,
+                fill = fill,
+                geometry = shape.directChild("spPr")?.directChild("prstGeom")?.attributeByLocalName("prst") ?: if (shape.localName() == "cxnSp") "line" else "rect",
+                outline = pptxCellBorder(shape.directChild("spPr")?.directChild("ln"), style.theme),
+                rotationDegrees = rotation,
+                shearX = shear.coerceIn(-1000f,1000f),
+                flipVertical = flipped,
+                textBox = readSlideTextBox(inheritedShapes),
+                imageCrop = SlideImageCrop(cropValue("l"),cropValue("t"),cropValue("r"),cropValue("b"))
             )
         }
         val background = listOfNotNull(document.documentElement, style.layout, style.master).firstNotNullOfOrNull {
             it.directChild("cSld")?.directChild("bg")
-        }?.directChild("bgPr")
-        return NativeSlide(slideNumber, parsed, style.theme.solidFill(background))
+        }
+        val backgroundFill = style.theme.readFill(background?.directChild("bgPr"))
+            ?: style.theme.referencedFill(background?.directChild("bgRef"))
+        return NativeSlide(slideNumber, parsed, backgroundFill?.rgb, backgroundFill)
+
     }
 
     private fun officeRelationshipPart(sourcePart: String): String {
