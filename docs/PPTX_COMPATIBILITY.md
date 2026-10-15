@@ -1,4 +1,4 @@
-# Native PowerPoint compatibility — 0.6.0
+# Native PowerPoint compatibility — 0.7.0
 
 The Android app parses and renders the document locally. The parser does not write to the input file and does not execute macros. Support is tracked per feature; there is no Office-perfect fidelity claim.
 
@@ -14,7 +14,8 @@ The Android app parses and renders the document locally. The parser does not wri
 | Cell appearance | Direct/theme colors, mixed text styles, paragraph alignment, vertical alignment and margins | Table-style templates and conditional table formatting |
 | Borders | Per-edge color/width, solid/dash/dot, explicit no-fill | Compound strokes and exact dash-dot patterns |
 | Interaction | Pinch, zoom buttons, double tap, fit, bounded pan at 1×–5× | Wider device/API coverage remains pending |
-| Other graphics | Explicit element placeholder | Charts, SmartArt, equations, media and animations |
+| Charts | Native 2D cached charts, readable values and Arabic labels; see [chart compatibility](CHARTS_COMPATIBILITY.md) | Combined/3D/new chart types, exact Office styles and recalculation |
+| Other graphics | Explicit element placeholder | SmartArt, equations, media and animations |
 
 ## Reading limits
 
