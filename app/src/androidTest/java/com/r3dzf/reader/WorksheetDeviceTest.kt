@@ -27,14 +27,14 @@ class WorksheetDeviceTest {
     @Test fun rendersArabicMergedCellAndSupportsAccessibleFullValueReading() {
         show(sheet())
         compose.onNodeWithContentDescription("A1:B4: مرحبا بالعالم").assertIsDisplayed().performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick) { it() }
-        compose.onNodeWithText("A1:B4").assertIsDisplayed()
+        compose.onNode(hasText("A1:B4") and hasAnyAncestor(isDialog())).assertIsDisplayed()
         compose.onNodeWithText("مرحبا بالعالم").assertIsDisplayed()
     }
     @Test fun zoomControlsAndResetChangeTheViewportWithoutLosingMergedText() {
         show(sheet())
         compose.onNodeWithTag("sheet-zoom-in").performClick()
         compose.onNodeWithTag("sheet-zoom-level").assertTextContains("125", substring = true)
-        compose.onNodeWithTag("sheet-reset").performClick()
+        compose.onNodeWithTag("sheet-options").performClick(); compose.onNodeWithTag("sheet-reset").performClick()
         compose.onNodeWithTag("sheet-zoom-level").assertTextContains("100", substring = true)
         compose.onNodeWithContentDescription("A1:B4: مرحبا بالعالم").assertIsDisplayed()
     }
@@ -70,7 +70,7 @@ class WorksheetDeviceTest {
             compose.onNodeWithContentDescription("A1:B3: عنوان عربي مدمج").assertIsDisplayed()
             compose.onNodeWithTag("sheet-zoom-in").performClick()
             compose.onNodeWithTag("worksheet-grid").captureToImage()
-            compose.onNodeWithTag("sheet-jump").performScrollTo().performClick()
+            compose.onNodeWithTag("sheet-jump").performClick()
             compose.onNodeWithTag("sheet-jump-address").performTextInput("B1000000")
             compose.onNodeWithTag("sheet-jump-confirm").performClick()
             compose.onNodeWithContentDescription("B1000000: صف بعيد").assertIsDisplayed()

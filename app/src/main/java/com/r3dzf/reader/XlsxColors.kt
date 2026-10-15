@@ -12,6 +12,7 @@ internal class XlsxColors(theme: Element?=null,styles: Element?=null) {
         rgb(node?.attributeByLocalName("val")) ?: rgb(node?.attributeByLocalName("lastClr")) ?: defaults[index]
     }
     private val indexed=styles?.directChild("colors")?.directChild("indexedColors")?.elementChildren()?.mapNotNull { rgb(it.attributeByLocalName("rgb")) }.orEmpty()
+    fun theme(index: Int): Long = themeColors.getOrElse(index) { defaults[4] }
     fun read(node: Element?): Long? {
         node ?: return null
         val base=rgb(node.attributeByLocalName("rgb"))

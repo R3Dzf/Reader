@@ -180,7 +180,10 @@ data class NativeWorksheet(
     val rowCount: Int = maxOf(rows.maxOfOrNull { it.rowIndex + 1 } ?: 0, mergedRanges.maxOfOrNull { it.lastRow + 1 } ?: 0),
     val showGridLines: Boolean = true,
     val columnStyles: Map<Int, NativeSheetCell> = emptyMap(),
-    val defaultCell: NativeSheetCell = NativeSheetCell("")
+    val defaultCell: NativeSheetCell = NativeSheetCell(""),
+    val frozenRows: Int = 0,
+    val frozenColumns: Int = 0,
+    val tables: List<NativeSheetTable> = emptyList()
 ) {
     val horizontalMerges: List<NativeMergedRange> get() = mergedRanges.filter { it.row == it.lastRow }
 }
@@ -214,7 +217,12 @@ data class NativeSheetCell(
     val borderLeft: NativeSheetBorder? = null,
     val borderRight: NativeSheetBorder? = null,
     val borderTop: NativeSheetBorder? = null,
-    val borderBottom: NativeSheetBorder? = null
+    val borderBottom: NativeSheetBorder? = null,
+    val formula: String? = null,
+    val indent: Int = 0,
+    val shrinkToFit: Boolean = false,
+    val textRotation: Int = 0,
+    val hasExplicitFont: Boolean = false
 )
 
 data class NativePresentation(
@@ -368,19 +376,20 @@ object NativeOfficeEngine {
                 val relationshipsEntry = packageFile.getEntry("xl/_rels/workbook.xml.rels")
                     ?: throw InvalidOfficeDocumentException("The XLSX package has no workbook relationships.")
                 val workbook = secureXml(readBounded(packageFile, workbookEntry))
-                val relationships = readRelationships(
-                    secureXml(readBounded(packageFile, relationshipsEntry)),
-                    "xl/workbook.xml"
-                )
-                val sharedStrings = packageFile.getEntry("xl/sharedStrings.xml")?.let { entry ->
+                val relationshipXml = secureXml(readBounded(packageFile, relationshipsEntry))
+                val relationships = readRelationships(relationshipXml, "xl/workbook.xml")
+                fun relatedPart(kind: String, fallback: String): String = relationshipXml.documentElement.elementChildren()
+                    .firstOrNull { it.attributeByLocalName("Type")?.endsWith("/$kind") == true && it.attributeByLocalName("TargetMode") != "External" }
+                    ?.attributeByLocalName("Id")?.let { relationships[it] } ?: fallback
+                val sharedStrings = packageFile.getEntry(relatedPart("sharedStrings", "xl/sharedStrings.xml"))?.let { entry ->
                     val xml = secureXml(readBounded(packageFile, entry))
                     xml.documentElement.elementChildren().filter { it.localName() == "si" }
                         .map(::allTextContent)
                 }.orEmpty()
-                val themeRoot = packageFile.getEntry("xl/theme/theme1.xml")?.let { secureXml(readBounded(packageFile,it)).documentElement }
-                val cellStyles = packageFile.getEntry("xl/styles.xml")?.let { entry ->
-                    parseXlsxCellStyles(secureXml(readBounded(packageFile, entry)),themeRoot)
-                }.orEmpty()
+                val themeRoot = packageFile.getEntry(relatedPart("theme", "xl/theme/theme1.xml"))?.let { secureXml(readBounded(packageFile,it)).documentElement }
+                val stylesXml = packageFile.getEntry(relatedPart("styles", "xl/styles.xml"))?.let { secureXml(readBounded(packageFile, it)) }
+                val cellStyles = stylesXml?.let { parseXlsxCellStyles(it, themeRoot) }.orEmpty()
+                val tableStyles = XlsxTableStyles(stylesXml?.documentElement, XlsxColors(themeRoot, stylesXml?.documentElement))
                 val date1904 = workbook.documentElement.directChild("workbookPr")
                     ?.attributeByLocalName("date1904")?.let(::isEnabled) ?: false
                 val numberFormatter = XlsxNumberFormatter(date1904)
@@ -407,6 +416,7 @@ object NativeOfficeEngine {
                             sharedStrings,
                             cellStyles,
                             numberFormatter,
+                            tableStyles,
                             MAX_XLSX_CELLS - totalCells,
                             MAX_XLSX_ROW_ENTRIES - totalRows,
                             4_000_000 - totalText
@@ -858,6 +868,7 @@ object NativeOfficeEngine {
         sharedStrings: List<String>,
         cellStyles: List<NativeSheetCell>,
         numberFormatter: XlsxNumberFormatter,
+        tableStyles: XlsxTableStyles,
         remainingCellLimit: Int,
         remainingRowLimit: Int,
         remainingTextLimit: Int
@@ -873,6 +884,17 @@ object NativeOfficeEngine {
         val isRtl = document.documentElement.directChild("sheetViews")
             ?.elementChildren()?.firstOrNull { it.localName() == "sheetView" }
             ?.attributeByLocalName("rightToLeft")?.let(::isEnabled) ?: false
+        val sheetView = document.documentElement.directChild("sheetViews")?.elementChildren()?.firstOrNull { it.localName() == "sheetView" }
+        val frozen = readXlsxFrozenPane(sheetView?.directChild("pane"))
+        val tableParts = document.documentElement.directChild("tableParts")?.elementChildren().orEmpty()
+        if (tableParts.size > 256) throw InvalidOfficeDocumentException("Too many worksheet tables.")
+        val sheetRelationships = zip.getEntry(officeRelationshipPart(partName))?.let { readRelationships(secureXml(readBounded(zip, it)), partName) }.orEmpty()
+        val tables = tableParts.map { part ->
+            val target = part.relationshipAttribute("id")?.let { sheetRelationships[it] }
+                ?: throw InvalidOfficeDocumentException("A worksheet table has no package relationship.")
+            val table = zip.getEntry(target) ?: throw InvalidOfficeDocumentException("A worksheet table is missing.")
+            tableStyles.readTable(secureXml(readBounded(zip, table)).documentElement)
+        }
         val sheetData = document.documentElement.directChild("sheetData")
         val rows = sortedMapOf<Int, MutableMap<Int, NativeSheetCell>>()
         val rowSettings = mutableMapOf<Int, NativeSheetRow>()
@@ -938,6 +960,7 @@ object NativeOfficeEngine {
                 if (value.isNotEmpty() || styleIndex != null) rowCells[columnIndex] = style.copy(
                     value = formatted.text,
                     rawValue = value,
+                    formula = formula,
                     textRgb = formatted.colorRgb ?: style.textRgb,
                     numberFormatUnsupported = !formatted.supported,
                     valueKind = when {
@@ -955,8 +978,8 @@ object NativeOfficeEngine {
                 }
             }
         }
-        val columnCount = maxOf(maximumColumn, mergedRanges.maxOfOrNull { it.lastColumn } ?: -1, dimensions.columnWidths.keys.maxOrNull() ?: -1) + 1
-        val rowCount = maxOf(rows.keys.maxOrNull()?.plus(1) ?: 0, mergedRanges.maxOfOrNull { it.lastRow + 1 } ?: 0)
+        val columnCount = maxOf(maximumColumn, mergedRanges.maxOfOrNull { it.lastColumn } ?: -1, dimensions.columnWidths.keys.maxOrNull() ?: -1, tables.maxOfOrNull { it.range.lastColumn } ?: -1) + 1
+        val rowCount = maxOf(rows.keys.maxOrNull()?.plus(1) ?: 0, mergedRanges.maxOfOrNull { it.lastRow + 1 } ?: 0, tables.maxOfOrNull { it.range.lastRow + 1 } ?: 0)
         SheetMergeIndex(mergedRanges, columnCount, rowCount)
         return ParsedWorksheet(
             sheet = NativeWorksheet(
@@ -971,7 +994,10 @@ object NativeOfficeEngine {
                 rowCount = rowCount,
                 showGridLines = dimensions.showGridLines,
                 columnStyles = columnStyles,
-                defaultCell = styleAt(0)
+                defaultCell = styleAt(0),
+                frozenRows = frozen.first,
+                frozenColumns = frozen.second,
+                tables = tables
             ),
             cellCount = cellCount,
             rowCount = rows.size,
@@ -1061,6 +1087,7 @@ object NativeOfficeEngine {
             val numberId = if (applyNumber && xf.attributeByLocalName("numFmtId") != null) formatId(xf) else formatId(base)
             val cell = NativeSheetCell(
                 value = "",
+                hasExplicitFont = fontIndex != 0 && fontElement?.directChild("color") != null,
                 bold = font?.first == true,
                 italic = font?.second == true,
                 fontSizePoints = font?.third?.first,
