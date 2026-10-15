@@ -90,6 +90,12 @@ class ExcelReadingTest {
         assertEquals(listOf(SheetSearchResult(0,0,"مرحبا Excel")), searchWorksheet(sheet,"excel"))
         assertTrue(searchWorksheet(sheet,"  ").isEmpty()); assertEquals(0,searchWorksheet(sheet,"excel",0).size)
     }
+    @Test fun rotationConvertsBothSidesOfTheHorizontal() {
+        assertEquals(-90f, sheetRotationDegrees(90), 0f)
+        assertEquals(1f, sheetRotationDegrees(91), 0f)
+        assertEquals(45f, sheetRotationDegrees(135), 0f)
+        assertEquals(90f, sheetRotationDegrees(180), 0f)
+    }
     @Test fun offscreenTextOriginsAreRetainedWithoutScanningTheWholeWorkbook() {
         val layout = WorksheetLayout(NativeWorksheet("Data", listOf(NativeSheetRow(0,mapOf(0 to NativeSheetCell("A title that spans columns")))), 40, false))
         assertEquals("A1",layout.overflowOrigins(96.0,0.0,96.0,15.0).single().address)

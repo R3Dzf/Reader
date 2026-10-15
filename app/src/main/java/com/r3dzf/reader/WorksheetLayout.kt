@@ -198,3 +198,6 @@ internal fun WorksheetLayout.overflowEnd(placement: SheetPlacement, backwards: B
     }
     return edge
 }
+
+/** SpreadsheetML 91..180 encodes 1..90 degrees below the horizontal. Canvas turns clockwise. */
+internal fun sheetRotationDegrees(rotation: Int): Float = if (rotation <= 90) -rotation.toFloat() else rotation - 90f

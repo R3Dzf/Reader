@@ -240,7 +240,7 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
                             }
                             val clipLeft = textLeft.coerceAtLeast(paneLeft); val clipRight = textRight.coerceAtMost(paneRight)
                             if (clipRight > clipLeft) clipRect(clipLeft, top.coerceAtLeast(paneTop), clipRight, bottom.coerceAtMost(paneBottom)) {
-                                val angle = if (cell.textRotation <= 90) -cell.textRotation.toFloat() else (180 - cell.textRotation).toFloat()
+                                val angle = sheetRotationDegrees(cell.textRotation)
                                 if (angle == 0f) drawText(text, topLeft = Offset(textX, textY)) else rotate(angle, Offset((left + right) / 2, (top + bottom) / 2)) { drawText(text, topLeft = Offset((left + right - text.size.width) / 2, (top + bottom - text.size.height) / 2)) }
                             }
                         }
