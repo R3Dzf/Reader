@@ -4,7 +4,7 @@ The Android app parses and renders the document locally. The parser does not wri
 
 | Feature | Current implementation | Remaining limits |
 | --- | --- | --- |
-| Slides | Order, proportions, physical coordinates, inherited placeholders; master/layout decorations with their own image relationships, grouped affine transforms, rotation and reflection | Custom geometry and complex drawing effects |
+| Slides | Order, proportions, physical coordinates, inherited placeholders; master/layout decorations with their own image relationships, grouped DrawingML transforms, rotation and reflection | Custom geometry and complex drawing effects |
 | Text | Per-run sizes/colors/font names, bold/italic, underline/strike-through, paragraph alignment/direction and point spacing; cached fields and breaks; character/number bullets, hanging indents, line spacing and body margins/vertical anchors | Advanced text fitting, vertical text, exact bullet tabs and document-embedded fonts |
 | Theme | Direct/system palette colors, color-map and theme overrides, major/minor Latin/complex font references, ordered tint/shade/lumMod/lumOff transforms; style-matrix fills/bgRef, linear gradient stops and fill alpha | Pattern/path gradients, picture backgrounds and other transforms |
 | Images | Embedded raster images, bounded decode, resolution increases at zoom thresholds, nonnegative source cropping and stretch | Vector images, outsets/negative cropping and image effects |
@@ -56,3 +56,5 @@ The tests check expected cell positions and proportions, one visible cell per me
 - [Android multitouch gestures](https://developer.android.com/develop/ui/compose/touch-input/pointer-input/multi-touch).
 - [Microsoft slide masters](https://learn.microsoft.com/en-us/office/open-xml/presentation/working-with-slide-masters).
 - [Microsoft DrawingML run properties](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.runproperties).
+
+DrawingML group scaling/flips and rotations are accumulated separately; transformed child centers follow the full parent coordinate chain. Local frames are limited to 16 slide widths/heights and accumulated drawing scale to 1,000,000 to bound Android layout. See Microsoft’s [DrawingML primer, §5.7.4](https://download.microsoft.com/download/e/1/4/e14fb96f-83b8-4a2a-84db-7fa8acbe061a/Office%20Open%20XML%20Part%203%20-%20Primer.pdf).

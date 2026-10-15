@@ -24,7 +24,9 @@ class PptxDrawingTest {
         assertEquals(0.2f,ellipse.xFraction,0.06f) // rotation changes its center, not the group scale
         assertEquals(0.1f,ellipse.widthFraction,0.04f)
         assertEquals(2f,ellipse.outline!!.widthPoints,0f)
-        assertTrue(ellipse.rotationDegrees > 30f)
+        assertEquals(30f,ellipse.rotationDegrees,0.001f)
+        assertEquals(1f,ellipse.drawingScaleX,0.001f)
+        assertEquals(2f,ellipse.drawingScaleY,0.001f)
         val text = shapes.single { it.text?.contains("مرحبا") == true }
         assertEquals(0.4f,text.xFraction,0.001f)
         assertEquals(0.2f,text.yFraction,0.001f)
@@ -41,7 +43,7 @@ class PptxDrawingTest {
         val shapes = open().slides[1].shapes
         assertEquals(2,shapes.size)
         assertFalse(shapes.any { it.fillRgb == 0x124578L || it.fillRgb == 0x228833L })
-        assertTrue(shapes.single { it.geometry == "diamond" }.flipVertical) // decomposed reflection with equivalent rotation
+        assertTrue(shapes.single { it.geometry == "diamond" }.flipHorizontal) // DrawingML preserves the horizontal reflection flag
     }
     @Test fun verticalConnectorReadsThemedLineStyleWithoutExplicitStroke() {
         val line=open().slides[1].shapes.single { it.geometry == "line" }
@@ -70,6 +72,20 @@ class PptxDrawingTest {
         assertEquals("aa.",pptxNumberMarker(27,"alphaLcPeriod"))
         assertEquals("(IV)",pptxNumberMarker(4,"romanUcParenBoth"))
         assertEquals("12)",pptxNumberMarker(12,"arabicParenR"))
+    }
+    @Test fun rejectsHugeChildFramesBeforeTheyReachAndroidLayout() {
+        val file=File.createTempFile("huge-child-", ".pptx")
+        try {
+            ZipFile(fixture()).use { input -> ZipOutputStream(file.outputStream()).use { output ->
+                input.entries().asSequence().forEach { entry ->
+                    var bytes=input.getInputStream(entry).readBytes()
+                    if(entry.name=="ppt/slides/slide1.xml") bytes=bytes.toString(Charsets.UTF_8)
+                        .replaceFirst("cx=\"914400\" cy=\"914400\"", "cx=\"1000000000000\" cy=\"914400\"").toByteArray()
+                    output.putNextEntry(ZipEntry(entry.name));output.write(bytes);output.closeEntry()
+                }
+            } }
+            assertTrue(runCatching { open(file) }.exceptionOrNull() is InvalidOfficeDocumentException)
+        } finally { file.delete() }
     }
     @Test fun rejectsExcessivelyNestedGroups() {
         val target = File.createTempFile("nested-pptx-", ".pptx")

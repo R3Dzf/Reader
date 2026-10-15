@@ -34,8 +34,8 @@ internal data class SlideTransform(val a: Double = 1.0, val b: Double = 0.0, val
             val start = SlideTransform(x=x+w/2, y=y+h/2).then(rotation).then(SlideTransform(x=-w/2,y=-h/2))
             if (!group) return start
             val cw = coordinate("chExt","cx",w); val ch = coordinate("chExt","cy",h)
-            if (cw <= 0.0 || ch <= 0.0) throw InvalidOfficeDocumentException("A PowerPoint group has invalid child dimensions.")
-            return start.then(SlideTransform(a=w/cw,d=h/ch)).then(SlideTransform(x=-coordinate("chOff","x"),y=-coordinate("chOff","y")))
+            if (cw < 0.0 || ch < 0.0) throw InvalidOfficeDocumentException("A PowerPoint group has invalid child dimensions.")
+            return start.then(SlideTransform(a=if (cw == 0.0) 1.0 else w/cw,d=if (ch == 0.0) 1.0 else h/ch)).then(SlideTransform(x=-coordinate("chOff","x"),y=-coordinate("chOff","y")))
         }
     }
 }
@@ -91,4 +91,28 @@ internal fun readSlideOutline(shape: Element, theme: PptxTheme): NativeSlideCell
         "dash","lgDash","sysDash","dashDot","lgDashDot","lgDashDotDot" -> SlideBorderDash.DASH
         else -> SlideBorderDash.SOLID
     })
+}
+
+/** DrawingML §5.7.4 accumulates scales/flips and rotations separately to avoid skewing shapes.
+ * The affine matrix is used only to locate each shape's center in the parent hierarchy. */
+internal data class SlideDrawingTransform(val scaleX: Double = 1.0, val scaleY: Double = 1.0, val rotation: Double = 0.0) {
+    fun then(other: SlideDrawingTransform) = SlideDrawingTransform(scaleX*other.scaleX,scaleY*other.scaleY,rotation+other.rotation)
+    companion object {
+        fun from(element: Element?, group: Boolean = false): SlideDrawingTransform {
+            fun size(tag: String, attribute: String): Double? = element?.directChild(tag)?.attributeByLocalName(attribute)?.toDoubleOrNull()
+            fun axis(attribute: String): Double {
+                if (!group) return 1.0
+                val extent = size("ext",attribute) ?: return 1.0
+                val children = size("chExt",attribute) ?: extent
+                return if (children == 0.0) 1.0 else extent / children
+            }
+            val sx = axis("cx")
+            val sy = axis("cy")
+            val flipX = if (element?.attributeByLocalName("flipH") in setOf("1","true")) -1 else 1
+            val flipY = if (element?.attributeByLocalName("flipV") in setOf("1","true")) -1 else 1
+            val rotation = element?.attributeByLocalName("rot")?.toDoubleOrNull()?.div(60000) ?: 0.0
+            if (listOf(sx,sy,rotation).any { !it.isFinite() }) throw InvalidOfficeDocumentException("Invalid PowerPoint group drawing transform.")
+            return SlideDrawingTransform(sx*flipX,sy*flipY,rotation)
+        }
+    }
 }

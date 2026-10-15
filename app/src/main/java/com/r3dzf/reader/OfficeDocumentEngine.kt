@@ -290,7 +290,6 @@ data class NativeSlideShape(
     val geometry: String = "rect",
     val outline: NativeSlideCellBorder? = null,
     val rotationDegrees: Float = 0f,
-    val shearX: Float = 0f,
     val drawingScaleX: Float = 1f,
     val drawingScaleY: Float = 1f,
     val flipHorizontal: Boolean = false,
@@ -596,10 +595,10 @@ object NativeOfficeEngine {
         val style = styleParts.context(partName, document.documentElement)
         val shapeTree = document.documentElement.directChild("cSld")?.directChild("spTree")
             ?: throw InvalidOfficeDocumentException("Slide $slideNumber has no shape tree.")
-        data class Source(val shape: Element, val parent: SlideTransform, val part: String, val inherited: Boolean)
+        data class Source(val shape: Element, val parent: SlideTransform, val drawing: SlideDrawingTransform, val part: String, val inherited: Boolean)
         val sources = mutableListOf<Source>()
         var nodes = 0
-        fun collect(tree: Element?, parent: SlideTransform, sourcePart: String, inherited: Boolean, depth: Int = 0) {
+        fun collect(tree: Element?, parent: SlideTransform, sourcePart: String, inherited: Boolean, depth: Int = 0, drawing: SlideDrawingTransform = SlideDrawingTransform()) {
             if (depth > 32) throw InvalidOfficeDocumentException("PowerPoint groups exceed the nesting limit.")
             tree?.elementChildren()?.filter { it.localName() in setOf("sp", "pic", "graphicFrame", "cxnSp", "grpSp") }?.forEach { shape ->
                 if (++nodes > MAX_PPTX_SHAPES_PER_SLIDE || nodes > remainingShapeLimit) {
@@ -609,8 +608,10 @@ object NativeOfficeEngine {
                     ?.directChild("nvPr")?.directChild("ph") != null
                 if (inherited && placeholder) return@forEach
                 if (shape.localName() == "grpSp") {
-                    collect(shape, parent.then(SlideTransform.from(shape.directChild("grpSpPr")?.directChild("xfrm"), true)), sourcePart, inherited, depth + 1)
-                } else sources += Source(shape, parent, sourcePart, inherited)
+                    val groupTransform = shape.directChild("grpSpPr")?.directChild("xfrm")
+                    collect(shape, parent.then(SlideTransform.from(groupTransform, true)), sourcePart, inherited, depth + 1,
+                        drawing.then(SlideDrawingTransform.from(groupTransform, true)))
+                } else sources += Source(shape, parent, drawing, sourcePart, inherited)
             }
         }
         fun visible(root: Element?) = root?.attributeByLocalName("showMasterSp") !in setOf("0", "false")
@@ -637,13 +638,18 @@ object NativeOfficeEngine {
             val transformElement = transforms.firstOrNull()
             val transform = source.parent.then(SlideTransform.from(transformElement))
             val center = transform.point(width / 2.0, height / 2.0)
-            val mappedWidth = width * kotlin.math.hypot(transform.a, transform.b)
-            val firstScale = kotlin.math.hypot(transform.a, transform.b).coerceAtLeast(1e-12)
-            val perpendicular = (transform.a * transform.d - transform.b * transform.c) / firstScale
-            val mappedHeight = height * kotlin.math.abs(perpendicular)
-            val shear = ((transform.a * transform.c + transform.b * transform.d) / firstScale / firstScale).toFloat()
-            val rotation = Math.toDegrees(kotlin.math.atan2(transform.b, transform.a)).toFloat()
-            val flipped = transform.a * transform.d - transform.b * transform.c < 0
+            if (width > slideWidthEmu * 16 || height > slideHeightEmu * 16) {
+                throw InvalidOfficeDocumentException("A PowerPoint shape exceeds the local layout dimension limit.")
+            }
+            val drawing = source.drawing.then(SlideDrawingTransform.from(transformElement))
+            val firstScale = kotlin.math.abs(drawing.scaleX)
+            val verticalScale = kotlin.math.abs(drawing.scaleY)
+            if (listOf(firstScale, verticalScale, drawing.rotation).any { !it.isFinite() } || firstScale > 1e6 || verticalScale > 1e6) {
+                throw InvalidOfficeDocumentException("A PowerPoint group exceeds the drawing scale limit.")
+            }
+            val mappedWidth = width * firstScale
+            val mappedHeight = height * verticalScale
+            val rotation = (drawing.rotation % 360).toFloat()
             val textBody = shape.directChild("txBody")
             val paragraphs = readPptxRichText(textBody, style.theme, style.textDefaults(shape), textBudget)
             val text = paragraphs.joinToString("\n") { it.plainText }.takeIf { it.isNotBlank() }
@@ -692,10 +698,10 @@ object NativeOfficeEngine {
                 geometry = shape.directChild("spPr")?.directChild("prstGeom")?.attributeByLocalName("prst") ?: if (shape.localName() == "cxnSp") "line" else "rect",
                 outline = readSlideOutline(shape, style.theme),
                 rotationDegrees = rotation,
-                shearX = shear.coerceIn(-1000f,1000f),
                 drawingScaleX = firstScale.toFloat().coerceIn(0.000001f,1_000_000f),
-                drawingScaleY = kotlin.math.abs(perpendicular).toFloat().coerceIn(0.000001f,1_000_000f),
-                flipVertical = flipped,
+                drawingScaleY = verticalScale.toFloat().coerceIn(0.000001f,1_000_000f),
+                flipHorizontal = drawing.scaleX < 0,
+                flipVertical = drawing.scaleY < 0,
                 textBox = readSlideTextBox(inheritedShapes),
                 imageCrop = SlideImageCrop(cropValue("l"),cropValue("t"),cropValue("r"),cropValue("b"))
             )

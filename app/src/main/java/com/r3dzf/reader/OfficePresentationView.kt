@@ -1,7 +1,6 @@
 package com.r3dzf.reader
 
 
-import androidx.core.graphics.withTranslation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -19,8 +18,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -150,7 +147,7 @@ internal fun SlideContent(presentation: NativePresentation, slide: NativeSlide, 
         val density = LocalDensity.current
         slide.shapes.forEach { shape ->
             // Lay text, margins and strokes out in the original child coordinate space.
-            // Apply the group's affine scale to the whole drawing, including glyphs.
+            // Apply the group's drawing scale to the whole drawing, including glyphs.
             val width = maxWidth * (shape.widthFraction / shape.drawingScaleX)
             val height = maxHeight * (shape.heightFraction / shape.drawingScaleY)
             val x = maxWidth * (shape.xFraction + shape.widthFraction / 2) - width / 2
@@ -168,16 +165,6 @@ internal fun SlideContent(presentation: NativePresentation, slide: NativeSlide, 
                         rotationZ = shape.rotationDegrees
                         scaleX = shape.drawingScaleX * if (shape.flipHorizontal) -1f else 1f
                         scaleY = shape.drawingScaleY * if (shape.flipVertical) -1f else 1f
-                    }
-                    .drawWithContent {
-                        val canvas = drawContext.canvas.nativeCanvas
-                        val content = this
-                        val centerX = size.width/2
-                        val centerY = size.height/2
-                        canvas.withTranslation(centerX,centerY) {
-                            skew(shape.shearX,0f)
-                            withTranslation(-centerX,-centerY) { content.drawContent() }
-                        }
                     }
                     .drawBehind { drawSlideShape(shape, scale) }
                     .then(if (unsupportedLabel != null) Modifier.border(1.dp, Color(0xFFB65A28)) else Modifier)
