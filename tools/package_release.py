@@ -28,7 +28,8 @@ def package(apk,code,name,output,keystore,password_file,apksigner,previous=()):
         patch=make_patch(base,data);assert apply_patch(base,patch)==data
         if len(patch)>=len(data)*.9:continue
         path=output/('Rafolio-'+name+'-from-'+base_hash[:16]+'.rfd');path.write_bytes(patch)
-        deltas.append(dict(baseSha256=base_hash,asset=asset(path)))
+        # Schema 1 clients (including 0.9.0) read delta asset fields directly.
+        deltas.append(dict(baseSha256=base_hash,**asset(path)))
     payload=json.dumps(dict(schema=1,package='com.r3dzf.reader',versionCode=code,versionName=name,minSdk=26,certificateSha256=PIN,notes='In-app updates with smaller delta downloads and permanent release signing.',full=asset(target),deltas=deltas),sort_keys=True,separators=(',',':')).encode()
     with tempfile.TemporaryDirectory(prefix='rafolio-sign-') as tmp:
         private=Path(tmp)/'key.pem';public=Path(tmp)/'public.pem';cert=Path(tmp)/'certificate.pem';message=Path(tmp)/'payload';sig=Path(tmp)/'signature'
