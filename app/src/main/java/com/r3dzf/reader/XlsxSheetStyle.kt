@@ -33,7 +33,7 @@ internal fun readXlsxDimensions(root: Element): XlsxDimensions {
     return XlsxDimensions(defaultWidth, defaultHeight, normalHeight, widths, styles, view?.let { enabled(it, "showGridLines", true) } ?: true)
 }
 
-internal fun readXlsxBorder(edge: Element?): NativeSheetBorder? {
+internal fun readXlsxBorder(edge: Element?,colors: XlsxColors = XlsxColors()): NativeSheetBorder? {
     val style = edge?.attributeByLocalName("style") ?: return null
     if (style == "none") return null
     val width = when (style) { "hair" -> 0.25f; "medium", "mediumDashed", "mediumDashDot", "mediumDashDotDot", "double" -> 1.5f; "thick" -> 2.25f; else -> 0.75f }
@@ -45,7 +45,7 @@ internal fun readXlsxBorder(edge: Element?): NativeSheetBorder? {
         "double" -> SheetBorderDash.DOUBLE
         else -> SheetBorderDash.SOLID
     }
-    val rgb = edge.directChild("color")?.attributeByLocalName("rgb")?.takeLast(6)?.takeIf { it.matches(Regex("[0-9a-fA-F]{6}")) }?.toLongOrNull(16)
+    val rgb = colors.read(edge.directChild("color"))
     return NativeSheetBorder(width, rgb, dash)
 }
 

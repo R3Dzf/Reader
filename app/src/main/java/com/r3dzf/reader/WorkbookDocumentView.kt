@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -61,9 +63,11 @@ internal fun WorkbookDocumentView(workbook: NativeWorkbook,initialProgress: Read
 
 @Composable
 internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier) {
-    val layout = remember(sheet) { WorksheetLayout(sheet) }
+    val layout = remember(sheet) { WorksheetLayout(sheet,minimumRows=100,minimumColumns=26) }
     val density = LocalDensity.current
-    var viewport by remember(sheet) { mutableStateOf(SheetViewport()) }
+    val context = LocalContext.current
+    val origin=remember(sheet) { sheet.rows.asSequence().filterNot {it.hidden}.flatMap { row -> row.cells.asSequence().filter {it.value.value.isNotBlank() && layout.columns.offset(it.key+1)>layout.columns.offset(it.key)}.map {row.rowIndex to it.key} }.firstOrNull() }
+    var viewport by remember(sheet) { mutableStateOf(if(origin!=null && (origin.first>=20 || origin.second>=8)) SheetViewport(x=layout.columns.offset(origin.second),y=layout.rows.offset(origin.first)) else SheetViewport()) }
     var size by remember { mutableStateOf(IntSize.Zero) }
     var selected by remember(sheet) { mutableStateOf<SheetPlacement?>(null) }
     var showCell by remember { mutableStateOf(false) }
@@ -139,8 +143,11 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
                         if (cell.value.isNotEmpty()) {
                             val padding = (2f * pointsToPixels).coerceAtMost((right - left) / 4)
                             val width = (right - left - 2 * padding).coerceIn(1f, 16_384f).toInt()
-                            val family = cell.fontFamilyName?.let { name ->
-                                families.getOrPut(name) { if (families.size >= 128) families.clear(); FontFamily(Typeface.create(name, Typeface.NORMAL)) }
+                            val arabic=cell.value.any {Character.UnicodeScript.of(it.code)==Character.UnicodeScript.ARABIC}
+                            val fontKey="${cell.fontFamilyName}/${cell.bold}/${cell.italic}/$arabic"
+                            val family=families.getOrPut(fontKey) {
+                                if(families.size>=128) families.clear()
+                                FontFamily(DocumentFonts.typeface(context,cell.fontFamilyName,cell.bold,cell.italic,arabic))
                             }
                             val horizontal = sheetTextAlignment(cell)
                             val style = TextStyle(color = cell.textRgb?.let(::sheetColor) ?: Color(0xFF111827),
@@ -149,16 +156,17 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
                                 fontStyle = if (cell.italic) FontStyle.Italic else FontStyle.Normal,
                                 textDecoration = TextDecoration.combine(listOfNotNull(TextDecoration.Underline.takeIf { cell.underline }, TextDecoration.LineThrough.takeIf { cell.strikeThrough })),
                                 textDirection = if (sheetCellIsRtl(cell)) TextDirection.Rtl else TextDirection.Ltr,
-                                textAlign = horizontal)
+                                textAlign = horizontal,platformStyle=PlatformTextStyle(includeFontPadding=false))
                             val text = textMeasurer.measure(AnnotatedString(cell.value), style,
                                 overflow = TextOverflow.Clip, softWrap = cell.wrapText,
                                 maxLines = if (cell.wrapText || '\n' in cell.value) 256 else 1,
                                 constraints = Constraints(maxWidth = width, maxHeight = 16_384))
                             val textX = when (horizontal) { TextAlign.Right -> right - padding - width; TextAlign.Center -> (left + right - width) / 2; else -> left + padding }
+                            val verticalPadding=minOf(padding,((bottom-top-text.size.height)/2).coerceAtLeast(0f))
                             val textY = when (cell.verticalAlignment) {
-                                SheetVerticalAlignment.TOP -> top + padding
+                                SheetVerticalAlignment.TOP -> top + verticalPadding
                                 SheetVerticalAlignment.CENTER -> (top + bottom - text.size.height) / 2
-                                SheetVerticalAlignment.BOTTOM -> bottom - padding - text.size.height
+                                SheetVerticalAlignment.BOTTOM -> bottom - verticalPadding - text.size.height
                             }
                             clipRect(left.coerceAtLeast(bodyLeft), top.coerceAtLeast(headerHeight), right.coerceAtMost(bodyRight), bottom.coerceAtMost(size.height.toFloat())) {
                                 drawText(text, topLeft = Offset(textX, textY))

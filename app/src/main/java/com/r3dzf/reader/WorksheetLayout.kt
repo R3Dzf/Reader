@@ -71,9 +71,9 @@ internal data class SheetPlacement(val range: NativeMergedRange, val cell: Nativ
 }
 internal data class WorksheetWindow(val cells: List<SheetPlacement>, val limited: Boolean)
 
-internal class WorksheetLayout(val sheet: NativeWorksheet) {
-    val columns = SheetAxis(maxOf(sheet.columnCount, 1), sheet.defaultColumnWidthPoints, sheet.columnWidthsPoints)
-    val rows = SheetAxis(maxOf(sheet.rowCount, 1), sheet.defaultRowHeightPoints,
+internal class WorksheetLayout(val sheet: NativeWorksheet,minimumRows: Int=1,minimumColumns: Int=1) {
+    val columns = SheetAxis(maxOf(sheet.columnCount, minimumColumns), sheet.defaultColumnWidthPoints, sheet.columnWidthsPoints)
+    val rows = SheetAxis(maxOf(sheet.rowCount, minimumRows), sheet.defaultRowHeightPoints,
         sheet.rows.mapNotNull { row -> if (row.hidden || row.heightPoints != null) row.rowIndex to if (row.hidden) 0f else row.heightPoints!! else null }.toMap())
     private val cells = sheet.rows.associate { it.rowIndex to it.cells }
     private val rowDefaults = sheet.rows.mapNotNull { it.defaultCell?.let { cell -> it.rowIndex to cell } }.toMap()

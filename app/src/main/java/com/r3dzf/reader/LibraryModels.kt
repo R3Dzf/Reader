@@ -19,7 +19,7 @@ data class ReadingProgress(val index: Int = 0, val offset: Int = 0, val total: I
         val count=total.coerceIn(0,1_048_576)
         return ReadingProgress(index.coerceIn(0,if(count>0) count-1 else 1_048_575),offset.coerceIn(0,1_000_000),count)
     }
-    val fraction: Float get() = if(total<=1) 0f else (index.toFloat()/(total-1)).coerceIn(0f,1f)
+    val fraction: Float get() = if(total<=0) 0f else ((index.coerceIn(0,total-1)+1f)/total).coerceIn(0f,1f)
 }
 
 data class LibraryDocument(val id: String, val displayName: String, val extension: String, val bytes: Long,

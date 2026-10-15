@@ -56,87 +56,13 @@ import androidx.compose.ui.unit.TextUnit
 import kotlin.math.roundToInt
 
 @Composable
-internal fun PresentationDocumentView(presentation: NativePresentation,initialProgress: ReadingProgress = ReadingProgress(),onProgress: (ReadingProgress) -> Unit = {}) {
-    val listState=rememberLazyListState(initialProgress.index.coerceIn(0,presentation.slides.lastIndex.coerceAtLeast(0)),initialProgress.offset)
-    ObserveReadingProgress(listState,presentation.slides.size,onProgress)
-    Column(Modifier.fillMaxSize().background(Color(0xFFECEEF2))) {
-        Text(
-            stringResource(R.string.presentation_gesture_hint),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("presentation-list"), state=listState, horizontalAlignment = Alignment.CenterHorizontally) {
-            items(presentation.slides, key = { it.number }) { slide ->
-                ZoomableSlide(presentation, slide)
-            }
-        }
-    }
-}
-
-@Composable
-@OptIn(ExperimentalFoundationApi::class)
-private fun ZoomableSlide(presentation: NativePresentation, slide: NativeSlide) {
-    var zoom by rememberSaveable(slide.number) { mutableFloatStateOf(1f) }
-    var panX by rememberSaveable(slide.number) { mutableFloatStateOf(0f) }
-    var panY by rememberSaveable(slide.number) { mutableFloatStateOf(0f) }
-    var viewportSize by remember { mutableStateOf(IntSize.Zero) }
-    fun transform(zoomChange: Float = 1f, x: Float = 0f, y: Float = 0f) {
-        val next = SlideViewport(zoom, panX, panY).transformed(
-            zoomChange, x, y, viewportSize.width.toFloat(), viewportSize.height.toFloat()
-        )
-        zoom = next.scale
-        panX = next.translationX
-        panY = next.translationY
-    }
-    val gestures = rememberTransformableState { zoomChange, offsetChange, _ ->
-        transform(zoomChange, offsetChange.x, offsetChange.y)
-    }
-    val zoomInLabel = stringResource(R.string.zoom_in)
-    val zoomOutLabel = stringResource(R.string.zoom_out)
-    Column(
-        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
-            Modifier.widthIn(max = 720.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                stringResource(R.string.slide_number, slide.number),
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.labelMedium
-            )
-            TextButton(
-                onClick = { transform(1f / 1.5f) }, enabled = zoom > 1f,
-                modifier = Modifier.semantics { contentDescription = zoomOutLabel }
-            ) { Text("−") }
-            Text(stringResource(R.string.zoom_percent, (zoom * 100).roundToInt()), style = MaterialTheme.typography.labelSmall)
-            TextButton(
-                onClick = { transform(1.5f) }, enabled = zoom < 5f,
-                modifier = Modifier.semantics { contentDescription = zoomInLabel }
-            ) { Text("+") }
-            TextButton(onClick = { transform(1f / zoom) }) { Text(stringResource(R.string.fit_slide)) }
-        }
-        Box(
-            Modifier.widthIn(max = 720.dp).fillMaxWidth()
-                .aspectRatio(presentation.slideWidthPoints / presentation.slideHeightPoints)
-                .background(Color.White).clipToBounds()
-                .onSizeChanged { viewportSize = it; transform() }
-                .transformable(gestures, canPan = { zoom > 1f })
-                .pointerInput(slide.number) {
-                    detectTapGestures(onDoubleTap = { transform(if (zoom > 1f) 1f / zoom else 2f) })
-                }
-        ) {
-            // Office coordinates are physical positions measured from the left, even in an Arabic UI.
+internal fun PresentationDocumentView(presentation: NativePresentation,initialProgress: ReadingProgress = ReadingProgress(),onProgress: (ReadingProgress) -> Unit = {},displayName: String="PowerPoint",onClose: ()->Unit={}) {
+    ReaderPages(displayName,presentation.slides.size,"presentation",initialProgress,onProgress,onClose) {index,continuous,reset,onTap,onInteraction,onZoom ->
+        val ratio=presentation.slideWidthPoints/presentation.slideHeightPoints
+        val modifier=if(continuous) Modifier.fillMaxWidth().aspectRatio(ratio) else Modifier.fillMaxSize()
+        ZoomableReaderPage(ratio,modifier,reset,"presentation-page-$index",onTap,onInteraction,onZoom) {zoom ->
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                val imageScale = when { zoom <= 1f -> 1f; zoom <= 2f -> 2f; zoom <= 4f -> 4f; else -> 5f }
-                SlideContent(presentation, slide, imageScale, Modifier.fillMaxSize().graphicsLayer {
-                    scaleX = zoom
-                    scaleY = zoom
-                    translationX = panX
-                    translationY = panY
-                })
+                SlideContent(presentation,presentation.slides[index],if(zoom<=1.05f) 1f else if(zoom<=2.1f) 2f else 4f,Modifier.fillMaxSize())
             }
         }
     }

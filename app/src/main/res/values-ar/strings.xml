@@ -138,4 +138,13 @@
     <string name="update_untrusted">لم يجتز التحديث التحقق ولم يتم تثبيته. ابحث عن التحديثات مجددًا.</string>
     <string name="update_network">تحقّق من اتصال الإنترنت ثم أعد المحاولة.</string>
     <string name="update_privacy_hint">القراءة تعمل دون إنترنت. الاتصال مطلوب للبحث عن التحديثات وتنزيلها فقط. نتحقّق من سلامة التحديث قبل تثبيته، ولا يتم رفع مستنداتك.</string>
+    <string name="reader_position">%1$d من %2$d</string>
+    <string name="reader_mode">وضع القراءة</string>
+    <string name="reader_continuous">تمرير متصل</string>
+    <string name="reader_horizontal">صفحة بصفحة · سحب أفقي</string>
+    <string name="reader_vertical">صفحة بصفحة · سحب رأسي</string>
+    <string name="reader_previous">السابق</string>
+    <string name="reader_next">التالي</string>
+    <string name="reader_go_to">انتقل إلى صفحة</string>
+    <string name="reader_reset_zoom">إعادة ضبط التكبير</string>
 </resources>

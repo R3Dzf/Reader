@@ -36,8 +36,8 @@ class LibraryModelsTest {
         assertEquals(1_000_000,ReadingProgress(0,Int.MAX_VALUE,2).bounded().offset)
     }
     @Test fun aSingleItemDoesNotHaveAnInvalidProgressFraction() {
-        assertEquals(0f,ReadingProgress(0,0,1).fraction,0f)
-        assertEquals(.5f,ReadingProgress(5,0,11).fraction,0f)
+        assertEquals(1f,ReadingProgress(0,0,1).fraction,0f)
+        assertEquals(6f/11f,ReadingProgress(5,0,11).fraction,0f)
         assertEquals(1f,ReadingProgress(50,0,11).fraction,0f)
     }
 }

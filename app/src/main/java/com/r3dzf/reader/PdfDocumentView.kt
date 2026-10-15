@@ -63,7 +63,7 @@ private class PdfRenderHandle(file: File) {
         val page = renderer.openPage(index)
         try {
             val scale = min(
-                min(requestedWidth.toFloat() / page.width, 1.8f),
+                min(requestedWidth.toFloat() / page.width, 2600f / page.width),
                 2600f / page.height
             ).coerceAtLeast(0.000001f)
             val width = (page.width * scale).toInt().coerceIn(1,2600)
@@ -98,67 +98,38 @@ fun PdfDocumentView(file: File, displayName: String = file.name, initialProgress
         return
     }
 
-    val listState=rememberLazyListState(initialProgress.index.coerceIn(0,(handle.renderer.pageCount-1).coerceAtLeast(0)),initialProgress.offset)
-    ObserveReadingProgress(listState,handle.renderer.pageCount,onProgress)
-    Scaffold(
-        topBar = { DocumentTopBar(displayName,pluralStringResource(R.plurals.page_count,handle.renderer.pageCount,handle.renderer.pageCount),onClose) }
-    ) { padding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(padding).testTag("pdf-list"),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items((0 until handle.renderer.pageCount).toList()) { pageIndex ->
-                PdfPage(handle = handle, index = pageIndex)
-            }
+    ReaderPages(displayName,handle.renderer.pageCount,"pdf",initialProgress,onProgress,onClose) {pageIndex,continuous,reset,onTap,onInteraction,onZoom ->
+        PdfPage(handle,pageIndex,continuous,reset,onTap,onInteraction,onZoom)
+    }
+}
+
+@Composable
+private fun PdfPage(handle: PdfRenderHandle,index: Int,continuous: Boolean,reset: Int,onTap: ()->Unit,onInteraction: ()->Unit,onZoom: (Float)->Unit) {
+    BoxWithConstraints(Modifier.fillMaxWidth().then(if(continuous) Modifier else Modifier.fillMaxSize())) {
+        val ratio=remember(handle,index) {runCatching {handle.aspectRatio(index)}.getOrDefault(.75f).coerceAtLeast(.001f)}
+        val frame=if(continuous) Modifier.fillMaxWidth().height(minOf(maxWidth/ratio,4000.dp)) else Modifier.fillMaxSize()
+        ZoomableReaderPage(ratio,frame,reset,"pdf-page-$index",onTap,onInteraction,onZoom) {zoom ->
+            PdfPageBitmap(handle,index,zoom)
         }
     }
 }
 
 @Composable
-private fun PdfPage(handle: PdfRenderHandle, index: Int) {
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        // Stable placeholders prevent LazyColumn from resetting a restored page before its bitmap loads.
-        val ratio=remember(handle,index) { handle.aspectRatio(index).coerceAtLeast(.001f) }
-        val pageHeight=minOf((maxWidth-16.dp)/ratio+12.dp,4000.dp)
-        val density = LocalDensity.current
-        val targetWidth = with(density) { maxWidth.roundToPx() }.coerceIn(720, 1800)
-        var bitmap by remember(handle, index, targetWidth) { mutableStateOf<Bitmap?>(null) }
-        var failed by remember(handle, index, targetWidth) { mutableStateOf(false) }
-
-        LaunchedEffect(handle, index, targetWidth) {
-            val result = withContext(Dispatchers.IO) {
-                runCatching { handle.renderPage(index, targetWidth) }
-            }
-            bitmap = result.getOrNull()
-            failed = bitmap == null
+private fun PdfPageBitmap(handle: PdfRenderHandle,index: Int,zoom: Float) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.White)) {
+        val density=LocalDensity.current
+        val bucket=when {zoom<=1.05f -> 1;zoom<=2.1f -> 2;else -> 4}
+        val width=(with(density) {maxWidth.roundToPx()}*bucket).coerceIn(720,2600)
+        var bitmap by remember(handle,index) {mutableStateOf<Bitmap?>(null)}
+        var failed by remember(handle,index) {mutableStateOf(false)}
+        LaunchedEffect(handle,index,width) {
+            val result=withContext(Dispatchers.IO) {runCatching {handle.renderPage(index,width)}}
+            bitmap=result.getOrNull();failed=bitmap==null
         }
-
-        Surface(
-            modifier = Modifier.fillMaxWidth().height(pageHeight).testTag("pdf-page-$index"),
-            color = androidx.compose.ui.graphics.Color.White,
-            tonalElevation = 0.dp,
-            shadowElevation = 2.dp
-        ) {
-            when {
-                bitmap != null -> Image(
-                    bitmap = bitmap!!.asImageBitmap(),
-                    contentDescription = stringResource(R.string.page_number, index + 1),
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 6.dp).testTag("pdf-page-image-$index"),
-                    contentScale = ContentScale.Fit
-                )
-                failed -> Text(
-                    stringResource(R.string.pdf_failed),
-                    modifier = Modifier.padding(24.dp)
-                )
-                else -> Row(
-                    modifier = Modifier.fillMaxWidth().padding(36.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) { CircularProgressIndicator() }
-            }
+        when {
+            bitmap!=null -> Image(bitmap!!.asImageBitmap(),stringResource(R.string.page_number,index+1),Modifier.fillMaxSize().testTag("pdf-page-image-$index"),contentScale=ContentScale.Fit)
+            failed -> Text(stringResource(R.string.pdf_failed),Modifier.padding(24.dp))
+            else -> Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center) {CircularProgressIndicator()}
         }
     }
 }
