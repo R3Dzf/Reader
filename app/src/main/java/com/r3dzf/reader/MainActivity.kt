@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent { ReaderTheme { ReaderHome(documents,busy,error,
-            onOpen={picker.launch((listOf("application/pdf")+OfficeFormat.entries.map { it.mimeType }).distinct().toTypedArray())},
+            onOpen={picker.launch((listOf("application/pdf")+OfficeFormat.entries.map { it.mimeType.lowercase(java.util.Locale.ROOT) }).distinct().toTypedArray())},
             onOpenDocument={document -> open(document.id)},
             onFavorite={document -> mutate { library.favorite(document.id,!document.favorite) }},
             onRemove={document -> mutate { library.remove(document.id) }},onClear={mutate { library.clear() }},onErrorDismissed={error=null}) } }

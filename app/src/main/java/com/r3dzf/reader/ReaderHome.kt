@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -154,8 +155,12 @@ private fun dateGroup(time: Long): Int {
     return when(date) { LocalDate.now() -> R.string.today;LocalDate.now().minusDays(1) -> R.string.yesterday;else -> R.string.earlier }
 }
 @Composable
-private fun FileBadge(document: LibraryDocument,large: Boolean=false) {
-    val color=kindColor(document.kind)
+private fun FileBadge(document: LibraryDocument,large: Boolean=false,inDarkSurface: Boolean=false) {
+    val dark=inDarkSurface || MaterialTheme.colorScheme.background.luminance()<.2f
+    val color=if(!dark) kindColor(document.kind) else when(document.kind) {
+        DocumentKind.PDF -> Color(0xFFF0A79D);DocumentKind.WORD -> Color(0xFF9CC7F4)
+        DocumentKind.SHEET -> Color(0xFF99D8B5);DocumentKind.SLIDES -> Color(0xFFEBC38C)
+    }
     Column(Modifier.size(if(large) 68.dp else 52.dp).clip(RoundedCornerShape(if(large) 18.dp else 14.dp)).background(color.copy(alpha=.12f)),
         horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
         ReaderIcon(R.drawable.ic_file,tint=color)
@@ -203,7 +208,7 @@ private fun ContinueCard(document: LibraryDocument,onOpen: () -> Unit) {
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(Brush.linearGradient(listOf(Color(0xFF174D40),Color(0xFF103B33)))).padding(20.dp).testTag("continue-reading")) {
         Text(stringResource(R.string.continue_reading),color=Color(0xFFB8DBC5),style=MaterialTheme.typography.labelMedium)
         Row(Modifier.padding(top=16.dp),horizontalArrangement=Arrangement.spacedBy(14.dp),verticalAlignment=Alignment.CenterVertically) {
-            FileBadge(document,true)
+            FileBadge(document,true,true)
             Column(Modifier.weight(1f)) {
                 Text(document.displayName,color=Color.White,style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold,maxLines=2,overflow=TextOverflow.Ellipsis)
                 Text(progressText(document),color=Color(0xFFB8DBC5),style=MaterialTheme.typography.bodySmall,modifier=Modifier.padding(top=6.dp))
