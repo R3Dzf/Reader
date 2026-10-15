@@ -21,6 +21,20 @@ class UpdateDeviceTest {
     }
     private fun rejects(action: ()->Unit) {try {action();fail("Accepted unsafe feed")} catch(expected: IllegalArgumentException) {} }
     @Test fun authenticatedFeedParses() {assertEquals(10L,UpdateProtocol.parse(envelope(payload()),pair.public).versionCode)}
+    @Test fun publishedDeltaFeedParsesWithBundledCertificate() {
+        val instrumentation=InstrumentationRegistry.getInstrumentation()
+        val context=instrumentation.targetContext
+        val cert=context.resources.openRawResource(R.raw.rafolio_release_certificate).use {CertificateFactory.getInstance("X.509").generateCertificate(it) as X509Certificate}
+        val bytes=instrumentation.context.assets.open("update-feed-0.10.0.json").use {it.readBytes()}
+        val release=UpdateProtocol.parse(bytes,cert)
+        assertEquals(10L,release.versionCode);assertEquals("0.10.0",release.versionName)
+        assertEquals("63d1e6373a245419b7ce68d5f05f964646ed60bf73683614c4dcc378a18232b3",release.full.sha256)
+        val delta=UpdateProtocol.deltaFor(release,"d6d02b3b5f16fee3eb3c0260759a8c16ee9c6ef213b1b14ba54c601123acf445")
+        assertNotNull("The published 0.9.0 delta must be readable by the installed schema-1 client",delta)
+        assertEquals(6367989L,delta!!.bytes)
+        assertEquals("bdacc4cc58dfae20951aab07af2944d9aa758320c689d4ab3004716eb1a6588c",delta.sha256)
+        assertTrue(delta.url.endsWith("Rafolio-0.10.0-from-d6d02b3b5f16fee3.rfd"))
+    }
     @Test fun tamperingFailsSignature() {val root=JSONObject(envelope(payload()).toString(Charsets.UTF_8));root.put("payload",Base64.getEncoder().encodeToString(payload().put("versionCode",99).toString().toByteArray()));rejects {UpdateProtocol.parse(root.toString().toByteArray(),pair.public)}}
     @Test fun wrongSigningKeyIsRejected() {val other=KeyPairGenerator.getInstance("RSA").apply {initialize(2048)}.generateKeyPair();rejects {UpdateProtocol.parse(envelope(payload()),other.public)}}
     @Test fun unsafeAssetAndOversizedPackageRejected() {

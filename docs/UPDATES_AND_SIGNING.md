@@ -41,3 +41,9 @@ java -jar /path/to/apksigner.jar verify --verbose --print-certs /output/Rafolio-
 4. Publish only the output APK, `.rfd` patches and `rafolio-update.json` as GitHub Release assets under `v<versionName>` at the tested commit. Keep prior full APKs published so they can supply bases. Never publish private-signing, recovery files or password files. Releases must use increasing Android version codes. Update the Gradle version for the next release.
 
 CI produces unsigned release artifacts deliberately. It never creates replacement release keys and does not need access to the retained private key. Future publishing can be automated using protected GitHub secrets after the owner authorizes storing the private signing material there; until then signing occurs locally. This does not prevent installed release builds from checking/downloading published updates automatically through the in-app flow.
+
+## Schema 1 delta metadata compatibility
+
+Delta entries contain `baseSha256`, `url`, `bytes`, and `sha256` at the same level. Do not wrap the asset fields inside `asset`: installed 0.9.0 and 0.10.0 clients read the flat fields. The first delta-enabled feed accidentally used that wrapper and its JSON exception surfaced as a generic network error. The publisher now preserves the installed client contract, with the actual repaired signed production feed covered by an Android parser test.
+
+A metadata-only compatibility release can publish a corrected signed feed as Latest while retaining the exact already-published APK and patch. This repairs checks in installed clients without requiring a manual app reinstall, changing the signing identity or changing application version codes. The corrected feed continues to reference the immutable original APK and patch assets.
