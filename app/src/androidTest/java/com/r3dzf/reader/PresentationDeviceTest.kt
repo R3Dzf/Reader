@@ -28,6 +28,22 @@ import org.json.JSONObject
 class PresentationDeviceTest {
     @get:Rule val compose = createComposeRule()
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
+    private fun saveVisual(name: String, bitmap: Bitmap) {
+        val context=instrumentation.targetContext
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            // AGP uninstalls test apps on completion. Public test images survive that cleanup.
+            val values=android.content.ContentValues().apply {
+                put(android.provider.MediaStore.Images.Media.DISPLAY_NAME,name)
+                put(android.provider.MediaStore.Images.Media.MIME_TYPE,"image/png")
+                put(android.provider.MediaStore.Images.Media.RELATIVE_PATH,"Pictures/ReaderTestVisuals")
+            }
+            val resolver=context.contentResolver
+            val uri=checkNotNull(resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,values))
+            checkNotNull(resolver.openOutputStream(uri)).use { check(bitmap.compress(Bitmap.CompressFormat.PNG,100,it)) }
+        } else {
+            File(context.filesDir,name).outputStream().use { check(bitmap.compress(Bitmap.CompressFormat.PNG,100,it)) }
+        }
+    }
     private fun presentation(): NativePresentation {
         val file = File.createTempFile("drawing-fonts-", ".pptx", instrumentation.targetContext.cacheDir)
         try {
@@ -61,9 +77,7 @@ class PresentationDeviceTest {
         compose.setContent { ReaderTheme { SlideContent(document,document.slides[0],1f,Modifier.fillMaxWidth().height(220.dp)) } }
         compose.onNodeWithText("مرحبا Reader",substring=true).assertIsDisplayed()
         val image=compose.onNodeWithTag("slide-1").captureToImage()
-        File(instrumentation.targetContext.filesDir,"powerpoint-reference.png").outputStream().use {
-            image.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)
-        }
+        saveVisual("powerpoint-reference.png",image.asAndroidBitmap())
         val pixels=image.toPixelMap()
         var dark=0;var red=0;var blue=0
         for(y in 0 until pixels.height step 2) for(x in 0 until pixels.width step 2) {
@@ -146,7 +160,7 @@ class PresentationDeviceTest {
         }
         assertEquals("Carlito",DocumentFonts.resolve(context,"Calibri",false).name)
         assertEquals("Noto Naskh Arabic",DocumentFonts.resolve(context,"Missing font",true).name)
-        File(context.filesDir,"fonts-reference.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+        saveVisual("fonts-reference.png",bitmap)
         bitmap.recycle()
     }
 }
