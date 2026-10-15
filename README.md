@@ -2,6 +2,10 @@
 
 Reader is being rebuilt as an offline, read-only document reader. It does not launch Office apps, convert Office files through a cloud service, or bundle a third-party Office rendering engine.
 
+## Rafolio 0.10.0: touch reading and clearer spreadsheets
+
+PDFs now support pinch zoom, pan and double tap, with tap/scroll full screen and continuous or horizontal/vertical single-page modes. PowerPoint uses one clean document toolbar and settled-page progress rather than repeated per-slide zoom rows. XLSX theme/indexed colors and Arabic font rendering preserve visible text and contrasting header fills, while a virtual grid remains visible on short/empty sheets. See [reading behavior and limits](docs/READING_EXPERIENCE.md).
+
 ## Rafolio 0.9.0: signed in-app updates
 
 Settings → App updates checks published releases, shows the real full/delta download size, and offers progress, cancellation and verified installation. RFD1 deltas copy unchanged APK ZIP records (including bundled fonts) and preserve the complete target signing block byte for byte. A full download is offered explicitly if a delta fails. Feed signatures, exact installed-base hashes, bounded reconstruction, whole-APK SHA-256, package/version and signing-certificate checks protect the handoff to Android. Reading and library access remain offline.

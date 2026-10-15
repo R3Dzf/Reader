@@ -1,0 +1,13 @@
+# Reading experience — Rafolio 0.10.0
+
+PDF and PowerPoint share three native reading modes: continuous vertical scroll, horizontal single-page paging, and vertical single-page paging. Choose the mode from the toolbar menu; the choice is saved separately for PDFs and presentations. Single-page modes fit one complete page/slide to the viewport. Continuous mode keeps stacked pages available.
+
+Pinch with two fingers to zoom up to 5×, drag to pan while zoomed, and double tap to zoom/reset. Paging/parent scrolling is suspended while the active page is zoomed. One tap toggles the toolbar; scrolling, swiping or zooming hides it and requests immersive system bars. Tap again to reveal controls. Back first reveals controls when hidden. The toolbar's reset action appears only while zoomed. PDF bitmaps rerender at larger bounded resolutions when zooming, with a 2600-pixel-per-dimension cap.
+
+Previous/next and the page counter are shared once per document. Tap the counter to jump to a page. PowerPoint no longer repeats zoom percentages/Fit controls beside each slide. Single-page progress follows the settled pager page; continuous progress follows the page occupying the largest visible area. Only actual page items count. The library fraction reports the current page number divided by total pages, including one-page files, and resume uses that current page rather than a partially visible previous item. This is a position indicator, not a claim that the user has read every preceding page.
+
+Spreadsheet rendering resolves theme colors (including lt1/dk1 order), indexed/custom palette colors and HSL luminance tint for fonts, solid fills and borders. White header text retains its themed contrasting fill. Text uses the bundled font resolver, including Arabic fallback, with explicit cell colors independent of UI dark mode. Font padding is removed and vertical inset is bounded so short rows do not spend their text space on padding.
+
+The sheet canvas provides a minimum 26-column/100-row virtual grid around short/empty sheets; large and sparse sheets remain virtualized. A first nonempty cell beyond the initial area is brought into view. Saved hidden rows/columns and rectangular merges remain supported. This does not add formula recalculation, all conditional formatting, table-style template definitions, charts or legacy XLS/XLSB parsing. Existing compatibility notes still apply.
+
+Android regression tests use real pinch/swipe gestures, single-page visibility, toolbar toggling, saved slide counters and an independent themed Arabic XLSX. Spreadsheet checks examine rendered header colors and glyph pixels in addition to accessibility data. Actual PDF, PowerPoint and workbook UI screenshots are retained by CI for review.

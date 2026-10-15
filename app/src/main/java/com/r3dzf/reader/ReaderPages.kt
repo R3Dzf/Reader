@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
@@ -40,6 +41,7 @@ internal fun dominantPage(items: List<Pair<Int,Pair<Int,Int>>>,start: Int,end: I
 private fun Context.activity(): Activity? = when(this) {is Activity -> this;is ContextWrapper -> baseContext.activity();else -> null}
 
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 internal fun ReaderPages(title: String,count: Int,kind: String,initial: ReadingProgress,onProgress: (ReadingProgress)->Unit,onClose: ()->Unit,
     content: @Composable (index: Int,continuous: Boolean,reset: Int,onTap: ()->Unit,onInteraction: ()->Unit,onZoom: (Float)->Unit)->Unit) {
     val context=LocalContext.current
@@ -126,6 +128,7 @@ internal fun ReaderPages(title: String,count: Int,kind: String,initial: ReadingP
 }
 
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 internal fun ZoomableReaderPage(ratio: Float,modifier: Modifier=Modifier,reset: Int=0,tag: String,onTap: ()->Unit,onInteraction: ()->Unit,onZoom: (Float)->Unit,content: @Composable (Float)->Unit) {
     var scale by remember(tag,reset) {mutableFloatStateOf(1f)}
     var offset by remember(tag,reset) {mutableStateOf(Offset.Zero)}
