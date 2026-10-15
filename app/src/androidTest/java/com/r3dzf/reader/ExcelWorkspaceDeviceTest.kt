@@ -54,8 +54,8 @@ class ExcelWorkspaceDeviceTest {
         compose.onNodeWithTag("sheet-search-input").performTextInput("SUM")
         compose.waitUntil(3000) { compose.onAllNodesWithContentDescription("E41: 4,815.00").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithContentDescription("E41: 4,815.00").performClick()
-        compose.waitUntil(3000) { runCatching { compose.onNodeWithText("=SUM(E2:E40)").assertIsDisplayed() }.isSuccess }
-        save("excel-formula-reader.png")
+        try { compose.waitUntil(3000) { runCatching { compose.onNodeWithText("=SUM(E2:E40)").assertIsDisplayed() }.isSuccess } }
+        finally { save("excel-formula-reader.png") }
         compose.onNodeWithText("=SUM(E2:E40)").assertIsDisplayed();compose.onNodeWithText("4,815.00").assertIsDisplayed()
     }
     @Test fun fitColumnsRevealsAllHeadersInRtlAndSheetTabsRemainAvailable() {
