@@ -53,6 +53,18 @@ class PptxChartTest {
         val first=segments.single { it.series==1 && it.index==0 };assertEquals(10.0,first.start,0.0);assertEquals(15.0,first.end,0.0)
         val negative=segments.single { it.series==1 && it.index==1 };assertEquals(0.0,negative.start,0.0);assertEquals(-8.0,negative.end,0.0)
     }
+    @Test fun scatterWithoutNumericXValuesShowsMissingDataRatherThanAnEmptyPlot() {
+        changed(path="ppt/charts/chart8.xml",replace={ xml ->
+            xml.replace(Regex("<c:xVal>.*?</c:xVal>",RegexOption.DOT_MATCHES_ALL)) { match ->
+                match.value.replace(Regex("<c:v>.*?</c:v>"),"<c:v>#N/A</c:v>")
+            }
+        }) { file ->
+            val scatter=charts(file)[7]
+            assertFalse(scatter.drawable)
+            assertTrue(SlideChartNotice.MISSING_VALUES in scatter.notices)
+            assertTrue(SlideChartNotice.PARTIAL_VALUES in scatter.notices)
+        }
+    }
     @Test fun normalizesPercentColumnsAndDrawsPieSectorsFromSavedValues() {
         val all=charts();val percent=chartSegments(all[2])
         assertEquals(.25,percent.single { it.series==0 && it.index==0 }.end,1e-10)
@@ -115,5 +127,8 @@ class PptxChartTest {
         val subnormal=chartRange(listOf(1e-323,2e-323),SlideChartAxis(),false)
         assertTrue(subnormal.minimum.isFinite() && subnormal.maximum>subnormal.minimum)
         assertTrue(subnormal.ticks.all { it.isFinite() })
+        val extremeUnit=chartRange(listOf(1e99,2e99),SlideChartAxis(majorUnit=Double.MIN_VALUE),false)
+        assertTrue(extremeUnit.minimum.isFinite() && extremeUnit.maximum.isFinite())
+        assertTrue(extremeUnit.maximum>extremeUnit.minimum && extremeUnit.ticks.all { it.isFinite() })
     }
 }

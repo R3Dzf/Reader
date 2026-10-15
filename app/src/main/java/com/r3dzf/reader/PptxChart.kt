@@ -156,7 +156,10 @@ internal fun readPptxChart(root: Element, theme: PptxTheme, budget: PptxChartBud
     }
     if(series.isEmpty() || series.all { it.values.all { value -> value == null } }) notices += SlideChartNotice.MISSING_VALUES
     if(series.any { it.values.any { value -> value == null } }) notices += SlideChartNotice.PARTIAL_VALUES
-    if(kind == SlideChartKind.SCATTER && series.any { it.xValues.size != it.values.size }) notices += SlideChartNotice.PARTIAL_VALUES
+    if(kind == SlideChartKind.SCATTER) {
+        if(series.any { it.xValues.size != it.values.size || it.xValues.any { x -> x == null } }) notices += SlideChartNotice.PARTIAL_VALUES
+        if(series.none { s -> s.values.indices.any { s.values[it] != null && s.xValues.getOrNull(it) != null } }) notices += SlideChartNotice.MISSING_VALUES
+    }
     val grouping = when(type.chartValue("grouping")) { "stacked" -> SlideChartGrouping.STACKED; "percentStacked" -> SlideChartGrouping.PERCENT; else -> SlideChartGrouping.STANDARD }
     if(kind in setOf(SlideChartKind.PIE,SlideChartKind.DOUGHNUT) && (series.size != 1 || series.any { s -> s.values.any { it != null && it < 0 } })) notices += SlideChartNotice.UNSUPPORTED_DATA
     if(kind in setOf(SlideChartKind.PIE,SlideChartKind.DOUGHNUT) && series.all { s -> s.values.none { it != null && it > 0 } }) notices += SlideChartNotice.UNSUPPORTED_DATA
