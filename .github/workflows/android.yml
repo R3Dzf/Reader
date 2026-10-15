@@ -72,6 +72,14 @@ jobs:
           name: rafolio-unsigned-release
           path: app/build/outputs/apk/release/app-release-unsigned.apk
 
+      - name: Build a next-version release fixture for delta verification
+        run: ./gradlew assembleRelease -PrafolioVersionCode=10 -PrafolioVersionName=0.9.1-delta-test
+      - name: Upload next-version unsigned APK fixture
+        uses: actions/upload-artifact@v4
+        with:
+          name: rafolio-next-release-fixture
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
+
   device-tests:
     needs: build
     runs-on: ubuntu-latest

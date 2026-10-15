@@ -32,7 +32,7 @@ RSA-3072 / SHA256withRSA, PKCS12 alias `rafolio-release`, 36,525-day certificate
 ```sh
 java -jar /path/to/apksigner.jar sign --ks /private/rafolio-release.p12 \
   --ks-key-alias rafolio-release --ks-pass file:/private/store-password.txt \
-  --key-pass file:/private/store-password.txt --v4-signing-enabled false \
+  --v4-signing-enabled false \
   --out /output/Rafolio-0.9.0.apk /input/app-release-unsigned.apk
 java -jar /path/to/apksigner.jar verify --verbose --print-certs /output/Rafolio-0.9.0.apk
 ```
