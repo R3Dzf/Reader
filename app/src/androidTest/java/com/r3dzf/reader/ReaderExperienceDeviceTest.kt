@@ -30,10 +30,12 @@ class ReaderExperienceDeviceTest {
         try {repeat(4) {index ->
             val page=document.startPage(PdfDocument.PageInfo.Builder(600,800,index+1).create());page.canvas.drawColor(android.graphics.Color.WHITE)
             page.canvas.drawText("Rafolio page ${index+1}",50f,100f,Paint().apply {textSize=30f;color=android.graphics.Color.BLACK})
+            page.canvas.drawText("PDF ${index+1}",240f,420f,Paint().apply {textSize=30f;color=android.graphics.Color.BLACK})
             document.finishPage(page)
         };f.outputStream().use {document.writeTo(it)}} finally {document.close()};return f
     }
     private fun showPdf() {val f=pdf();compose.setContent {ReaderTheme {PdfDocumentView(f) {}}};compose.waitUntil(15000) {compose.onAllNodesWithTag("pdf-page-image-0").fetchSemanticsNodes().isNotEmpty()}}
+    private fun waitForHeader() {compose.waitUntil(3000) {compose.onAllNodesWithTag("reader-header").fetchSemanticsNodes().isNotEmpty()};compose.onNodeWithTag("reader-header").assertIsDisplayed()}
     private fun mode(name: String) {compose.onNodeWithTag("reader-mode-menu").performClick();compose.onNodeWithTag("reader-mode-$name").performClick()}
     private fun save(name: String,tag: String?=null) {
         val bitmap=(if(tag==null) compose.onRoot() else compose.onNodeWithTag(tag)).captureToImage().asAndroidBitmap()
@@ -52,11 +54,11 @@ class ReaderExperienceDeviceTest {
         compose.onNodeWithTag("pdf-page-0").assert(SemanticsMatcher("Pinch must enlarge the page") {it.config.getOrNull(androidx.compose.ui.semantics.SemanticsProperties.StateDescription)?.removePrefix("zoom:")?.toIntOrNull()?.let {n -> n>120}==true})
         compose.onNodeWithTag("reader-header").assertDoesNotExist()
         save("pdf-fullscreen-zoom.png")
-        compose.onNodeWithTag("pdf-page-0").performTouchInput {click()};compose.onNodeWithTag("reader-header").assertIsDisplayed()
+        compose.onNodeWithTag("pdf-page-0").performTouchInput {click()};waitForHeader()
     }
     @Test fun pdfContinuousAndVerticalPagingBothWork() {
         showPdf();compose.onNodeWithTag("pdf-list").performTouchInput {swipeUp()};compose.onNodeWithTag("reader-header").assertDoesNotExist()
-        compose.onNodeWithTag("pdf-list").performTouchInput {click(center)};compose.onNodeWithTag("reader-header").assertIsDisplayed();mode("vertical")
+        compose.onNodeWithTag("pdf-list").performTouchInput {click(center)};waitForHeader();mode("vertical")
         compose.onNodeWithTag("reader-page-counter").performClick();compose.onNodeWithTag("reader-page-input").performTextReplacement("1");compose.onNodeWithTag("reader-page-confirm").performClick()
         compose.onNodeWithTag("reader-next").performClick();compose.onNodeWithTag("reader-page-counter").assertTextEquals("2 / 4")
     }
