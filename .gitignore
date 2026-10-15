@@ -5,3 +5,9 @@ local.properties
 *.iml
 captures/
 .DS_Store
+private-signing/
+deliverables/
+*.jks
+*.keystore
+*.p12
+*-password.txt

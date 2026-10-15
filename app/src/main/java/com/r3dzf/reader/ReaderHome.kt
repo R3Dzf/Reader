@@ -278,7 +278,8 @@ private fun AppearanceDialog(documents: List<LibraryDocument>,onDismiss: () -> U
             Text(stringResource(R.string.library_storage,Formatter.formatShortFileSize(context,documents.sumOf { it.bytes })),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             Text(stringResource(R.string.library_private_hint),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             TextButton(onClick=onClear,enabled=documents.isNotEmpty(),colors=ButtonDefaults.textButtonColors(contentColor=MaterialTheme.colorScheme.error),modifier=Modifier.testTag("clear-library")) { ReaderIcon(R.drawable.ic_trash,tint=LocalContentColor.current);Spacer(Modifier.width(8.dp));Text(stringResource(R.string.clear_library)) }
-            Text("Rafolio · 0.8.0",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedButton(onClick={context.startActivity(android.content.Intent(context,UpdateActivity::class.java))},modifier=Modifier.fillMaxWidth().testTag("open-updates")) { Text(stringResource(R.string.app_updates)) }
+            Text("Rafolio · ${BuildConfig.VERSION_NAME}",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
         } },confirmButton={TextButton(onClick=onDismiss) { Text(stringResource(R.string.done)) }})
 }
 

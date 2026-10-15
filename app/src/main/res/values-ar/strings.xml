@@ -108,4 +108,34 @@
     <string name="library_missing">النسخة المحفوظة غير متاحة. افتح الملف الأصلي مرة أخرى.</string>
     <string name="library_unsupported">اختر ملف PDF أو Word أو Excel أو PowerPoint.</string>
     <plurals name="library_file_count"><item quantity="zero">مساحة لكل ملفاتك</item><item quantity="one">ملف واحد في مكتبتك</item><item quantity="two">ملفان في مكتبتك</item><item quantity="few">%1$d ملفات في مكتبتك</item><item quantity="many">%1$d ملفًا في مكتبتك</item><item quantity="other">%1$d ملف في مكتبتك</item></plurals>
+    <string name="app_updates">تحديثات التطبيق</string>
+    <string name="update_check_title">حدّث رافوليو بسهولة</string>
+    <string name="update_checking">جارٍ البحث عن تحديث…</string>
+    <string name="update_current">أنت تستخدم أحدث إصدار</string>
+    <string name="update_available">إصدار جديد متاح</string>
+    <string name="update_downloading">جارٍ تنزيل التحديث</string>
+    <string name="update_preparing">جارٍ تجهيز التحديث</string>
+    <string name="update_verifying">جارٍ التحقق من التحديث</string>
+    <string name="update_ready">جاهز للتثبيت</string>
+    <string name="update_full_required">يلزم تنزيل الإصدار الكامل</string>
+    <string name="update_failed">تعذّر إكمال التحديث</string>
+    <string name="update_version">الإصدار %1$s</string>
+    <string name="update_full_size">التنزيل الكامل · %1$s</string>
+    <string name="update_delta_size">تنزيل فرق التحديث · %1$s</string>
+    <string name="update_saved_percent">يوفّر %1$d%% من حجم التنزيل</string>
+    <string name="update_progress">%1$s من %2$s · %3$d%%</string>
+    <string name="update_download">تنزيل التحديث</string>
+    <string name="update_download_full">تنزيل التحديث الكامل</string>
+    <string name="update_delta_fallback">تعذّر تجهيز فرق التحديث بأمان. يمكنك تنزيل الإصدار الكامل بالحجم الموضّح أعلاه.</string>
+    <string name="update_install">تثبيت التحديث</string>
+    <string name="update_install_hint">سيطلب أندرويد تأكيد التثبيت. إن طُلب منك ذلك، اسمح لرافوليو بتثبيت التحديثات، ثم ارجع واضغط تثبيت التحديث. سيحتفظ التطبيق بمكتبتك وإعداداتك.</string>
+    <string name="update_check">البحث عن تحديثات</string>
+    <string name="update_no_release">لا يوجد تحديث منشور حاليًا. جرّب لاحقًا.</string>
+    <string name="update_space">المساحة المتاحة لا تكفي لتجهيز التحديث. حرّر مساحة ثم أعد المحاولة.</string>
+    <string name="update_migration">هذه النسخة التجريبية تستخدم توقيعًا قديمًا. ثبّت الإصدار ذا التوقيع الدائم مرة واحدة لاستخدام التحديثات الداخلية.</string>
+    <string name="update_split">هذا التثبيت يستخدم حزمًا مجزّأة. حدّث التطبيق من متجره الأصلي.</string>
+    <string name="update_android">هذا التحديث يحتاج إصدار أندرويد أحدث.</string>
+    <string name="update_untrusted">لم يجتز التحديث التحقق ولم يتم تثبيته. ابحث عن التحديثات مجددًا.</string>
+    <string name="update_network">تحقّق من اتصال الإنترنت ثم أعد المحاولة.</string>
+    <string name="update_privacy_hint">القراءة تعمل دون إنترنت. الاتصال مطلوب للبحث عن التحديثات وتنزيلها فقط. نتحقّق من سلامة التحديث قبل تثبيته، ولا يتم رفع مستنداتك.</string>
 </resources>

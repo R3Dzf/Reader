@@ -22,4 +22,4 @@ The native Compose home offers Home / History / Favorites, search including norm
 
 JVM tests cover Arabic search, combined filters, recency, file families, sanitized names and bounded progress. Android tests exercise SQLite recreation/deduplication, favorites/progress, cache eviction, unchanged sources, missing copies, oversized-import cleanup and viewer path protection. UI tests cover search/filter/favorite/removal, Arabic RTL, light/dark/empty/settings screens. Navigation tests open real PDF/PPTX copies through MainActivity and restore reading positions after returning/recreating. Actual Android screenshots are retained by CI for review; no document thumbnails or cloud previews are used.
 
-Builds are development APKs. Production distribution still needs a securely retained release signing identity.
+0.8.0 builds used disposable development signing. Starting with 0.9.0, release builds use the retained Rafolio signing identity; see UPDATES_AND_SIGNING.md.

@@ -2,11 +2,17 @@
 
 Reader is being rebuilt as an offline, read-only document reader. It does not launch Office apps, convert Office files through a cloud service, or bundle a third-party Office rendering engine.
 
+## Rafolio 0.9.0: signed in-app updates
+
+Settings → App updates checks published releases, shows the real full/delta download size, and offers progress, cancellation and verified installation. RFD1 deltas copy unchanged APK ZIP records (including bundled fonts) and preserve the complete target signing block byte for byte. A full download is offered explicitly if a delta fails. Feed signatures, exact installed-base hashes, bounded reconstruction, whole-APK SHA-256, package/version and signing-certificate checks protect the handoff to Android. Reading and library access remain offline.
+
+Release builds use one retained RSA-3072 certificate valid until 2126. The public certificate is committed; the private keystore and password are never committed or included in APKs. Existing debug installations require a one-time uninstall/reinstall to move to this identity; uninstalling clears app-private data. Updates between releases signed by this identity preserve app data. See [update and release procedures](docs/UPDATES_AND_SIGNING.md).
+
 ## Rafolio 0.8.0: your local reading shelf
 
 Rafolio (رافوليو) is the new app identity. A custom vector page-fold R mark, coordinated light/dark themes and Arabic/English home screens bring search, file-type filters, favorites and reading history into one native interface. The package remains `com.r3dzf.reader`.
 
-Opening a file keeps a private, read-only snapshot in app files storage, with durable SQLite metadata. Repeated identical imports of the same format reuse one entry. Reading position is restored for PDF pages, PPTX slides and DOCX scroll positions; XLSX restores the selected sheet (not its cell viewport). Favorites and positions survive activity recreation and cache eviction. The library is limited to 200 documents/1 GiB, with 250 MiB per file; removal/clear controls delete private copies and metadata. Uninstalling clears this app data. No broad storage permission or internet permission is required. See [library behavior](docs/LIBRARY_AND_DESIGN.md).
+Opening a file keeps a private, read-only snapshot in app files storage, with durable SQLite metadata. Repeated identical imports of the same format reuse one entry. Reading position is restored for PDF pages, PPTX slides and DOCX scroll positions; XLSX restores the selected sheet (not its cell viewport). Favorites and positions survive activity recreation and cache eviction. The library is limited to 200 documents/1 GiB, with 250 MiB per file; removal/clear controls delete private copies and metadata. Uninstalling clears this app data. Reading needs no internet or broad storage access. The app declares internet access only for update checks/downloads, and asks Android for install permission when you choose an update. See [library behavior](docs/LIBRARY_AND_DESIGN.md).
 
 ## Current engine milestone
 
@@ -19,7 +25,7 @@ Opening a file keeps a private, read-only snapshot in app files storage, with du
 - Template and macro-enabled OOXML variants are routed through the same readers. VBA/macros are never executed.
 - The readers use Android's native text rendering and never modify the selected file.
 - DOCX automatic pagination, headers, and footers remain future work. XLSX exact font-based column metrics, theme/conditional formats, advanced number formats, formula calculation, charts and print-page layout remain future work. PPTX table-style templates, arbitrary/custom shape geometry, advanced text fitting, combined/3D/newer chart rendering, animations, and transitions remain future work. Tables are limited to 100 rows and 64 columns each, and 25,000 cells per presentation. Legacy DOC/DOT, XLS/XLT/XLSB, and PPT/PPS/POT remain on the roadmap. The reader caps an individual embedded image at 10 MB and total images per document at 50 MB. See [ENGINE_ROADMAP.md](ENGINE_ROADMAP.md) and [PPTX compatibility](docs/PPTX_COMPATIBILITY.md).
-- No network permission or Office viewer dependency is included.
+- No external Office viewer dependency is included. Reading stays offline; only the optional updater uses the network.
 
 These readers are foundations, not a claim of Office-perfect layout. Compatibility will be measured with Arabic and English test documents as those features are added.
 
@@ -36,7 +42,7 @@ The first build downloads hash-verified font assets from pinned upstream sources
 The project includes the Gradle 8.11.1 wrapper with the official distribution SHA-256 pinned. On Windows use `gradlew.bat`.
 The debug APK is generated at `app/build/outputs/apk/debug/app-debug.apk`.
 
-Version 0.8.0 adds the Rafolio interface, persistent library and reading-position tests to the native engine regression suite. The completed CI results are recorded in the release pull request. Independent Arabic PPTX/XLSX fixtures cover styles, geometry, cell text direction, hidden/sparse axes, merge validation, viewports, saved values, extraction limits and input-file preservation. Android tests exercise merged Arabic text, accessibility/full-cell reading, zoom/reset, pan, RTL fill pixels and a workbook with a million-row address range. GitHub Actions runs JVM tests/lint/build, then an Android 35 emulator. Wider device/API compatibility and visual comparisons with Office remain future work.
+Version 0.9.0 adds signed-update, delta safety and download-state tests alongside the Rafolio interface, persistent library and reading-position tests to the native engine regression suite. The completed CI results are recorded in the release pull request. Independent Arabic PPTX/XLSX fixtures cover styles, geometry, cell text direction, hidden/sparse axes, merge validation, viewports, saved values, extraction limits and input-file preservation. Android tests exercise merged Arabic text, accessibility/full-cell reading, zoom/reset, pan, RTL fill pixels and a workbook with a million-row address range. GitHub Actions runs JVM tests/lint/build, then an Android 35 emulator. Wider device/API compatibility and visual comparisons with Office remain future work.
 
 ## Project stack
 

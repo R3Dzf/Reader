@@ -12,13 +12,26 @@ android {
         applicationId = "com.r3dzf.reader"
         minSdk = 26
         targetSdk = 35
-        versionCode = 8
-        versionName = "0.8.0"
+        versionCode = providers.gradleProperty("rafolioVersionCode").orElse("9").get().toInt()
+        versionName = providers.gradleProperty("rafolioVersionName").orElse("0.9.0").get()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+    // A missing release key deliberately leaves an unsigned artifact, never a new debug identity.
+    val releaseStore = providers.environmentVariable("RAFOLIO_KEYSTORE").orNull
+    if (releaseStore != null) signingConfigs.create("permanentRelease") {
+        storeFile = file(releaseStore)
+        storePassword = providers.environmentVariable("RAFOLIO_STORE_PASSWORD").get()
+        keyAlias = "rafolio-release"
+        keyPassword = providers.environmentVariable("RAFOLIO_STORE_PASSWORD").get()
+    }
+    buildTypes.getByName("release") {
+        if (releaseStore != null) signingConfig = signingConfigs.getByName("permanentRelease")
+        isMinifyEnabled = false
     }
     sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/readerFonts/assets"))
     sourceSets.getByName("androidTest").assets.srcDir("src/test/resources/fixtures")
@@ -42,6 +55,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
+    implementation("androidx.core:core-ktx:1.15.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")
