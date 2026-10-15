@@ -76,3 +76,19 @@ internal fun readSlideTextBox(shapes: List<Element>): SlideTextBox {
     return SlideTextBox(inset("lIns",7.2f),inset("rIns",7.2f),inset("tIns",3.6f),inset("bIns",3.6f),
         when(attr("anchor")) { "ctr" -> SlideCellVerticalAlignment.CENTER; "b" -> SlideCellVerticalAlignment.BOTTOM; else -> SlideCellVerticalAlignment.TOP })
 }
+
+internal fun readSlideOutline(shape: Element, theme: PptxTheme): NativeSlideCellBorder? {
+    val reference = shape.directChild("style")?.directChild("lnRef")
+    val explicit = shape.directChild("spPr")?.directChild("ln")
+    val index = reference?.attributeByLocalName("idx")?.toIntOrNull() ?: 0
+    val line = explicit ?: theme.lineStyles.getOrNull(index - 1) ?: return null
+    if (line.directChild("noFill") != null) return NativeSlideCellBorder(0f)
+    val width = line.attributeByLocalName("w")?.toFloatOrNull()?.div(12700)?.takeIf { it.isFinite() && it >= 0f }?.coerceAtMost(72f) ?: 0.75f
+    val placeholder = reference?.elementChildren()?.firstOrNull()?.let { theme.color(it) }
+    val rgb = line.directChild("solidFill")?.elementChildren()?.firstOrNull()?.let { theme.color(it, placeholder) }
+    return NativeSlideCellBorder(width,rgb,when(line.directChild("prstDash")?.attributeByLocalName("val")) {
+        "dot","sysDot" -> SlideBorderDash.DOT
+        "dash","lgDash","sysDash","dashDot","lgDashDot","lgDashDotDot" -> SlideBorderDash.DASH
+        else -> SlideBorderDash.SOLID
+    })
+}

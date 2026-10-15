@@ -55,6 +55,7 @@ internal data class PptxTheme(
     val majorFonts: Map<String, String> = emptyMap(),
     val minorFonts: Map<String, String> = emptyMap(),
     val fillStyles: List<Element> = emptyList(),
+    val lineStyles: List<Element> = emptyList(),
     val backgroundFillStyles: List<Element> = emptyList(),
     val colorMap: Map<String, String> = mapOf("bg1" to "lt1", "tx1" to "dk1", "bg2" to "lt2", "tx2" to "dk2")
 ) {
@@ -75,6 +76,7 @@ internal data class PptxTheme(
             colors = colors + parsedColors,
             majorFonts = majorFonts + fonts(fontScheme?.directChild("majorFont")),
             minorFonts = minorFonts + fonts(fontScheme?.directChild("minorFont")),
+            lineStyles = elements.directChild("fmtScheme")?.directChild("lnStyleLst")?.elementChildren() ?: lineStyles,
             fillStyles = elements.directChild("fmtScheme")?.directChild("fillStyleLst")?.elementChildren() ?: fillStyles,
             backgroundFillStyles = elements.directChild("fmtScheme")?.directChild("bgFillStyleLst")?.elementChildren() ?: backgroundFillStyles
         )

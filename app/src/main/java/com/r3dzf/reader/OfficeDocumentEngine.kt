@@ -688,7 +688,7 @@ object NativeOfficeEngine {
                 paragraphs = paragraphs,
                 fill = fill,
                 geometry = shape.directChild("spPr")?.directChild("prstGeom")?.attributeByLocalName("prst") ?: if (shape.localName() == "cxnSp") "line" else "rect",
-                outline = pptxCellBorder(shape.directChild("spPr")?.directChild("ln"), style.theme),
+                outline = readSlideOutline(shape, style.theme),
                 rotationDegrees = rotation,
                 shearX = shear.coerceIn(-1000f,1000f),
                 flipVertical = flipped,

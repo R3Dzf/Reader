@@ -32,6 +32,7 @@ from pptx.enum.text import MSO_ANCHOR
 text.text_frame.vertical_anchor=MSO_ANCHOR.MIDDLE
 para=text.text_frame.paragraphs[0]
 r=para.add_run();r.text='مرحبا';r.font.name='Cairo';r.font.size=Pt(24)
+cs=OxmlElement('a:cs');cs.set('typeface','Cairo');r._r.get_or_add_rPr().append(cs)
 r=para.add_run();r.text=' Reader';r.font.name='Lato';r.font.size=Pt(20);r.font.bold=True
 pr=para._p.get_or_add_pPr();pr.set('rtl','1');pr.set('marL',str(Pt(12)));pr.set('indent',str(Pt(-6)))
 bu=OxmlElement('a:buChar');bu.set('char','•');pr.append(bu)
@@ -44,6 +45,8 @@ for i in range(3):
     if i==0:
         shape=box(slide,MSO_SHAPE.DIAMOND,1,1,2,2,'FFFFFF');shape.rotation=45
         shape._element.spPr.xfrm.set('flipH','1')
+        from pptx.enum.shapes import MSO_CONNECTOR
+        slide.shapes.add_connector(MSO_CONNECTOR.STRAIGHT,Inches(8),Inches(1),Inches(8),Inches(4))
     if i==1:
         shape=box(slide,MSO_SHAPE.ROUNDED_RECTANGLE,1,1,8,3,'FFFFFF')
         fill=shape._element.spPr.find('{http://schemas.openxmlformats.org/drawingml/2006/main}solidFill')

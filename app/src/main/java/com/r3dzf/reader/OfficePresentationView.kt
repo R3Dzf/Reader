@@ -158,7 +158,7 @@ internal fun SlideContent(presentation: NativePresentation, slide: NativeSlide, 
             }
             Box(
                 Modifier.absoluteOffset(x = maxWidth * shape.xFraction, y = maxHeight * shape.yFraction)
-                    .width(width).height(if (shape.geometry == "line" && height < 1.dp) 1.dp else height)
+                    .width(if (shape.geometry == "line" && width < 1.dp) 1.dp else width).height(if (shape.geometry == "line" && height < 1.dp) 1.dp else height)
                     .graphicsLayer {
                         rotationZ = shape.rotationDegrees
                         scaleX = if (shape.flipHorizontal) -1f else 1f

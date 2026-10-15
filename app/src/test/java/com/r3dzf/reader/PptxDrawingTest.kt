@@ -37,9 +37,17 @@ class PptxDrawingTest {
     }
     @Test fun hiddenMasterShapesAndHorizontalFlipArePreserved() {
         val shapes = open().slides[1].shapes
-        assertEquals(1,shapes.size)
-        assertEquals("diamond",shapes.single().geometry)
-        assertTrue(shapes.single().flipVertical) // decomposed reflection with equivalent rotation
+        assertEquals(2,shapes.size)
+        assertFalse(shapes.any { it.fillRgb == 0x124578L || it.fillRgb == 0x228833L })
+        assertTrue(shapes.single { it.geometry == "diamond" }.flipVertical) // decomposed reflection with equivalent rotation
+    }
+    @Test fun verticalConnectorReadsThemedLineStyleWithoutExplicitStroke() {
+        val line=open().slides[1].shapes.single { it.geometry == "line" }
+        assertEquals(0f,line.widthFraction,0.0001f)
+        assertTrue(line.heightFraction > .5f)
+        assertNotNull(line.outline)
+        assertTrue(line.outline!!.widthPoints > 0f)
+        assertNotNull(line.outline.colorRgb)
     }
     @Test fun gradientStopsAndAngleAreReadWithoutChangingWhiteSlide() {
         val slide = open().slides[2]

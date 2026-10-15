@@ -10,6 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
@@ -59,7 +60,11 @@ class PresentationDeviceTest {
         val document = presentation()
         compose.setContent { ReaderTheme { SlideContent(document,document.slides[0],1f,Modifier.fillMaxWidth().height(220.dp)) } }
         compose.onNodeWithText("مرحبا Reader",substring=true).assertIsDisplayed()
-        val pixels=compose.onNodeWithTag("slide-1").captureToImage().toPixelMap()
+        val image=compose.onNodeWithTag("slide-1").captureToImage()
+        File(instrumentation.targetContext.filesDir,"powerpoint-reference.png").outputStream().use {
+            image.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)
+        }
+        val pixels=image.toPixelMap()
         var dark=0;var red=0;var blue=0
         for(y in 0 until pixels.height step 2) for(x in 0 until pixels.width step 2) {
             val c=pixels[x,y]
@@ -119,6 +124,7 @@ class PresentationDeviceTest {
         }
         assertEquals("Carlito",DocumentFonts.resolve(context,"Calibri",false).name)
         assertEquals("Noto Naskh Arabic",DocumentFonts.resolve(context,"Missing font",true).name)
+        File(context.filesDir,"fonts-reference.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
         bitmap.recycle()
     }
 }
