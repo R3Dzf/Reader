@@ -35,7 +35,8 @@ class ExcelWorkspaceDeviceTest {
     private fun show(rtl: Boolean = false) { compose.setContent { ReaderTheme { Column(Modifier.fillMaxSize()) { DocumentTopBar("Inventory.xlsx","XLSX",{}); WorkbookDocumentView(NativeWorkbook(listOf(sheet(rtl)))) } } } }
     private fun save(name: String) {
         val context=InstrumentationRegistry.getInstrumentation().targetContext
-        val image=compose.onRoot().captureToImage().asAndroidBitmap()
+        val target = if (compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty()) compose.onNode(isDialog()) else compose.onRoot()
+        val image=target.captureToImage().asAndroidBitmap()
         val values=android.content.ContentValues().apply {put(android.provider.MediaStore.Images.Media.DISPLAY_NAME,name);put(android.provider.MediaStore.Images.Media.MIME_TYPE,"image/png");put(android.provider.MediaStore.Images.Media.RELATIVE_PATH,"Pictures/ReaderTestVisuals")}
         val uri=checkNotNull(context.contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,values))
         checkNotNull(context.contentResolver.openOutputStream(uri)).use { check(image.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)) }
