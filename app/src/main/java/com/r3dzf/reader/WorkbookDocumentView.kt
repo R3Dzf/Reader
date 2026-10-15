@@ -117,7 +117,9 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
     fun jump(row: Int, column: Int) {
         layout.placement(row, column)?.let { destination ->
             selected = destination
-            viewport = SheetViewport(viewport.zoom, destination.left, destination.top)
+            val frozenWidth = panes.filter { it.left == 0.0 && it.scrollX == 0.0 }.minOfOrNull { it.right }?.takeIf { panes.any { p -> p.left > 0 } } ?: 0.0
+            val frozenHeight = panes.filter { it.top == 0.0 && it.scrollY == 0.0 }.minOfOrNull { it.bottom }?.takeIf { panes.any { p -> p.top > 0 } } ?: 0.0
+            viewport = SheetViewport(viewport.zoom, (destination.left - frozenWidth).coerceAtLeast(0.0), (destination.top - frozenHeight).coerceAtLeast(0.0))
             transform()
         }
     }
