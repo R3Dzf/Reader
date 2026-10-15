@@ -185,7 +185,7 @@ internal fun searchWorksheet(sheet: NativeWorksheet, query: String, limit: Int =
 /** Text may flow only into empty unfilled cells, never through a merge, a border or a value. */
 internal fun WorksheetLayout.overflowEnd(placement: SheetPlacement, backwards: Boolean, maximum: Int = 32): Double {
     if (placement.range.firstColumn != placement.range.lastColumn || placement.range.row != placement.range.lastRow) return if (backwards) placement.left else placement.right
-    val sourceEdge = if (backwards) placement.cell.borderLeft else placement.cell.borderRight
+    val sourceEdge = if (backwards != sheet.rightToLeft) placement.cell.borderLeft else placement.cell.borderRight
     if (sourceEdge != null) return if (backwards) placement.left else placement.right
     var column = if (backwards) placement.range.firstColumn - 1 else placement.range.lastColumn + 1
     var edge = if (backwards) placement.left else placement.right

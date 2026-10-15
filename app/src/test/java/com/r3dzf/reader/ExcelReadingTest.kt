@@ -101,6 +101,13 @@ class ExcelReadingTest {
         assertEquals("A1",layout.overflowOrigins(96.0,0.0,96.0,15.0).single().address)
         assertTrue(layout.overflowOrigins(1800.0,0.0,96.0,15.0).isEmpty())
     }
+    @Test fun rtlOverflowUsesThePhysicalBorderOnTheDirectionOfTravel() {
+        val rows = listOf(NativeSheetRow(0,mapOf(1 to NativeSheetCell("عنوان طويل",borderLeft=NativeSheetBorder(1f)))))
+        val rtl = WorksheetLayout(NativeWorksheet("Arabic",rows,4,true))
+        val ltr = WorksheetLayout(NativeWorksheet("English",rows,4,false))
+        assertEquals(96.0,rtl.overflowEnd(rtl.placement(0,1)!!,false),.001)
+        assertEquals(192.0,ltr.overflowEnd(ltr.placement(0,1)!!,false),.001)
+    }
     @Test fun overflowStopsAtSavedValuesFillsBordersAndMerges() {
         val sheet = NativeWorksheet("Data", listOf(NativeSheetRow(0,mapOf(0 to NativeSheetCell("Long title"),3 to NativeSheetCell("Stop"))), NativeSheetRow(1,mapOf(0 to NativeSheetCell("Title"),2 to NativeSheetCell("",fillRgb=0xFF0000)))), 8, false)
         val layout = WorksheetLayout(sheet)
