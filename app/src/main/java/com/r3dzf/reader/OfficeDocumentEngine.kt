@@ -1087,7 +1087,7 @@ object NativeOfficeEngine {
             val numberId = if (applyNumber && xf.attributeByLocalName("numFmtId") != null) formatId(xf) else formatId(base)
             val cell = NativeSheetCell(
                 value = "",
-                hasExplicitFont = fontIndex != 0,
+                hasExplicitFont = fontIndex != 0 && fontElement?.directChild("color") != null,
                 bold = font?.first == true,
                 italic = font?.second == true,
                 fontSizePoints = font?.third?.first,
