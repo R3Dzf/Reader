@@ -31,6 +31,11 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4.0.4
 
+      - name: Cache verified offline font assets
+        uses: actions/cache@v4
+        with:
+          path: app/build/generated/readerFonts/assets
+          key: reader-fonts-${{ hashFiles('tools/fonts-manifest.json', 'tools/prepare_fonts.py') }}
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -40,7 +45,7 @@ jobs:
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Run tests, lint, and build debug APK
-        run: ./gradlew testDebugUnitTest lintDebug assembleDebug
+        run: ./gradlew testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
 
       - name: Upload test and lint reports
         if: always()
@@ -73,6 +78,11 @@ jobs:
           java-version: '17'
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4.0.4
+      - name: Cache verified offline font assets
+        uses: actions/cache@v4
+        with:
+          path: app/build/generated/readerFonts/assets
+          key: reader-fonts-${{ hashFiles('tools/fonts-manifest.json', 'tools/prepare_fonts.py') }}
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -90,7 +100,11 @@ jobs:
           target: google_apis
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: ./gradlew connectedDebugAndroidTest
+          script: |
+            ./gradlew connectedDebugAndroidTest
+            mkdir -p app/build/reports/reader-visuals
+            adb pull /sdcard/Pictures/ReaderTestVisuals/. app/build/reports/reader-visuals/
+            python3 -c "from pathlib import Path; p=Path('app/build/reports/reader-visuals'); assert all((p/n).read_bytes()[:8] == bytes([137,80,78,71,13,10,26,10]) for n in ['powerpoint-reference.png','fonts-reference.png'])"
       - name: Upload Android device test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -98,5 +112,6 @@ jobs:
           name: reader-device-test-reports
           path: |
             app/build/reports/androidTests/connected/
+            app/build/reports/reader-visuals/
             app/build/outputs/androidTest-results/connected/
           if-no-files-found: ignore

@@ -1,0 +1,3295 @@
+{
+  "repository": "https://github.com/google/fonts",
+  "commit": "67bc647ce1910e92f461bcc82aae30f21d21a9cc",
+  "families": [
+    {
+      "id": "cairo",
+      "name": "Cairo",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/cairo/Cairo[slnt,wght].ttf",
+          "asset": "fonts/cairo.ttf",
+          "sha256": "667c987182391c91f4e57a2f455b1794fb5e3ee6ca4ef3383e86bb690fa9c964",
+          "bytes": 599548,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/cairo/OFL.txt",
+          "asset": "fonts/cairo-OFL.txt",
+          "sha256": "a4554e1799d42e1405924b61eb0e0722ae1623b1f1f07f995348f96c496362a9",
+          "bytes": 4473,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "tajawal",
+      "name": "Tajawal",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/tajawal/Tajawal-Regular.ttf",
+          "asset": "fonts/tajawal.ttf",
+          "sha256": "6882892da3e03527d5db2bbab3b48bde6ef2e878a43f522d1a4eebda90010a19",
+          "bytes": 60364,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/tajawal/OFL.txt",
+          "asset": "fonts/tajawal-OFL.txt",
+          "sha256": "9b584984f9db0ee30347391a76eff9c0a6b03dc450c3c6afe3757a2cb3a4db87",
+          "bytes": 4464,
+          "style": "license"
+        },
+        {
+          "path": "ofl/tajawal/Tajawal-Bold.ttf",
+          "asset": "fonts/tajawal-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 59988,
+          "sha256": "0342ab6b74b6bd1b4b5bf7beda45a9734a2b3147a31e8a3a45b6a3417a52d9d7"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "amiri",
+      "name": "Amiri",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/amiri/Amiri-Regular.ttf",
+          "asset": "fonts/amiri.ttf",
+          "sha256": "ab391c4147d054c48976e98322ad0eefe1427aa0e0502a12a4c75d80a70cfcd7",
+          "bytes": 431116,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/amiri/Amiri-Italic.ttf",
+          "asset": "fonts/amiri-italic.ttf",
+          "sha256": "770e4da44d0459c0ddd6484483d475b95f2d088dd27ce472427624081eb68c70",
+          "bytes": 428532,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/amiri/OFL.txt",
+          "asset": "fonts/amiri-OFL.txt",
+          "sha256": "72de68e5954f4fdd24702292ef5a32f003ca960ec9330dc86e5eefb5dffb9b22",
+          "bytes": 4389,
+          "style": "license"
+        },
+        {
+          "path": "ofl/amiri/Amiri-Bold.ttf",
+          "asset": "fonts/amiri-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 413480,
+          "sha256": "cfccb794268e7d573d857e6d6a67f89cf8a053e8ffd85dfa0c8ec1bb36fc4827"
+        },
+        {
+          "path": "ofl/amiri/Amiri-BoldItalic.ttf",
+          "asset": "fonts/amiri-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 409692,
+          "sha256": "241300e2dcb2c541ac3617872960d99683d261e4f526dc4691d0727e7bef130b"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "notonaskharabic",
+      "name": "Noto Naskh Arabic",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/notonaskharabic/NotoNaskhArabic[wght].ttf",
+          "asset": "fonts/notonaskharabic.ttf",
+          "sha256": "67b5a525a661b607971fbd3f96a81b89d3a768e74534fca84f18ac97e6fab72f",
+          "bytes": 307592,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/notonaskharabic/OFL.txt",
+          "asset": "fonts/notonaskharabic-OFL.txt",
+          "sha256": "a7a5a25eb188bf1cd96982030d53e23c33485c69b1044a562254226857ee13af",
+          "bytes": 4382,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "notosansarabic",
+      "name": "Noto Sans Arabic",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/notosansarabic/NotoSansArabic[wdth,wght].ttf",
+          "asset": "fonts/notosansarabic.ttf",
+          "sha256": "63111b5b2e074dd48cc67692e0a2726d86ee94c1c37fe8598257b7b4e87e869e",
+          "bytes": 844676,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/notosansarabic/OFL.txt",
+          "asset": "fonts/notosansarabic-OFL.txt",
+          "sha256": "07fc70bfeb985cc1a87a8587d0a0c80bab11c86c9dc3fd95b6f0cb332f983e96",
+          "bytes": 4382,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "notokufiarabic",
+      "name": "Noto Kufi Arabic",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/notokufiarabic/NotoKufiArabic[wght].ttf",
+          "asset": "fonts/notokufiarabic.ttf",
+          "sha256": "494f6b61469d7a02a2d63f0fc4930bb007388d8cfe551de5eb98354e100889f3",
+          "bytes": 434204,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/notokufiarabic/OFL.txt",
+          "asset": "fonts/notokufiarabic-OFL.txt",
+          "sha256": "07fc70bfeb985cc1a87a8587d0a0c80bab11c86c9dc3fd95b6f0cb332f983e96",
+          "bytes": 4382,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "almarai",
+      "name": "Almarai",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/almarai/Almarai-Regular.ttf",
+          "asset": "fonts/almarai.ttf",
+          "sha256": "5b5cad33c8e5922083728d271cdcda91f96ba291f1307eccc4f4ef732dc19622",
+          "bytes": 152824,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/almarai/OFL.txt",
+          "asset": "fonts/almarai-OFL.txt",
+          "sha256": "142e053c374dd465a92bd7378116b517e344dbc662361308130fc2566db30c2a",
+          "bytes": 4391,
+          "style": "license"
+        },
+        {
+          "path": "ofl/almarai/Almarai-Bold.ttf",
+          "asset": "fonts/almarai-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 156672,
+          "sha256": "06401391b5b39fbcf2bc0c6a6e03faf992435e7b011183a1861737e913af8613"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "changa",
+      "name": "Changa",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/changa/Changa[wght].ttf",
+          "asset": "fonts/changa.ttf",
+          "sha256": "7c4f7a14d4b70ac8816ea8df3a0b127aee4c5f5af7239aca2afecc84ddc7f4d3",
+          "bytes": 132140,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/changa/OFL.txt",
+          "asset": "fonts/changa-OFL.txt",
+          "sha256": "6b12c8d417bb766fa017d1161c7ca050392817a7eecbf3110fc2a8616564b956",
+          "bytes": 4388,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "elmessiri",
+      "name": "El Messiri",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/elmessiri/ElMessiri[wght].ttf",
+          "asset": "fonts/elmessiri.ttf",
+          "sha256": "5d58d5259d2accccba39cffe12e1226e88b6afc5150e3605eb2a9c2fe06ccab0",
+          "bytes": 138664,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/elmessiri/OFL.txt",
+          "asset": "fonts/elmessiri-OFL.txt",
+          "sha256": "b69113722df50071b68ea377ad261919f08fd0dd6672f68b8868445586a30770",
+          "bytes": 4390,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "reemkufi",
+      "name": "Reem Kufi",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/reemkufi/ReemKufi[wght].ttf",
+          "asset": "fonts/reemkufi.ttf",
+          "sha256": "33ead1986cd48c138c4d906c9e5a6341877268461f97623409a2014de1cd4aa4",
+          "bytes": 127152,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/reemkufi/OFL.txt",
+          "asset": "fonts/reemkufi-OFL.txt",
+          "sha256": "3e1dea8822e6e4008fe0ebd2f65f88579683cfee198c0089407fa197535dbe65",
+          "bytes": 4434,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "lateef",
+      "name": "Lateef",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/lateef/Lateef-Regular.ttf",
+          "asset": "fonts/lateef.ttf",
+          "sha256": "fcbd9e0227a4d7238880defa5fd74c012d69351150709e559a8577446145c2fc",
+          "bytes": 241092,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/lateef/OFL.txt",
+          "asset": "fonts/lateef-OFL.txt",
+          "sha256": "63fbda065921d34b9421154fbdeba09075efa2405a5bcb32fbbcfd0aeea892c9",
+          "bytes": 4603,
+          "style": "license"
+        },
+        {
+          "path": "ofl/lateef/Lateef-Bold.ttf",
+          "asset": "fonts/lateef-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 243260,
+          "sha256": "eee405eeb4e81491b0b659fb40dc016765292022d74406c616f72501e160afe2"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "scheherazadenew",
+      "name": "Scheherazade New",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/scheherazadenew/ScheherazadeNew-Regular.ttf",
+          "asset": "fonts/scheherazadenew.ttf",
+          "sha256": "794bac8dc9e83d1d620bc471ea694f5f31d0965ce8006490a79dfc51a2d283b3",
+          "bytes": 331504,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/scheherazadenew/OFL.txt",
+          "asset": "fonts/scheherazadenew-OFL.txt",
+          "sha256": "5b9fd21ce2377fc542debebd9edfe1c48f2d3525e78a2a8abdba4a0ec3280163",
+          "bytes": 4495,
+          "style": "license"
+        },
+        {
+          "path": "ofl/scheherazadenew/ScheherazadeNew-Bold.ttf",
+          "asset": "fonts/scheherazadenew-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 593472,
+          "sha256": "91363517a63dbc7448b5814226d33d845b26b32a461cd159ea0b3f23c7effd2d"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "harmattan",
+      "name": "Harmattan",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/harmattan/Harmattan-Regular.ttf",
+          "asset": "fonts/harmattan.ttf",
+          "sha256": "5fbaafc51ad21663729b168afaff5f28d3e3087f1fc736ada32d7cd99674c0e0",
+          "bytes": 573500,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/harmattan/OFL.txt",
+          "asset": "fonts/harmattan-OFL.txt",
+          "sha256": "8625c5d464ebfe457d071266178fc8b699ccdb7bd58051d53046b3e06806f4e1",
+          "bytes": 4777,
+          "style": "license"
+        },
+        {
+          "path": "ofl/harmattan/Harmattan-Bold.ttf",
+          "asset": "fonts/harmattan-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 559624,
+          "sha256": "eb9de49ecb72d34e14c768bea6f9a7831f6bd2c15b062fcc2bb17b0ac967bc67"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "mada",
+      "name": "Mada",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/mada/Mada[wght].ttf",
+          "asset": "fonts/mada.ttf",
+          "sha256": "bf4d193ee78cea2fd8bdc9e64e5cb7e8a19ff76ab74f97a9a4a0e80f8f4cefde",
+          "bytes": 181408,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/mada/OFL.txt",
+          "asset": "fonts/mada-OFL.txt",
+          "sha256": "e15f74b13b1a30c878f162b2ce10aff4668d0e8ec8dae41dc61c1c12aa6d9eb9",
+          "bytes": 4419,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "mirza",
+      "name": "Mirza",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/mirza/Mirza-Regular.ttf",
+          "asset": "fonts/mirza.ttf",
+          "sha256": "5b1ac6cb285ca3492e313a53d5252b9784bf7607f2835a2d44cb3cbad0168539",
+          "bytes": 177820,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/mirza/OFL.txt",
+          "asset": "fonts/mirza-OFL.txt",
+          "sha256": "6849425e0d6d9d32e95d5de6c2c453d8d430a20d9a25ae340984aa1fab9bb0ad",
+          "bytes": 4381,
+          "style": "license"
+        },
+        {
+          "path": "ofl/mirza/Mirza-Bold.ttf",
+          "asset": "fonts/mirza-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 177052,
+          "sha256": "306b412a39d9f93ca840c13ca62300eb5c7712e2afa94bd7ef2272b51131be6d"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "markazitext",
+      "name": "Markazi Text",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/markazitext/MarkaziText[wght].ttf",
+          "asset": "fonts/markazitext.ttf",
+          "sha256": "424b7331681160ff2a4b209bfc356ea9564d429a7daea43ee4dc28de8ff4f9fe",
+          "bytes": 296896,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/markazitext/OFL.txt",
+          "asset": "fonts/markazitext-OFL.txt",
+          "sha256": "6e7f259edf178c70b2ee36acfcc934b76d1cd56bb58d2c8f2ab8b5dded8bd430",
+          "bytes": 4485,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "lemonada",
+      "name": "Lemonada",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/lemonada/Lemonada[wght].ttf",
+          "asset": "fonts/lemonada.ttf",
+          "sha256": "84134e9e1da7d593839073157980a4d38296d2be10b61469a8f3169204959ad9",
+          "bytes": 189204,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/lemonada/OFL.txt",
+          "asset": "fonts/lemonada-OFL.txt",
+          "sha256": "d8a8801a55cbc8eeaab7dc9396c4491d60cc7e4ecb2501c6f8282754d743fc2a",
+          "bytes": 4479,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "arefruqaa",
+      "name": "Aref Ruqaa",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/arefruqaa/ArefRuqaa-Regular.ttf",
+          "asset": "fonts/arefruqaa.ttf",
+          "sha256": "ceb786d83ba92f35e96efcd8623c2858d288e0c543c8761ba35b1020989464f9",
+          "bytes": 110696,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/arefruqaa/OFL.txt",
+          "asset": "fonts/arefruqaa-OFL.txt",
+          "sha256": "41ac14451a624c69490e24b9aaaaa1f65dc9dc17c3f6f38172fc43d5ba654a1b",
+          "bytes": 4464,
+          "style": "license"
+        },
+        {
+          "path": "ofl/arefruqaa/ArefRuqaa-Bold.ttf",
+          "asset": "fonts/arefruqaa-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 123852,
+          "sha256": "247071015b7eefd63f94d6e47949c5d10294ed31bd432f809ba9a219d93f91bb"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "katibeh",
+      "name": "Katibeh",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/katibeh/Katibeh-Regular.ttf",
+          "asset": "fonts/katibeh.ttf",
+          "sha256": "334eeadb58eb442734fe7dea87412cbbd8c3fd00294252723aadf19a850cf11f",
+          "bytes": 189124,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/katibeh/OFL.txt",
+          "asset": "fonts/katibeh-OFL.txt",
+          "sha256": "251f65282ff48a7e8ef3fb661fc99254d9b3b0c368427c98b1edbfe4ca66e888",
+          "bytes": 4578,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "lalezar",
+      "name": "Lalezar",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/lalezar/Lalezar-Regular.ttf",
+          "asset": "fonts/lalezar.ttf",
+          "sha256": "7b80807bc831f141de0f7dcf6816412bf0c548968d548c5156ca388733390ea9",
+          "bytes": 290016,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/lalezar/OFL.txt",
+          "asset": "fonts/lalezar-OFL.txt",
+          "sha256": "327bac41d89cf9f32e0efe353228018e1661cff458a5d4905714958514df7bd5",
+          "bytes": 4383,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "rakkas",
+      "name": "Rakkas",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/rakkas/Rakkas-Regular.ttf",
+          "asset": "fonts/rakkas.ttf",
+          "sha256": "54278882e4774c14d50c3b555f127d0fe586366d5b787316ebbcbd8108829e60",
+          "bytes": 146824,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/rakkas/OFL.txt",
+          "asset": "fonts/rakkas-OFL.txt",
+          "sha256": "5c36e7ec460b285185ea23847aa1f508708d9ce15d5c055279defd022972f836",
+          "bytes": 4423,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "marhey",
+      "name": "Marhey",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/marhey/Marhey[wght].ttf",
+          "asset": "fonts/marhey.ttf",
+          "sha256": "19c30686157ec965797fae8c8feb7bb142b082217227562d1a809c067df447e9",
+          "bytes": 198704,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/marhey/OFL.txt",
+          "asset": "fonts/marhey-OFL.txt",
+          "sha256": "096744f008d418398e0b72ce8d4c46f195c036600a7a48df256ac95e026a79dc",
+          "bytes": 4477,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "readexpro",
+      "name": "Readex Pro",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/readexpro/ReadexPro[HEXP,wght].ttf",
+          "asset": "fonts/readexpro.ttf",
+          "sha256": "268bba7e1e8f3b14d798b3fb0e40ebaa3fc39308c9ac0020e2faf6df181cc30e",
+          "bytes": 278544,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/readexpro/OFL.txt",
+          "asset": "fonts/readexpro-OFL.txt",
+          "sha256": "b41267a3903a45955f77b44596e080480c577fb7221df59672d0bc8cd8cd4b6f",
+          "bytes": 4444,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "alexandria",
+      "name": "Alexandria",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/alexandria/Alexandria[wght].ttf",
+          "asset": "fonts/alexandria.ttf",
+          "sha256": "db8ae03b62d55a65aa4e04307878df8c00d6e5388e4800635cbe0e22b6411b64",
+          "bytes": 332488,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/alexandria/OFL.txt",
+          "asset": "fonts/alexandria-OFL.txt",
+          "sha256": "56372aed19c2701f50e6e784110af55bf8796ed51648805324ad1adb0a3860bb",
+          "bytes": 4483,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "ibmplexsansarabic",
+      "name": "IBM Plex Sans Arabic",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/ibmplexsansarabic/IBMPlexSansArabic-Regular.ttf",
+          "asset": "fonts/ibmplexsansarabic.ttf",
+          "sha256": "6f611412270a132bbac838da9259d4c68569b4175f3b3b8fa3fa36a30b56dab9",
+          "bytes": 235924,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ibmplexsansarabic/OFL.txt",
+          "asset": "fonts/ibmplexsansarabic-OFL.txt",
+          "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+          "bytes": 4456,
+          "style": "license"
+        },
+        {
+          "path": "ofl/ibmplexsansarabic/IBMPlexSansArabic-Bold.ttf",
+          "asset": "fonts/ibmplexsansarabic-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 246992,
+          "sha256": "691e0c891a38637ae6bbdb69700f8042cb0724a137bee615068ffdb92244f61f"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "fustat",
+      "name": "Fustat",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/fustat/Fustat[wght].ttf",
+          "asset": "fonts/fustat.ttf",
+          "sha256": "ba09d90e6180e79334aadd42ea1ed0e97a405fadcd34412c1d02a6b8f679d402",
+          "bytes": 172620,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/fustat/OFL.txt",
+          "asset": "fonts/fustat-OFL.txt",
+          "sha256": "197945947b2b8a0b9fc5622d9136d5f83c423f7f2e900c10bfb8b8cde8a45c47",
+          "bytes": 4391,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "vazirmatn",
+      "name": "Vazirmatn",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/vazirmatn/Vazirmatn[wght].ttf",
+          "asset": "fonts/vazirmatn.ttf",
+          "sha256": "696249a2c74b39ffdef55de4df2809c5b639d3ff80d618d8160a095d2fd49dca",
+          "bytes": 241328,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/vazirmatn/OFL.txt",
+          "asset": "fonts/vazirmatn-OFL.txt",
+          "sha256": "17e355067c8284f47743a1ee3b1ef7ff684ff0601eda357f9353b10b3016ab31",
+          "bytes": 4391,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "gulzar",
+      "name": "Gulzar",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/gulzar/Gulzar-Regular.ttf",
+          "asset": "fonts/gulzar.ttf",
+          "sha256": "246337973ac64e8b70fe611405dcf32a395a8885c4497dc45dbc4975d3ac0831",
+          "bytes": 963496,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/gulzar/OFL.txt",
+          "asset": "fonts/gulzar-OFL.txt",
+          "sha256": "42d665be2bd66ea6445e0a37cb6f80eb4ac10d56cd0503efa0c6d6d6ebe86de2",
+          "bytes": 4386,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "reemkufifun",
+      "name": "Reem Kufi Fun",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/reemkufifun/ReemKufiFun[wght].ttf",
+          "asset": "fonts/reemkufifun.ttf",
+          "sha256": "d1342cebd08afc04a51bf9a28e5ac6a8299c5716c47df9b7ea27f94653aaa40f",
+          "bytes": 176328,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/reemkufifun/OFL.txt",
+          "asset": "fonts/reemkufifun-OFL.txt",
+          "sha256": "fedb204ccadda62524c5467136cef4968b6b67efdc6ca3e8752c1248d81e7f4e",
+          "bytes": 4435,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "ruwudu",
+      "name": "Ruwudu",
+      "script": "arabic",
+      "files": [
+        {
+          "path": "ofl/ruwudu/Ruwudu-Regular.ttf",
+          "asset": "fonts/ruwudu.ttf",
+          "sha256": "ed5b134e7f389eecfdabc6bbbf9605177fa8b5b9984c8b24edbec908623d2c3b",
+          "bytes": 121440,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ruwudu/OFL.txt",
+          "asset": "fonts/ruwudu-OFL.txt",
+          "sha256": "2abc42812053bb5fd07d5f49c98311fef1471c2ff108c372abbbd44cdd4c7759",
+          "bytes": 4494,
+          "style": "license"
+        },
+        {
+          "path": "ofl/ruwudu/Ruwudu-Bold.ttf",
+          "asset": "fonts/ruwudu-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 123240,
+          "sha256": "7f7611d534aea674b960e0b586d1f594f3975b4db3fff5f55c1b92484a34cf78"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "roboto",
+      "name": "Roboto",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/roboto/Roboto[wdth,wght].ttf",
+          "asset": "fonts/roboto.ttf",
+          "sha256": "d7598e12c5dbef095ff8272cfc55da0250bd07fbdecbac8a530b9b277872a134",
+          "bytes": 488584,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/roboto/Roboto-Italic[wdth,wght].ttf",
+          "asset": "fonts/roboto-italic.ttf",
+          "sha256": "9725a847af6b460ffca162ae66d20dad48b01876137947180b42d7dcd7887182",
+          "bytes": 530944,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/roboto/OFL.txt",
+          "asset": "fonts/roboto-OFL.txt",
+          "sha256": "061402327a96aadb0bfb694a960ed289ecd38d383e396243831ab81feb109c41",
+          "bytes": 4394,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "opensans",
+      "name": "Open Sans",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/opensans/OpenSans[wdth,wght].ttf",
+          "asset": "fonts/opensans.ttf",
+          "sha256": "36643644f318a812aab2d2ed3bb98f8cf0872527f835fe9398d95fe6b9adb878",
+          "bytes": 532636,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/opensans/OpenSans-Italic[wdth,wght].ttf",
+          "asset": "fonts/opensans-italic.ttf",
+          "sha256": "fe269381e992f32e135801740998544d6235061e37c93ec067ad2be3edd5b17b",
+          "bytes": 583992,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/opensans/OFL.txt",
+          "asset": "fonts/opensans-OFL.txt",
+          "sha256": "fbbbcfef55318de350562559b671360de6d597112ecc5c73881b05092db89602",
+          "bytes": 4389,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "robotocondensed",
+      "name": "Roboto Condensed",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/robotocondensed/RobotoCondensed[wght].ttf",
+          "asset": "fonts/robotocondensed.ttf",
+          "sha256": "dace262afcee68a5276f200d8026c57221735c0118ab5fda8c2c0d3dc409a8d0",
+          "bytes": 371616,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/robotocondensed/RobotoCondensed-Italic[wght].ttf",
+          "asset": "fonts/robotocondensed-italic.ttf",
+          "sha256": "78f643b1923008b00dfc9b371a2ecd4d80a017722925f1a3fac9940be56d1b7d",
+          "bytes": 388124,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/robotocondensed/OFL.txt",
+          "asset": "fonts/robotocondensed-OFL.txt",
+          "sha256": "0e4cc6ece88573545be2ed25835363662a6182ba4a4c1b5c8feda52add30e8a6",
+          "bytes": 4393,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "merriweather",
+      "name": "Merriweather",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/merriweather/Merriweather[opsz,wdth,wght].ttf",
+          "asset": "fonts/merriweather.ttf",
+          "sha256": "d0ed0e359e396af7ad05e73dffd11a3a4c326ea0d0283c56bd9361cb2cc86a96",
+          "bytes": 4628080,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/merriweather/Merriweather-Italic[opsz,wdth,wght].ttf",
+          "asset": "fonts/merriweather-italic.ttf",
+          "sha256": "f68a8f4989258679e4fbaf50aa42400132b5373c2d9d2514ba82ef6e85947a0b",
+          "bytes": 4591168,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/merriweather/OFL.txt",
+          "asset": "fonts/merriweather-OFL.txt",
+          "sha256": "715bd349bfa6116f99e351e1548321dcfa25b91df65502d22ca8d624557697d2",
+          "bytes": 4438,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "montserrat",
+      "name": "Montserrat",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/montserrat/Montserrat[wght].ttf",
+          "asset": "fonts/montserrat.ttf",
+          "sha256": "0f7b311b2f3279e4eef9b2f968bcdbab6e28f4daeb1f049f4f278a902bcd82f7",
+          "bytes": 744936,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/montserrat/Montserrat-Italic[wght].ttf",
+          "asset": "fonts/montserrat-italic.ttf",
+          "sha256": "51607f316bc020e59f03cbf51543eecffbea501c0b31d73e5b82927c5cca442c",
+          "bytes": 762376,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/montserrat/OFL.txt",
+          "asset": "fonts/montserrat-OFL.txt",
+          "sha256": "8b7141c03fa4f8d44e6345d5d4931709290f0f67875e452e95ac1fd3a027802e",
+          "bytes": 4400,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "lato",
+      "name": "Lato",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/lato/Lato-Regular.ttf",
+          "asset": "fonts/lato.ttf",
+          "sha256": "d636e4683231f931eda222d588e944d082bfd3bdba02f928bee461c0f185b251",
+          "bytes": 656568,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/lato/Lato-Italic.ttf",
+          "asset": "fonts/lato-italic.ttf",
+          "sha256": "e399c44efe1387100531d26c7e4800c5d12251b890d6654a3098c7c679cb1786",
+          "bytes": 722900,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/lato/OFL.txt",
+          "asset": "fonts/lato-OFL.txt",
+          "sha256": "74ba064d03f1f1c4a952da936c3eb71866c34404916734de3cae73b34357e59e",
+          "bytes": 4407,
+          "style": "license"
+        },
+        {
+          "path": "ofl/lato/Lato-Bold.ttf",
+          "asset": "fonts/lato-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 656544,
+          "sha256": "8a0aace75d33794eece4b28187bfc1df0bbd2888b5d8a56e01788c8d65d16be1"
+        },
+        {
+          "path": "ofl/lato/Lato-BoldItalic.ttf",
+          "asset": "fonts/lato-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 698364,
+          "sha256": "62c1b7f0d2e74b45960154c3520efc337b553db0961bfdc950d5618334596cc8"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "poppins",
+      "name": "Poppins",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/poppins/Poppins-Regular.ttf",
+          "asset": "fonts/poppins.ttf",
+          "sha256": "7e65201e9b79159e2300267cc885e16c8dcef2424cdfa09a29bfb0980a94a7ba",
+          "bytes": 160316,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/poppins/Poppins-Italic.ttf",
+          "asset": "fonts/poppins-italic.ttf",
+          "sha256": "4fa76ae75b40f926420514044722cb97f32186cafd3b38263cc34dad7174d46d",
+          "bytes": 184544,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/poppins/OFL.txt",
+          "asset": "fonts/poppins-OFL.txt",
+          "sha256": "6be04893d770899a015649c7aa3b582f871b272f8747a92b78b17c3e5c8b2573",
+          "bytes": 4385,
+          "style": "license"
+        },
+        {
+          "path": "ofl/poppins/Poppins-Bold.ttf",
+          "asset": "fonts/poppins-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 155996,
+          "sha256": "983676516167748b74de6f4771fb384c664fd913acb8b471122ecacf5da5ea6c"
+        },
+        {
+          "path": "ofl/poppins/Poppins-BoldItalic.ttf",
+          "asset": "fonts/poppins-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 179108,
+          "sha256": "3572ac8116a0ac7317d342262b29937bcbaf94d8f03f90df6fe666fa7e2fb43a"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "inter",
+      "name": "Inter",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/inter/Inter[opsz,wght].ttf",
+          "asset": "fonts/inter.ttf",
+          "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
+          "bytes": 876576,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/inter/Inter-Italic[opsz,wght].ttf",
+          "asset": "fonts/inter-italic.ttf",
+          "sha256": "acd98e64795781b2058f07b18475e0ecee2a0fe2b42a49e2f9e37d0d6bf66ce6",
+          "bytes": 906596,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/inter/OFL.txt",
+          "asset": "fonts/inter-OFL.txt",
+          "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57",
+          "bytes": 4377,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "raleway",
+      "name": "Raleway",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/raleway/Raleway[wght].ttf",
+          "asset": "fonts/raleway.ttf",
+          "sha256": "8bbcc3eb8275c388f4bcd998832f8a4b943eadbaf6a595205312774b5951aefb",
+          "bytes": 312352,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/raleway/Raleway-Italic[wght].ttf",
+          "asset": "fonts/raleway-italic.ttf",
+          "sha256": "96629caf2202183fab46c70237055a7d67e6a5400b85413d45a77ed6f2a0770c",
+          "bytes": 318476,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/raleway/OFL.txt",
+          "asset": "fonts/raleway-OFL.txt",
+          "sha256": "7e946cf1171784d1015279e7dc35f827957a6b5d1f1f659ae0c98e5f5e37ed9b",
+          "bytes": 4497,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "nunito",
+      "name": "Nunito",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/nunito/Nunito[wght].ttf",
+          "asset": "fonts/nunito.ttf",
+          "sha256": "bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207",
+          "bytes": 276932,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/nunito/Nunito-Italic[wght].ttf",
+          "asset": "fonts/nunito-italic.ttf",
+          "sha256": "b520cc871868b0acfca1beda875df7f4a44ebce914f8a89f83977fc9c09529c8",
+          "bytes": 281832,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/nunito/OFL.txt",
+          "asset": "fonts/nunito-OFL.txt",
+          "sha256": "580df76c95a1ec5ab878ceb25bb3d85c6a076804e9c970c8c6972aea775fdf65",
+          "bytes": 4385,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "nunitosans",
+      "name": "Nunito Sans",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/nunitosans/NunitoSans[YTLC,opsz,wdth,wght].ttf",
+          "asset": "fonts/nunitosans.ttf",
+          "sha256": "f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d",
+          "bytes": 571240,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/nunitosans/NunitoSans-Italic[YTLC,opsz,wdth,wght].ttf",
+          "asset": "fonts/nunitosans-italic.ttf",
+          "sha256": "d9d5db18f3c11221a4fbb553cbc709391c1179964c7eaa4466ef43c78aa4492f",
+          "bytes": 558412,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/nunitosans/OFL.txt",
+          "asset": "fonts/nunitosans-OFL.txt",
+          "sha256": "efbb0c9e864cef973982d9a17567e6be5c3d1759695574586f3f18c7ecca064b",
+          "bytes": 4393,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "sourcesans3",
+      "name": "Source Sans 3",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/sourcesans3/SourceSans3[wght].ttf",
+          "asset": "fonts/sourcesans3.ttf",
+          "sha256": "042fe2cc0b933e328410d7acbd0aa6a1873dca5aef81875f4bc214b08825c7b9",
+          "bytes": 646340,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/sourcesans3/SourceSans3-Italic[wght].ttf",
+          "asset": "fonts/sourcesans3-italic.ttf",
+          "sha256": "39e3ab05ccd7cb94907c31005bb5bec1d5432f0b096a2b782976e217a540eb6c",
+          "bytes": 395372,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/sourcesans3/OFL.txt",
+          "asset": "fonts/sourcesans3-OFL.txt",
+          "sha256": "09746787287a289323b0ec3cff4d1a4a801331b82b7207c1e186f5d26619a392",
+          "bytes": 4579,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "sourceserif4",
+      "name": "Source Serif 4",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/sourceserif4/SourceSerif4[opsz,wght].ttf",
+          "asset": "fonts/sourceserif4.ttf",
+          "sha256": "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
+          "bytes": 1209508,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/sourceserif4/SourceSerif4-Italic[opsz,wght].ttf",
+          "asset": "fonts/sourceserif4-italic.ttf",
+          "sha256": "15fbc7e4679489a501998c3669272637a6646388ef7e4bd77eebb5bf967a1f42",
+          "bytes": 855432,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/sourceserif4/OFL.txt",
+          "asset": "fonts/sourceserif4-OFL.txt",
+          "sha256": "5f94c3fd3a23131a417ab5a0c8452de57e70c3cfb9f604d88241f7065ebf9fd9",
+          "bytes": 4400,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "oswald",
+      "name": "Oswald",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/oswald/Oswald[wght].ttf",
+          "asset": "fonts/oswald.ttf",
+          "sha256": "5b38c246e255a12f5712d640d56bcced0472466fc68983d2d0410ec0457c2817",
+          "bytes": 172088,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/oswald/OFL.txt",
+          "asset": "fonts/oswald-OFL.txt",
+          "sha256": "0fd731a904b729a4e02eaf5e8ebd06783edd9abe400e8882760160230675b652",
+          "bytes": 4483,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "robotoslab",
+      "name": "Roboto Slab",
+      "script": "latin",
+      "files": [
+        {
+          "path": "apache/robotoslab/RobotoSlab[wght].ttf",
+          "asset": "fonts/robotoslab.ttf",
+          "sha256": "786ae192477447d33c6672c3055fba7cbfe45184c9a79e77a14f15716ca05b16",
+          "bytes": 251880,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "apache/robotoslab/LICENSE.txt",
+          "asset": "fonts/robotoslab-LICENSE.txt",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "bytes": 11358,
+          "style": "license"
+        },
+        {
+          "path": "apache/robotoslab/COPYRIGHT.txt",
+          "asset": "fonts/robotoslab-COPYRIGHT.txt",
+          "style": "license",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        }
+      ],
+      "license": "Apache-2.0"
+    },
+    {
+      "id": "ptsans",
+      "name": "PT Sans",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/ptsans/PT_Sans-Web-Regular.ttf",
+          "asset": "fonts/ptsans.ttf",
+          "sha256": "9cc831490532009bae2b3ce0d39c62adfc889060beb421593bfd9d2396d0f10a",
+          "bytes": 442960,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ptsans/PT_Sans-Web-Italic.ttf",
+          "asset": "fonts/ptsans-italic.ttf",
+          "sha256": "5a90fe2d0cd798700935240580bdcc12c0ffc9102c0c7163b3418e13bc21debd",
+          "bytes": 436452,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ptsans/OFL.txt",
+          "asset": "fonts/ptsans-OFL.txt",
+          "sha256": "2758cf7a872827f39661cf8cc24188113c030447aefb5ca7145993650076ca8c",
+          "bytes": 4425,
+          "style": "license"
+        },
+        {
+          "path": "ofl/ptsans/PT_Sans-Web-Bold.ttf",
+          "asset": "fonts/ptsans-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 470240,
+          "sha256": "3128bd5ecf01816e59a23d54c57a7a6b14615b07db53ff277c77376010265b05"
+        },
+        {
+          "path": "ofl/ptsans/PT_Sans-Web-BoldItalic.ttf",
+          "asset": "fonts/ptsans-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 375204,
+          "sha256": "81ac221cdd02bccfa679c74adb122478e9d092e65a722e31ca11469961483785"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "ptserif",
+      "name": "PT Serif",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/ptserif/PT_Serif-Web-Regular.ttf",
+          "asset": "fonts/ptserif.ttf",
+          "sha256": "a4951fade06ff8f09b7673aa81ffb65a8cd409e24d3289a6dc670bc4dda2557a",
+          "bytes": 359048,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ptserif/PT_Serif-Web-Italic.ttf",
+          "asset": "fonts/ptserif-italic.ttf",
+          "sha256": "f57e95ff9dc85691a3b2e193f2028db36f6663939a46c0fc4f286d618b80b7ce",
+          "bytes": 375356,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ptserif/OFL.txt",
+          "asset": "fonts/ptserif-OFL.txt",
+          "sha256": "ddf311c28ddf5a5ad9747649837346b67bed9d356789c3072bb27dbce49e514d",
+          "bytes": 4434,
+          "style": "license"
+        },
+        {
+          "path": "ofl/ptserif/PT_Serif-Web-Bold.ttf",
+          "asset": "fonts/ptserif-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 339996,
+          "sha256": "038ba7336bd7ea14f12ad155bed51a4345cac5153275d521dec3ba04021c526e"
+        },
+        {
+          "path": "ofl/ptserif/PT_Serif-Web-BoldItalic.ttf",
+          "asset": "fonts/ptserif-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 337580,
+          "sha256": "f003788ba08981eb0988b3557a6f224a53dab49c20e283e8b74d5af3c466f8be"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "lora",
+      "name": "Lora",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/lora/Lora[wght].ttf",
+          "asset": "fonts/lora.ttf",
+          "sha256": "822a6621ccbe8d97d20ac88c1c41f5615c9c2c202eaa75f272cd452aac6475a7",
+          "bytes": 212196,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/lora/Lora-Italic[wght].ttf",
+          "asset": "fonts/lora-italic.ttf",
+          "sha256": "22d8d8854b53807aa664ca34f2031a9ed57a1d0dea296b8b96cdd3aad937a2b3",
+          "bytes": 221232,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/lora/OFL.txt",
+          "asset": "fonts/lora-OFL.txt",
+          "sha256": "1d9a970809ac804b582a6ce7f0ebc4e7fefcbfd7ff6299cad35ee656a21be716",
+          "bytes": 4423,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "playfairdisplay",
+      "name": "Playfair Display",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/playfairdisplay/PlayfairDisplay[wght].ttf",
+          "asset": "fonts/playfairdisplay.ttf",
+          "sha256": "c40f2293766a503bc70cce9e512ef844a4ccb7cbcde792fe2ea31d191917d8d6",
+          "bytes": 300724,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/playfairdisplay/PlayfairDisplay-Italic[wght].ttf",
+          "asset": "fonts/playfairdisplay-italic.ttf",
+          "sha256": "a5e26dc5e2e77fb2803a0bf02fd4f81ee136ec8dea863ccdb0c59a263b21378b",
+          "bytes": 278688,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/playfairdisplay/OFL.txt",
+          "asset": "fonts/playfairdisplay-OFL.txt",
+          "sha256": "566be814f8e96e93dfa16101331557eb6b5467e9e03f627c0910fe93ca12300e",
+          "bytes": 4449,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "rubik",
+      "name": "Rubik",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/rubik/Rubik[wght].ttf",
+          "asset": "fonts/rubik.ttf",
+          "sha256": "1b3a7437ba2af80e465e773ed60c5036d1ba6ace492d89046dbcf18fb31e4e88",
+          "bytes": 359804,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/rubik/Rubik-Italic[wght].ttf",
+          "asset": "fonts/rubik-italic.ttf",
+          "sha256": "08c6c4018a5ada8b517407b46897e46cf6ebb106853fbd3e89addb51d3b59c62",
+          "bytes": 354984,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/rubik/OFL.txt",
+          "asset": "fonts/rubik-OFL.txt",
+          "sha256": "472cbe7c25441df63e9c7864b43eb3c0f4b3df950c66a76224e6cfe1eae843fb",
+          "bytes": 4384,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "worksans",
+      "name": "Work Sans",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/worksans/WorkSans[wght].ttf",
+          "asset": "fonts/worksans.ttf",
+          "sha256": "f50f61f2ba738e239442d40bf1069adb195c224b6a5a73a581fc2f3ed62a9f63",
+          "bytes": 361072,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/worksans/WorkSans-Italic[wght].ttf",
+          "asset": "fonts/worksans-italic.ttf",
+          "sha256": "0a9f935ea490d3477fc97e40248f356c29bce11a1973939056c4316b122341ec",
+          "bytes": 336756,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/worksans/OFL.txt",
+          "asset": "fonts/worksans-OFL.txt",
+          "sha256": "749aca05078664ce682dce1b1b10096ac397cb088c1a6df4e1bb56f0092a9272",
+          "bytes": 4396,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "firasans",
+      "name": "Fira Sans",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/firasans/FiraSans-Regular.ttf",
+          "asset": "fonts/firasans.ttf",
+          "sha256": "c29556a2719bf613ef3d5e070e40d903a8965d9c081beca1375dc1e6e0f93c23",
+          "bytes": 456996,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/firasans/FiraSans-Italic.ttf",
+          "asset": "fonts/firasans-italic.ttf",
+          "sha256": "a4204f9a8029c1c55daa5385ac95936f74abea3e232770f1fb2862a19d1dfa13",
+          "bytes": 472396,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/firasans/OFL.txt",
+          "asset": "fonts/firasans-OFL.txt",
+          "sha256": "8f24842e9174beda18a556c2ae7d54f5dc444340c19a3a9ef77e23bca366adbd",
+          "bytes": 4370,
+          "style": "license"
+        },
+        {
+          "path": "ofl/firasans/FiraSans-Bold.ttf",
+          "asset": "fonts/firasans-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 489720,
+          "sha256": "a4d8e149ecdd4874a0726eb0af894488b3b31c423d6b0017c8f415ed1b795b45"
+        },
+        {
+          "path": "ofl/firasans/FiraSans-BoldItalic.ttf",
+          "asset": "fonts/firasans-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 506864,
+          "sha256": "1b96c16db9819bcaa9d588068bb397bb6e977c4874965d3d50d789a1943757eb"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "firacode",
+      "name": "Fira Code",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/firacode/FiraCode[wght].ttf",
+          "asset": "fonts/firacode.ttf",
+          "sha256": "9335b082b3c7850d98a64b584f3417f65355f3471278bb5eeb8c6c0e8657aeeb",
+          "bytes": 260364,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/firacode/OFL.txt",
+          "asset": "fonts/firacode-OFL.txt",
+          "sha256": "926041dac670e6922505e35ac1661a4e8d20f1ffeabbbcb5edb5544370702369",
+          "bytes": 4391,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "inconsolata",
+      "name": "Inconsolata",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/inconsolata/Inconsolata[wdth,wght].ttf",
+          "asset": "fonts/inconsolata.ttf",
+          "sha256": "23ded25b447074d00659392bf9b1123d89df55cb07b0ad9bfef3366d199b5fcb",
+          "bytes": 347180,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/inconsolata/OFL.txt",
+          "asset": "fonts/inconsolata-OFL.txt",
+          "sha256": "29bd0cfd0fb2a45f9b057c834a057724bae1f63b525a8ac83d3e7525706d9f80",
+          "bytes": 4350,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "jetbrainsmono",
+      "name": "JetBrains Mono",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/jetbrainsmono/JetBrainsMono[wght].ttf",
+          "asset": "fonts/jetbrainsmono.ttf",
+          "sha256": "48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda",
+          "bytes": 187208,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/jetbrainsmono/JetBrainsMono-Italic[wght].ttf",
+          "asset": "fonts/jetbrainsmono-italic.ttf",
+          "sha256": "85ae2a5cd3f56baf1ce1c21a851322c58e3d8fbe8e8ad4a4d090a820dd7fe558",
+          "bytes": 191556,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/jetbrainsmono/OFL.txt",
+          "asset": "fonts/jetbrainsmono-OFL.txt",
+          "sha256": "b2fe5e8987594e9ffd1d2ca52a2f5d73eb8335243893c5d6254b5ad69269591d",
+          "bytes": 4399,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "ibmplexsans",
+      "name": "IBM Plex Sans",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/ibmplexsans/IBMPlexSans[wdth,wght].ttf",
+          "asset": "fonts/ibmplexsans.ttf",
+          "sha256": "3b031aa4216174205bd8471f88a49b91f093169e9e87bd5262242bc5967fe2e3",
+          "bytes": 537244,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ibmplexsans/IBMPlexSans-Italic[wdth,wght].ttf",
+          "asset": "fonts/ibmplexsans-italic.ttf",
+          "sha256": "0b94c5e981993764db32bf9c610ecc60cbd34ad77ec2f10ba03c64ab75124d8e",
+          "bytes": 599624,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ibmplexsans/OFL.txt",
+          "asset": "fonts/ibmplexsans-OFL.txt",
+          "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+          "bytes": 4456,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "ibmplexserif",
+      "name": "IBM Plex Serif",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/ibmplexserif/IBMPlexSerif-Regular.ttf",
+          "asset": "fonts/ibmplexserif.ttf",
+          "sha256": "e882efa9c41949a528ac2369079ec5ef050c1c996bbd0bacce3c3326d44cf80d",
+          "bytes": 163068,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ibmplexserif/IBMPlexSerif-Italic.ttf",
+          "asset": "fonts/ibmplexserif-italic.ttf",
+          "sha256": "4b75b38be4673527231f49c48818d090c913d5042dd5c747b525bf6185d29ecb",
+          "bytes": 173004,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ibmplexserif/OFL.txt",
+          "asset": "fonts/ibmplexserif-OFL.txt",
+          "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+          "bytes": 4456,
+          "style": "license"
+        },
+        {
+          "path": "ofl/ibmplexserif/IBMPlexSerif-Bold.ttf",
+          "asset": "fonts/ibmplexserif-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 163800,
+          "sha256": "534c02c295999dd86e770457ece1d43db0de9256dd98bf741426f63ae904209e"
+        },
+        {
+          "path": "ofl/ibmplexserif/IBMPlexSerif-BoldItalic.ttf",
+          "asset": "fonts/ibmplexserif-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 173032,
+          "sha256": "2a32b76ac19c1942bf5942dbbd2a1566e5f1ae9833e421ebcf36d3522715e153"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "ibmplexmono",
+      "name": "IBM Plex Mono",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/ibmplexmono/IBMPlexMono-Regular.ttf",
+          "asset": "fonts/ibmplexmono.ttf",
+          "sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46",
+          "bytes": 135580,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ibmplexmono/IBMPlexMono-Italic.ttf",
+          "asset": "fonts/ibmplexmono-italic.ttf",
+          "sha256": "3362fc791b0652193328b862c1c5f23a789bc7288b1617fa63302f88689a2a34",
+          "bytes": 143920,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ibmplexmono/OFL.txt",
+          "asset": "fonts/ibmplexmono-OFL.txt",
+          "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+          "bytes": 4456,
+          "style": "license"
+        },
+        {
+          "path": "ofl/ibmplexmono/IBMPlexMono-Bold.ttf",
+          "asset": "fonts/ibmplexmono-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 137784,
+          "sha256": "ac27abd6450a64dd94467580a02fe6235156d5b92f2926ebbc8e7489df64e0be"
+        },
+        {
+          "path": "ofl/ibmplexmono/IBMPlexMono-BoldItalic.ttf",
+          "asset": "fonts/ibmplexmono-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 144512,
+          "sha256": "af4e05a761e98c1adf064c48a6352c9bec1a6ad70982cd2a544149323391f98e"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "dmsans",
+      "name": "DM Sans",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/dmsans/DMSans[opsz,wght].ttf",
+          "asset": "fonts/dmsans.ttf",
+          "sha256": "8cd08d97e89c24d0aa92edd2f0f4c8ee6195eee9b7c9f154865a58b02f0c1c0d",
+          "bytes": 240164,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/dmsans/DMSans-Italic[opsz,wght].ttf",
+          "asset": "fonts/dmsans-italic.ttf",
+          "sha256": "22259c0cc8237221b80f44c76ba8d36e6bce3cda72779f5b2773643d499720ae",
+          "bytes": 285040,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/dmsans/OFL.txt",
+          "asset": "fonts/dmsans-OFL.txt",
+          "sha256": "9af36190332437f5ecd09974de43c1f7c77a310a996cdd8ceb25628b458840e1",
+          "bytes": 4482,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "dmserifdisplay",
+      "name": "DM Serif Display",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/dmserifdisplay/DMSerifDisplay-Regular.ttf",
+          "asset": "fonts/dmserifdisplay.ttf",
+          "sha256": "8cc3643535edf039aa5d95440a8542735e9197e4f4b8d9303e980fefbf5ab616",
+          "bytes": 76580,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/dmserifdisplay/DMSerifDisplay-Italic.ttf",
+          "asset": "fonts/dmserifdisplay-italic.ttf",
+          "sha256": "df74c0ac387baeaeb0fe4f2324e1668e6a3ed8c09cd9796fe162c71753e19e45",
+          "bytes": 71208,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/dmserifdisplay/OFL.txt",
+          "asset": "fonts/dmserifdisplay-OFL.txt",
+          "sha256": "a3e5cdd67d4571dd0a24fcc968de0efde7ae97ef752daf0906e4767619dd7231",
+          "bytes": 4605,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "manrope",
+      "name": "Manrope",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/manrope/Manrope[wght].ttf",
+          "asset": "fonts/manrope.ttf",
+          "sha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6",
+          "bytes": 164700,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/manrope/OFL.txt",
+          "asset": "fonts/manrope-OFL.txt",
+          "sha256": "58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b",
+          "bytes": 4387,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "outfit",
+      "name": "Outfit",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/outfit/Outfit[wght].ttf",
+          "asset": "fonts/outfit.ttf",
+          "sha256": "fc7287273e66929776e2ba54f144fe699080bec29f61bf649d70d871468aeade",
+          "bytes": 110884,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/outfit/OFL.txt",
+          "asset": "fonts/outfit-OFL.txt",
+          "sha256": "c676351bf8576b9aba743cd5eaa8c0e7ee0d51f805d720447b4df4ddb6a2e416",
+          "bytes": 4389,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "barlow",
+      "name": "Barlow",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/barlow/Barlow-Regular.ttf",
+          "asset": "fonts/barlow.ttf",
+          "sha256": "95aa02c7c43096e0dd44d787ba6216864a67157e402adab59b35572e0c1577ea",
+          "bytes": 104068,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/barlow/Barlow-Italic.ttf",
+          "asset": "fonts/barlow-italic.ttf",
+          "sha256": "70cf45c354af39e55082fd506e748cc6a0a1812949875f99ded3f76bf691e4ca",
+          "bytes": 109624,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/barlow/OFL.txt",
+          "asset": "fonts/barlow-OFL.txt",
+          "sha256": "186d750eb496a4c17a76385f82be6aea2ac1cf2de074a811d63786cf374ea73f",
+          "bytes": 4377,
+          "style": "license"
+        },
+        {
+          "path": "ofl/barlow/Barlow-Bold.ttf",
+          "asset": "fonts/barlow-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 108220,
+          "sha256": "84e6a4d61e7c3e21f3c50ea6a4f7e5303a3467864c038be6ea3759bab8d547f9"
+        },
+        {
+          "path": "ofl/barlow/Barlow-BoldItalic.ttf",
+          "asset": "fonts/barlow-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 111996,
+          "sha256": "079dcee4a53544177f3b16354b27b40b521e22861a40084ab4d052f0289ed9e8"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "barlowcondensed",
+      "name": "Barlow Condensed",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/barlowcondensed/BarlowCondensed-Regular.ttf",
+          "asset": "fonts/barlowcondensed.ttf",
+          "sha256": "583cec5da3b84bc4dc7c9c72e2a565c94d34e431518b19d7e250b7830ad5f996",
+          "bytes": 102480,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/barlowcondensed/BarlowCondensed-Italic.ttf",
+          "asset": "fonts/barlowcondensed-italic.ttf",
+          "sha256": "063615da0a64f318397de2afac330dfbfbbf4cdb562a9987cb72bfdcbd37ba7c",
+          "bytes": 109856,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/barlowcondensed/OFL.txt",
+          "asset": "fonts/barlowcondensed-OFL.txt",
+          "sha256": "186d750eb496a4c17a76385f82be6aea2ac1cf2de074a811d63786cf374ea73f",
+          "bytes": 4377,
+          "style": "license"
+        },
+        {
+          "path": "ofl/barlowcondensed/BarlowCondensed-Bold.ttf",
+          "asset": "fonts/barlowcondensed-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 109912,
+          "sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65"
+        },
+        {
+          "path": "ofl/barlowcondensed/BarlowCondensed-BoldItalic.ttf",
+          "asset": "fonts/barlowcondensed-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 112196,
+          "sha256": "d8694f65cd70c3e5e600ead37657aab0adb5f63b275d0c1f6f4a7046de222145"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "cabin",
+      "name": "Cabin",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/cabin/Cabin[wdth,wght].ttf",
+          "asset": "fonts/cabin.ttf",
+          "sha256": "a16576e6cec01cf994c46838ed1c17ffdb62cf6da8430edfbcb011f57dd62457",
+          "bytes": 165468,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/cabin/Cabin-Italic[wdth,wght].ttf",
+          "asset": "fonts/cabin-italic.ttf",
+          "sha256": "f033cc4391bdcbb674169c997e3cafbf3417b1fd790a1d9bd31eafa0ca8afea4",
+          "bytes": 155412,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/cabin/OFL.txt",
+          "asset": "fonts/cabin-OFL.txt",
+          "sha256": "965bf33673aec648a3b399185639e502b58e52693d004fc03f6bbdf21b1a0094",
+          "bytes": 4477,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "karla",
+      "name": "Karla",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/karla/Karla[wght].ttf",
+          "asset": "fonts/karla.ttf",
+          "sha256": "ed3ca4cd9bdd899c543927c30bf5ff50706b24b3f2b7328e64b25f7d2a9d23dc",
+          "bytes": 94016,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/karla/Karla-Italic[wght].ttf",
+          "asset": "fonts/karla-italic.ttf",
+          "sha256": "98c02551288197a43d9c7e62c105f4b6f283a57f0f06d623313ea32d5c701977",
+          "bytes": 96248,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/karla/OFL.txt",
+          "asset": "fonts/karla-OFL.txt",
+          "sha256": "edf2c840acb9570fe02f40721126aa0da4e4011a0030cc6dce30780569f609b6",
+          "bytes": 4384,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "arimo",
+      "name": "Arimo",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/arimo/Arimo[wght].ttf",
+          "asset": "fonts/arimo.ttf",
+          "sha256": "e43898b143ec826ac8cb4034816458a7047fbe0836558de2a1f8c6223ae3e0ca",
+          "bytes": 496268,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/arimo/Arimo-Italic[wght].ttf",
+          "asset": "fonts/arimo-italic.ttf",
+          "sha256": "a80fc54fd0233c1dfe298577c4d00f5ae81d5bb83510975e473c47e699b7f4ed",
+          "bytes": 543196,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/arimo/OFL.txt",
+          "asset": "fonts/arimo-OFL.txt",
+          "sha256": "11cce536cd2f3864d767003af5dcd739e2e15818cf2279b6175edeadd3960992",
+          "bytes": 4384,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "cousine",
+      "name": "Cousine",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/cousine/Cousine-Regular.ttf",
+          "asset": "fonts/cousine.ttf",
+          "sha256": "1da22250675fc4c42fcf3a9736c44bc0570516105331443b663fd5cfbd1412fe",
+          "bytes": 296856,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/cousine/Cousine-Italic.ttf",
+          "asset": "fonts/cousine-italic.ttf",
+          "sha256": "ea2a76ae3d0ece9cd59f0d30fdc08dd70e8f5f457beee5b0852a7b50c2286c7c",
+          "bytes": 306880,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/cousine/OFL.txt",
+          "asset": "fonts/cousine-OFL.txt",
+          "sha256": "b81c4d4dc0a9f72c9155e78187316e016e2012a8102468804173dc61468b906d",
+          "bytes": 4387,
+          "style": "license"
+        },
+        {
+          "path": "ofl/cousine/Cousine-Bold.ttf",
+          "asset": "fonts/cousine-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 298048,
+          "sha256": "17c8a7245156d2253531c9e529474937b09d9f641c5ae7695c5e33f22822eef4"
+        },
+        {
+          "path": "ofl/cousine/Cousine-BoldItalic.ttf",
+          "asset": "fonts/cousine-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 308292,
+          "sha256": "848e858726fee0ae27b754e4cd6a2755209bf1428a8c91f747696d58c33906c3"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "gelasio",
+      "name": "Gelasio",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/gelasio/Gelasio[wght].ttf",
+          "asset": "fonts/gelasio.ttf",
+          "sha256": "4daecea457258c9ebeb8bc99ed3fd24353618bfad3ea4b93fa0b5d0468fc04e4",
+          "bytes": 168556,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/gelasio/Gelasio-Italic[wght].ttf",
+          "asset": "fonts/gelasio-italic.ttf",
+          "sha256": "52559e845a4d33514e5f93bb9ae7dbeae1894a53f2c565a15f18af40cd337c09",
+          "bytes": 174212,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/gelasio/OFL.txt",
+          "asset": "fonts/gelasio-OFL.txt",
+          "sha256": "b393cb01867c919b44381512120dc3e4c954c7b47e2035c405f3a324799a4d29",
+          "bytes": 4387,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "carlito",
+      "name": "Carlito",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/carlito/Carlito-Regular.ttf",
+          "asset": "fonts/carlito.ttf",
+          "sha256": "f6418f708baede9789daef5d458c0f53d2a888af9820e8062934e504fedc6595",
+          "bytes": 628032,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/carlito/Carlito-Italic.ttf",
+          "asset": "fonts/carlito-italic.ttf",
+          "sha256": "0b019225e58d702bfedcbd35c21696769f8ee115cb6343f84c2f240312450d1c",
+          "bytes": 615236,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/carlito/OFL.txt",
+          "asset": "fonts/carlito-OFL.txt",
+          "sha256": "58402f82a7c332a700294988fe7554fbb0a63a8d27ccc1ee3bbc640311990a00",
+          "bytes": 4424,
+          "style": "license"
+        },
+        {
+          "path": "ofl/carlito/Carlito-Bold.ttf",
+          "asset": "fonts/carlito-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 682468,
+          "sha256": "bb5d20f79b82599ec72983597437373a80f2d2085fa91fc144fd74e876a594db"
+        },
+        {
+          "path": "ofl/carlito/Carlito-BoldItalic.ttf",
+          "asset": "fonts/carlito-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 808508,
+          "sha256": "b32928186c119599e03ca6a1ffc680fdcb7fac95772f4b95d989cf6cd3861517"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "caladea",
+      "name": "Caladea",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/caladea/Caladea-Regular.ttf",
+          "asset": "fonts/caladea.ttf",
+          "sha256": "f1e899278b7b4491aba5b6a8253c4b04c050cc59b21865be5c37559a775153cd",
+          "bytes": 81600,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/caladea/Caladea-Italic.ttf",
+          "asset": "fonts/caladea-italic.ttf",
+          "sha256": "4359a8e24f748b6447b1ff6d7a174febe70961d29f8bb8634b56dacd740a3deb",
+          "bytes": 83780,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/caladea/OFL.txt",
+          "asset": "fonts/caladea-OFL.txt",
+          "sha256": "ccdab61d371d8c8683a128a92cd7d498dbdb1d37689f7cb21f1bf6b16658d213",
+          "bytes": 4393,
+          "style": "license"
+        },
+        {
+          "path": "ofl/caladea/Caladea-Bold.ttf",
+          "asset": "fonts/caladea-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 84492,
+          "sha256": "ae3cb2dcbc925809dd29d2a44e9802211cab66be541bacbfc9c08c74b27c3742"
+        },
+        {
+          "path": "ofl/caladea/Caladea-BoldItalic.ttf",
+          "asset": "fonts/caladea-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 83356,
+          "sha256": "ccabaa7b7e2fdf253d2b1a5fa699dd8a3df8d835a9eb285ad82631a677eb76c0"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "notosans",
+      "name": "Noto Sans",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/notosans/NotoSans[wdth,wght].ttf",
+          "asset": "fonts/notosans.ttf",
+          "sha256": "bfb7bb691513f12e734dc346c03a03f784912432d7e3fa8e56efcf906fe86b3d",
+          "bytes": 2049096,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/notosans/NotoSans-Italic[wdth,wght].ttf",
+          "asset": "fonts/notosans-italic.ttf",
+          "sha256": "58e6e0ebd1931b29a365aa2d3e2ee9a9e831a3af7cf3ad1462d4e72154f0b291",
+          "bytes": 2322640,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/notosans/OFL.txt",
+          "asset": "fonts/notosans-OFL.txt",
+          "sha256": "cee9892f9f0cc8fe882c9e9537ee6a89621d86ee7ceaf70b02e2b2b1c25c061a",
+          "bytes": 4396,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "notoserif",
+      "name": "Noto Serif",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/notoserif/NotoSerif[wdth,wght].ttf",
+          "asset": "fonts/notoserif.ttf",
+          "sha256": "4d8e6761424656867019081a1a01336f3cb086982682698714054fc33f782713",
+          "bytes": 1887192,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/notoserif/NotoSerif-Italic[wdth,wght].ttf",
+          "asset": "fonts/notoserif-italic.ttf",
+          "sha256": "e87acbc6c0efd0d9a20d6a8cbbda2b266c14be3a3a6f5af8ec9d7b2460570ad1",
+          "bytes": 2448496,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/notoserif/OFL.txt",
+          "asset": "fonts/notoserif-OFL.txt",
+          "sha256": "cee9892f9f0cc8fe882c9e9537ee6a89621d86ee7ceaf70b02e2b2b1c25c061a",
+          "bytes": 4396,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "notosansmono",
+      "name": "Noto Sans Mono",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/notosansmono/NotoSansMono[wdth,wght].ttf",
+          "asset": "fonts/notosansmono.ttf",
+          "sha256": "2cb2adb378a8f574213e23df697050b83c54c27df465a2015552740b2769a081",
+          "bytes": 1708408,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/notosansmono/OFL.txt",
+          "asset": "fonts/notosansmono-OFL.txt",
+          "sha256": "cee9892f9f0cc8fe882c9e9537ee6a89621d86ee7ceaf70b02e2b2b1c25c061a",
+          "bytes": 4396,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "librebaskerville",
+      "name": "Libre Baskerville",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/librebaskerville/LibreBaskerville[wght].ttf",
+          "asset": "fonts/librebaskerville.ttf",
+          "sha256": "05a95421961341c5b2556285e8415df9db27dab4f4abe22b446b3c6a8b916c5d",
+          "bytes": 171900,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/librebaskerville/LibreBaskerville-Italic[wght].ttf",
+          "asset": "fonts/librebaskerville-italic.ttf",
+          "sha256": "223959683dc73ec4437bd61fabaa4b3f22209e22855ffd3aee36ba61a5116e97",
+          "bytes": 167456,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/librebaskerville/OFL.txt",
+          "asset": "fonts/librebaskerville-OFL.txt",
+          "sha256": "3624eddd4c8f8a908130a417ae7cd089c9da69899c4e0ca1a5217d0a6fae16fd",
+          "bytes": 4542,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "librefranklin",
+      "name": "Libre Franklin",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/librefranklin/LibreFranklin[wght].ttf",
+          "asset": "fonts/librefranklin.ttf",
+          "sha256": "2329f394b10ed1c71107df20fddc11e2bb1b68c1ecbb385f975b36fd64a971f8",
+          "bytes": 187436,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/librefranklin/LibreFranklin-Italic[wght].ttf",
+          "asset": "fonts/librefranklin-italic.ttf",
+          "sha256": "b8d2f40203bd4d90fe3e805953d9b79d62a6486db756d984b0d8ef4435b367ba",
+          "bytes": 206092,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/librefranklin/OFL.txt",
+          "asset": "fonts/librefranklin-OFL.txt",
+          "sha256": "2710268527181a27b8e938617551bae29e714e6525247be6679bf897a9942a60",
+          "bytes": 4495,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "crimsontext",
+      "name": "Crimson Text",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/crimsontext/CrimsonText-Regular.ttf",
+          "asset": "fonts/crimsontext.ttf",
+          "sha256": "48e6c5d5ad1d01599d374ecb817e15890d1feb3b8a3a88e527d44c90389e1f06",
+          "bytes": 107200,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/crimsontext/CrimsonText-Italic.ttf",
+          "asset": "fonts/crimsontext-italic.ttf",
+          "sha256": "4ed1699ac7c64e8b3d33f6bb8323c3d7206b0d7bacb9ee2d65c697e6014d29de",
+          "bytes": 110216,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/crimsontext/OFL.txt",
+          "asset": "fonts/crimsontext-OFL.txt",
+          "sha256": "50fd67cddc097377a5c871e8452b778bc5aedfa3480a705cb27c5e3a078218df",
+          "bytes": 4393,
+          "style": "license"
+        },
+        {
+          "path": "ofl/crimsontext/CrimsonText-Bold.ttf",
+          "asset": "fonts/crimsontext-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 112796,
+          "sha256": "a3a0765fc5e8d0b49b540a23aefe0184887dd79f06a0bdf4db7035cea6befa93"
+        },
+        {
+          "path": "ofl/crimsontext/CrimsonText-BoldItalic.ttf",
+          "asset": "fonts/crimsontext-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 115112,
+          "sha256": "467013e913e46304760461c46661c994b2aa1769e3fbd31371026300315181b4"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "crimsonpro",
+      "name": "Crimson Pro",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/crimsonpro/CrimsonPro[wght].ttf",
+          "asset": "fonts/crimsonpro.ttf",
+          "sha256": "16aa9fb7300a93637da51fac03a071b2ff08b6bbf65f99c794c25f040b58af6a",
+          "bytes": 246324,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/crimsonpro/CrimsonPro-Italic[wght].ttf",
+          "asset": "fonts/crimsonpro-italic.ttf",
+          "sha256": "a74dc11dcf2fbb1452064e42395a40a907ca630b49cff86012223785e52b2559",
+          "bytes": 253176,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/crimsonpro/OFL.txt",
+          "asset": "fonts/crimsonpro-OFL.txt",
+          "sha256": "1820869bd5baa1c2d88fa87c89eea532cf9442d841008acab720654b7f82823d",
+          "bytes": 4393,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "ebgaramond",
+      "name": "EB Garamond",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/ebgaramond/EBGaramond[wght].ttf",
+          "asset": "fonts/ebgaramond.ttf",
+          "sha256": "ef9512f92f6d579e5dc75af59a5a4b1b8b47d2eda89e00b954d44520e5369027",
+          "bytes": 851176,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ebgaramond/EBGaramond-Italic[wght].ttf",
+          "asset": "fonts/ebgaramond-italic.ttf",
+          "sha256": "bba2c4499c93c9612b90b9825d32b07da52fce2fe57562a1eb6b833553f93c4e",
+          "bytes": 754468,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/ebgaramond/OFL.txt",
+          "asset": "fonts/ebgaramond-OFL.txt",
+          "sha256": "0985066662eb755ed3683ae5482a81a9195b49ce3f7e165cc2388b3dbece7dd7",
+          "bytes": 4398,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "quicksand",
+      "name": "Quicksand",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/quicksand/Quicksand[wght].ttf",
+          "asset": "fonts/quicksand.ttf",
+          "sha256": "39c9b64223561f56aaff6062a6f04063c4fc86809ad6768722c06614d977e1cc",
+          "bytes": 124824,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/quicksand/OFL.txt",
+          "asset": "fonts/quicksand-OFL.txt",
+          "sha256": "14d28541780d90f6577bb7abcc6f005bf6969614294e75c82abb8758a696ad46",
+          "bytes": 4445,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "josefinsans",
+      "name": "Josefin Sans",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/josefinsans/JosefinSans[wght].ttf",
+          "asset": "fonts/josefinsans.ttf",
+          "sha256": "9255abdb5f393bc51e101abbd07a716a977fd3e15472b1b84b260f426a342bfd",
+          "bytes": 118588,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/josefinsans/JosefinSans-Italic[wght].ttf",
+          "asset": "fonts/josefinsans-italic.ttf",
+          "sha256": "c22b42ca690be7ea07d04415ac70b48603dff88e854738cba4bd87027b905ef1",
+          "bytes": 130984,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/josefinsans/OFL.txt",
+          "asset": "fonts/josefinsans-OFL.txt",
+          "sha256": "aee5a4081e8a52f80428b30f178b719d115f18dad3e1fa15a986163e1078a85b",
+          "bytes": 4449,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "josefinslab",
+      "name": "Josefin Slab",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/josefinslab/JosefinSlab[wght].ttf",
+          "asset": "fonts/josefinslab.ttf",
+          "sha256": "52f8addf239848d129cfde96c3290b78e271ad657ef5645068d4f08046c2d1b8",
+          "bytes": 48792,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/josefinslab/JosefinSlab-Italic[wght].ttf",
+          "asset": "fonts/josefinslab-italic.ttf",
+          "sha256": "2629d8e5c81bf652f096179d89e525c3d02824307cdd10852053979fe72c8ee9",
+          "bytes": 51020,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/josefinslab/OFL.txt",
+          "asset": "fonts/josefinslab-OFL.txt",
+          "sha256": "40be94683ce097454926ce71af843ceebf8a5eb01dc196f58063d65951cc5dae",
+          "bytes": 4578,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "bitter",
+      "name": "Bitter",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/bitter/Bitter[wght].ttf",
+          "asset": "fonts/bitter.ttf",
+          "sha256": "ef2b9a711fb02f1e5823b34da1b7450e0fc76793b7d733a8b41006e24916d4a7",
+          "bytes": 328636,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/bitter/Bitter-Italic[wght].ttf",
+          "asset": "fonts/bitter-italic.ttf",
+          "sha256": "5e6e0af503171c9d7b4be7a22c16f474d7a638cf83a80051d825bcc58d664bc3",
+          "bytes": 317652,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/bitter/OFL.txt",
+          "asset": "fonts/bitter-OFL.txt",
+          "sha256": "152a1e283e23b42c4940da4c72f2f5bebaa17969cb77c76d7af05903846006f1",
+          "bytes": 4424,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "arvo",
+      "name": "Arvo",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/arvo/Arvo-Regular.ttf",
+          "asset": "fonts/arvo.ttf",
+          "sha256": "f41bd41471ec2db7140351bdde614da5341524503598ff7fe79f3c89c13b605e",
+          "bytes": 38780,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/arvo/Arvo-Italic.ttf",
+          "asset": "fonts/arvo-italic.ttf",
+          "sha256": "a2eb63a0771b8d13d8e54bf650a02aef813eeaa2e10f6298358e6b15d26c6686",
+          "bytes": 35156,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/arvo/OFL.txt",
+          "asset": "fonts/arvo-OFL.txt",
+          "sha256": "359671bf16c00cae69cb66d041296b2adc7a4becd73a463cb8c5e101d97c7986",
+          "bytes": 4393,
+          "style": "license"
+        },
+        {
+          "path": "ofl/arvo/Arvo-Bold.ttf",
+          "asset": "fonts/arvo-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 37652,
+          "sha256": "6239b2edee762db0ab99343137c9ba15ae81fc843da2e76a0a395781748cc21f"
+        },
+        {
+          "path": "ofl/arvo/Arvo-BoldItalic.ttf",
+          "asset": "fonts/arvo-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 36872,
+          "sha256": "fc29e57f5558873e41ca9ff9a9c77521565f12c6972756d0fbcc592e1f0f4edb"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "archivo",
+      "name": "Archivo",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/archivo/Archivo[wdth,wght].ttf",
+          "asset": "fonts/archivo.ttf",
+          "sha256": "0e094a7d3c7c4c25cf1310c4b30014f1dae9332220b1c2c88f4fa996f0b05053",
+          "bytes": 658596,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/archivo/Archivo-Italic[wdth,wght].ttf",
+          "asset": "fonts/archivo-italic.ttf",
+          "sha256": "305d13b4eb80e62f7d517f78d7c045250d977552a420f2dbed906f314e761305",
+          "bytes": 741368,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/archivo/OFL.txt",
+          "asset": "fonts/archivo-OFL.txt",
+          "sha256": "108b4e57c9c796d3d38d0428ca7ee39de47ad93187302718d9b2d8864b9b716b",
+          "bytes": 4388,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "archivonarrow",
+      "name": "Archivo Narrow",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/archivonarrow/ArchivoNarrow[wght].ttf",
+          "asset": "fonts/archivonarrow.ttf",
+          "sha256": "adbe027f625c8393ae0f6e174e32e233dda485bc3eda5153ce428275394ef97f",
+          "bytes": 93304,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/archivonarrow/ArchivoNarrow-Italic[wght].ttf",
+          "asset": "fonts/archivonarrow-italic.ttf",
+          "sha256": "147c09214be086bf1c70311ffb66f4f5a252e48f828f1d49e35ae56951016cc6",
+          "bytes": 98456,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/archivonarrow/OFL.txt",
+          "asset": "fonts/archivonarrow-OFL.txt",
+          "sha256": "b2087ef3fb91248e346600d19021249152a9688efea72905aa1996bb16a4c8de",
+          "bytes": 4495,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "exo2",
+      "name": "Exo 2",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/exo2/Exo2[wght].ttf",
+          "asset": "fonts/exo2.ttf",
+          "sha256": "205a448676a2586f9c57c25f3d5c58ca8db7e6cf5edf7506783a010c6fe2bfb5",
+          "bytes": 303940,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/exo2/Exo2-Italic[wght].ttf",
+          "asset": "fonts/exo2-italic.ttf",
+          "sha256": "bad568cea9ed23d6ae4aea41ad3f7747752952aabdd85d7f01474af392a21b32",
+          "bytes": 302556,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/exo2/OFL.txt",
+          "asset": "fonts/exo2-OFL.txt",
+          "sha256": "7f95a8eeecc6904ffc81cd10cc8ebc7fcee72a67922924bf45f02dff03b88127",
+          "bytes": 4386,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "exo",
+      "name": "Exo",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/exo/Exo[wght].ttf",
+          "asset": "fonts/exo.ttf",
+          "sha256": "2f08f818f1135ac5798030c0bca252c0845af5c54dfe172a5c74fbdd68843445",
+          "bytes": 175092,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/exo/Exo-Italic[wght].ttf",
+          "asset": "fonts/exo-italic.ttf",
+          "sha256": "062aca9ab9aa4a9e004e8d679e84aca6ef0cdcabb2fac3b27a73808e04bed9b4",
+          "bytes": 181908,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/exo/OFL.txt",
+          "asset": "fonts/exo-OFL.txt",
+          "sha256": "1159ea72ed1f7e7541cea35a0dece48d2abb0317d7c70f75a482f94932382a77",
+          "bytes": 4381,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "oxygen",
+      "name": "Oxygen",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/oxygen/Oxygen-Regular.ttf",
+          "asset": "fonts/oxygen.ttf",
+          "sha256": "a328b8fa366bdd94f507ad02e2721ac49cb4257a9ef1e49560b230079386010e",
+          "bytes": 47988,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/oxygen/OFL.txt",
+          "asset": "fonts/oxygen-OFL.txt",
+          "sha256": "1e20933206ca06421c7c378184da5476d195314cf4bcda2bf122cd45d69a956e",
+          "bytes": 4398,
+          "style": "license"
+        },
+        {
+          "path": "ofl/oxygen/Oxygen-Bold.ttf",
+          "asset": "fonts/oxygen-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 48708,
+          "sha256": "d86d9a11ad1aa242dbf50d2a2a3295baab2a11349dcf6db5bd28e36036b7f6c0"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "asap",
+      "name": "Asap",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/asap/Asap[wdth,wght].ttf",
+          "asset": "fonts/asap.ttf",
+          "sha256": "7bf29bcab72f7d00de600e964a3fc206620050d8448ddd976822378d0fe18028",
+          "bytes": 376764,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/asap/Asap-Italic[wdth,wght].ttf",
+          "asset": "fonts/asap-italic.ttf",
+          "sha256": "a21e12f9babf2d02526003b27dff884b6d1cd0fed883ffe7740725626a11dd59",
+          "bytes": 426484,
+          "style": "italic",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/asap/OFL.txt",
+          "asset": "fonts/asap-OFL.txt",
+          "sha256": "a6f4d778db0d2a87c2c6e560f71eb018b4253505b2f23c108724dea5d4d74ed0",
+          "bytes": 4383,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "asapcondensed",
+      "name": "Asap Condensed",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/asapcondensed/AsapCondensed-Regular.ttf",
+          "asset": "fonts/asapcondensed.ttf",
+          "sha256": "297336aba664e16c2c6aadb64a66fb31d63f048eae3d22409492cd2f1b4cdda0",
+          "bytes": 110332,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/asapcondensed/AsapCondensed-Italic.ttf",
+          "asset": "fonts/asapcondensed-italic.ttf",
+          "sha256": "e3d24bd65328b2906d3f076b84c7291e86799fa5e767890e7520303e71e28353",
+          "bytes": 116644,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/asapcondensed/OFL.txt",
+          "asset": "fonts/asapcondensed-OFL.txt",
+          "sha256": "a6f4d778db0d2a87c2c6e560f71eb018b4253505b2f23c108724dea5d4d74ed0",
+          "bytes": 4383,
+          "style": "license"
+        },
+        {
+          "path": "ofl/asapcondensed/AsapCondensed-Bold.ttf",
+          "asset": "fonts/asapcondensed-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 111544,
+          "sha256": "0ed4b4f29a0abed3a5049270f28d8e11c797edc7c0270cc51495c0578622f82a"
+        },
+        {
+          "path": "ofl/asapcondensed/AsapCondensed-BoldItalic.ttf",
+          "asset": "fonts/asapcondensed-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 119980,
+          "sha256": "a67d4459760386ad033b452a1008f5f34a5b21c7b73445038589a176c00982a0"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "comfortaa",
+      "name": "Comfortaa",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/comfortaa/Comfortaa[wght].ttf",
+          "asset": "fonts/comfortaa.ttf",
+          "sha256": "0fc3f45dc48b614db9c39181502544b37217ecbf8bee2fb35886992bc96c5bd3",
+          "bytes": 201756,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/comfortaa/OFL.txt",
+          "asset": "fonts/comfortaa-OFL.txt",
+          "sha256": "bc85bae0b512b799bbfb2b916e4d0a34cfd963d09778cd783e248b479e67760a",
+          "bytes": 4519,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "anton",
+      "name": "Anton",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/anton/Anton-Regular.ttf",
+          "asset": "fonts/anton.ttf",
+          "sha256": "a4ba3a92350ebb031da0cb47630ac49eb265082ca1bc0450442f4a83ab947cab",
+          "bytes": 170812,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/anton/OFL.txt",
+          "asset": "fonts/anton-OFL.txt",
+          "sha256": "ee67e6ee22790b7929f1a3769ca2801d565c64b5a9096942c1adf5596de9c9e4",
+          "bytes": 4484,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "bebasneue",
+      "name": "Bebas Neue",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/bebasneue/BebasNeue-Regular.ttf",
+          "asset": "fonts/bebasneue.ttf",
+          "sha256": "08e4623805102d819f58601e46e345648846075e363b2ceb23313c2d1c83ec73",
+          "bytes": 61400,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/bebasneue/OFL.txt",
+          "asset": "fonts/bebasneue-OFL.txt",
+          "sha256": "72082f6cb4d04be2ecf7cc7d9e1e7d73787f0af8a5a278a47cade70c16b78341",
+          "bytes": 4337,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "titilliumweb",
+      "name": "Titillium Web",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/titilliumweb/TitilliumWeb-Regular.ttf",
+          "asset": "fonts/titilliumweb.ttf",
+          "sha256": "7b6b4452c65cc8b8522e92e7d4d4c2e6d7675341ceafd041bb6bd30297517ea5",
+          "bytes": 63660,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/titilliumweb/TitilliumWeb-Italic.ttf",
+          "asset": "fonts/titilliumweb-italic.ttf",
+          "sha256": "4f08e681c1b38f825125a1a5a9c8a38d0eb94eea51b04cdb2a17cbec47f90833",
+          "bytes": 72392,
+          "style": "italic",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/titilliumweb/OFL.txt",
+          "asset": "fonts/titilliumweb-OFL.txt",
+          "sha256": "c0562e066174197902a4a10606673d189f067970ef89c6013943b9cf182aadbc",
+          "bytes": 4523,
+          "style": "license"
+        },
+        {
+          "path": "ofl/titilliumweb/TitilliumWeb-Bold.ttf",
+          "asset": "fonts/titilliumweb-bold.ttf",
+          "style": "normal",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 59884,
+          "sha256": "e2e8e1812041e2c5868f1d03ac24994312052c5381cca2e80748f08cb7e13093"
+        },
+        {
+          "path": "ofl/titilliumweb/TitilliumWeb-BoldItalic.ttf",
+          "asset": "fonts/titilliumweb-bold-italic.ttf",
+          "style": "italic",
+          "weight": 700,
+          "variableWeight": false,
+          "bytes": 69772,
+          "sha256": "744068ee0f1623c61567b0981d51c49edba012d74c5ba73076847c0143284a25"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "yanonekaffeesatz",
+      "name": "Yanone Kaffeesatz",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/yanonekaffeesatz/YanoneKaffeesatz[wght].ttf",
+          "asset": "fonts/yanonekaffeesatz.ttf",
+          "sha256": "17e3bd546d57d2c41200866ac310bd76b8c59c44cd738f6ca402a285f45e97b8",
+          "bytes": 129312,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/yanonekaffeesatz/OFL.txt",
+          "asset": "fonts/yanonekaffeesatz-OFL.txt",
+          "sha256": "9efbe6f8570e8c3d8b000914bd1da07ff4977d1325cc2d046180e05f40677f01",
+          "bytes": 4488,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "abel",
+      "name": "Abel",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/abel/Abel-Regular.ttf",
+          "asset": "fonts/abel.ttf",
+          "sha256": "8809dcad25318225052f88333e208c5aad4adcb7b2c934c135735ec19aa410b4",
+          "bytes": 35220,
+          "style": "normal",
+          "variableWeight": false,
+          "weight": 400
+        },
+        {
+          "path": "ofl/abel/OFL.txt",
+          "asset": "fonts/abel-OFL.txt",
+          "sha256": "4f4bc3806a1e55789c6ef75ca5fc628297b05292f74966474dc0d40324abc609",
+          "bytes": 4418,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "teko",
+      "name": "Teko",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/teko/Teko[wght].ttf",
+          "asset": "fonts/teko.ttf",
+          "sha256": "d1321889f262bbbff632e7976349853399cd097b6f382d4b19790c915c13c1ae",
+          "bytes": 292108,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/teko/OFL.txt",
+          "asset": "fonts/teko-OFL.txt",
+          "sha256": "4a193c54e911c1e8194d4db657423f2527f54a1239f24cb67ecb09128dc9f065",
+          "bytes": 4385,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "signika",
+      "name": "Signika",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/signika/Signika[GRAD,wght].ttf",
+          "asset": "fonts/signika.ttf",
+          "sha256": "fae0180ef82a6169d169854595377e1dfa3ab657c96995be8cbf128ffaf07820",
+          "bytes": 637392,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/signika/OFL.txt",
+          "asset": "fonts/signika-OFL.txt",
+          "sha256": "225fa26a24e27536ac01342419a0aa812469f5f2eaf0d79693a5f92904e86571",
+          "bytes": 4388,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    },
+    {
+      "id": "dancingscript",
+      "name": "Dancing Script",
+      "script": "latin",
+      "files": [
+        {
+          "path": "ofl/dancingscript/DancingScript[wght].ttf",
+          "asset": "fonts/dancingscript.ttf",
+          "sha256": "21808625578fe8d8cd10cb684be546dca077b27cd03a53a2f1ec11dc743c924c",
+          "bytes": 133636,
+          "style": "normal",
+          "variableWeight": true,
+          "weight": 400
+        },
+        {
+          "path": "ofl/dancingscript/OFL.txt",
+          "asset": "fonts/dancingscript-OFL.txt",
+          "sha256": "6f090277c00af96651ce6dbcc38ff1591047a3bffef486e80b6a32e8276a8201",
+          "bytes": 4443,
+          "style": "license"
+        }
+      ],
+      "license": "OFL-1.1"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+<resources>
+    <style name="ReaderTheme" parent="ReaderThemeBase">
+        <item name="android:windowLightNavigationBar">true</item>
+        <!-- Document colors belong to the file; automatic Force Dark must not recolor them. -->
+        <item name="android:forceDarkAllowed">false</item>
+    </style>
+</resources>

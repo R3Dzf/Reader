@@ -23,7 +23,12 @@ data class NativeSlideTextParagraph(
     val rightToLeft: Boolean = false,
     val spaceBeforePoints: Float = 0f,
     val spaceAfterPoints: Float = 0f,
-    val defaultStyle: NativeSlideTextRun = NativeSlideTextRun("")
+    val defaultStyle: NativeSlideTextRun = NativeSlideTextRun(""),
+    val bulletMarker: String? = null,
+    val marginStartPoints: Float = 0f,
+    val indentPoints: Float = 0f,
+    val lineSpacingPoints: Float? = null,
+    val lineSpacingMultiplier: Float? = null
 ) {
     val plainText: String get() = runs.joinToString("") { it.text }
 }
@@ -49,6 +54,9 @@ internal data class PptxTheme(
     val colors: Map<String, Long> = emptyMap(),
     val majorFonts: Map<String, String> = emptyMap(),
     val minorFonts: Map<String, String> = emptyMap(),
+    val fillStyles: List<Element> = emptyList(),
+    val lineStyles: List<Element> = emptyList(),
+    val backgroundFillStyles: List<Element> = emptyList(),
     val colorMap: Map<String, String> = mapOf("bg1" to "lt1", "tx1" to "dk1", "bg2" to "lt2", "tx2" to "dk2")
 ) {
     fun overlay(root: Element?): PptxTheme {
@@ -67,7 +75,10 @@ internal data class PptxTheme(
         return copy(
             colors = colors + parsedColors,
             majorFonts = majorFonts + fonts(fontScheme?.directChild("majorFont")),
-            minorFonts = minorFonts + fonts(fontScheme?.directChild("minorFont"))
+            minorFonts = minorFonts + fonts(fontScheme?.directChild("minorFont")),
+            lineStyles = elements.directChild("fmtScheme")?.directChild("lnStyleLst")?.elementChildren() ?: lineStyles,
+            fillStyles = elements.directChild("fmtScheme")?.directChild("fillStyleLst")?.elementChildren() ?: fillStyles,
+            backgroundFillStyles = elements.directChild("fmtScheme")?.directChild("bgFillStyleLst")?.elementChildren() ?: backgroundFillStyles
         )
     }
 
@@ -81,12 +92,12 @@ internal data class PptxTheme(
         return copy(colorMap = map)
     }
 
-    fun solidFill(parent: Element?): Long? = parent?.directChild("solidFill")?.elementChildren()?.firstOrNull()?.let(::color)
+    fun solidFill(parent: Element?): Long? = parent?.directChild("solidFill")?.elementChildren()?.firstOrNull()?.let { color(it) }
 
-    fun color(element: Element): Long? {
+    fun color(element: Element, placeholder: Long? = null): Long? {
         val source = if (element.localName() == "schemeClr") {
             val name = element.attributeByLocalName("val") ?: return null
-            colors[colorMap[name] ?: name]
+            if (name == "phClr") placeholder else colors[colorMap[name] ?: name]
         } else directColor(element)
         source ?: return null
         var rgb = doubleArrayOf(((source shr 16) and 255).toDouble() / 255, ((source shr 8) and 255).toDouble() / 255, (source and 255).toDouble() / 255)
@@ -102,6 +113,15 @@ internal data class PptxTheme(
         }
         val channels = rgb.map { (it.coerceIn(0.0, 1.0) * 255).roundToInt().toLong() }
         return (channels[0] shl 16) or (channels[1] shl 8) or channels[2]
+    }
+
+    fun referencedFill(reference: Element?): SlideFill? {
+        reference ?: return null
+        val index = reference.attributeByLocalName("idx")?.toIntOrNull() ?: return null
+        if (index == 0) return SlideFill(alpha = 0f)
+        val list = if (index >= 1001) backgroundFillStyles else fillStyles
+        val fill = list.getOrNull(if (index >= 1001) index - 1001 else index - 1) ?: return null
+        return readFill(fill, reference.elementChildren().firstOrNull()?.let { color(it) })
     }
 
     fun typeface(token: String?, arabic: Boolean): String? {
@@ -150,7 +170,9 @@ internal data class PptxSlideStyleContext(
     val theme: PptxTheme = PptxTheme(),
     val presentationDefaults: Element? = null,
     val master: Element? = null,
-    val layout: Element? = null
+    val layout: Element? = null,
+    val masterPart: String? = null,
+    val layoutPart: String? = null
 ) {
     fun placeholder(shape: Element, root: Element?, matchType: Boolean = false): Element? {
         val source = placeholderProperties(shape) ?: return null
@@ -236,6 +258,7 @@ internal fun readPptxRichText(
     var bodyCharacters = 0
     val paragraphElements = body.elementChildren().filter { it.localName() == "p" }
     if (paragraphElements.size > 2_000) throw InvalidOfficeDocumentException("A PowerPoint text body contains too many paragraphs.")
+    val numbering = mutableMapOf<Int, Int>()
     return paragraphElements.map { paragraph ->
         budget.paragraph()
         val properties = paragraph.directChild("pPr")
@@ -265,12 +288,50 @@ internal fun readPptxRichText(
             style.overlay(child.directChild("rPr"), theme).run(text, theme, arabic)
         }
         val hasArabic = runs.any { pptxHasArabic(it.text) }
+        val bullet = inherited.asReversed().firstNotNullOfOrNull { element -> element.elementChildren().firstOrNull {
+            it.localName() in setOf("buNone", "buChar", "buAutoNum", "buBlip")
+        } }
+        val marker = when (bullet?.localName()) {
+            "buChar" -> bullet.attributeByLocalName("char")?.take(8)
+            "buAutoNum" -> {
+                numbering.keys.filter { it > level }.toList().forEach { numbering.remove(it) }
+                val start = bullet.attributeByLocalName("startAt")?.toIntOrNull()?.coerceIn(1,32767)
+                val number = if (start != null) start else (numbering[level] ?: 0) + 1
+                numbering[level] = number
+                pptxNumberMarker(number, bullet.attributeByLocalName("type") ?: "arabicPeriod")
+            }
+            else -> null
+        }
+        fun points(name: String) = property(name)?.toFloatOrNull()?.div(12700)?.takeIf { it.isFinite() }?.coerceIn(-1000f,1000f) ?: 0f
+        val lineSpacing = inherited.asReversed().firstNotNullOfOrNull { it.directChild("lnSpc") }
         NativeSlideTextParagraph(
             runs,
             when (property("algn")) { "l" -> SlideParagraphAlignment.LEFT; "r" -> SlideParagraphAlignment.RIGHT; "ctr", "center" -> SlideParagraphAlignment.CENTER; "just", "dist", "justLow" -> SlideParagraphAlignment.JUSTIFY; else -> SlideParagraphAlignment.START },
             when (property("rtl")) { "1", "true" -> true; "0", "false" -> false; else -> pptxInferredRtl(runs) },
             spacing("spcBef"), spacing("spcAft"),
-            style.overlay(paragraph.directChild("endParaRPr"), theme).run("", theme, hasArabic)
+            style.overlay(paragraph.directChild("endParaRPr"), theme).run("", theme, hasArabic),
+            marker, points("marL").coerceAtLeast(0f), points("indent"),
+            lineSpacing?.directChild("spcPts")?.attributeByLocalName("val")?.toFloatOrNull()?.div(100)?.takeIf { it.isFinite() && it in 0.1f..1000f },
+            lineSpacing?.directChild("spcPct")?.attributeByLocalName("val")?.toFloatOrNull()?.div(100000)?.takeIf { it.isFinite() && it in 0.1f..10f }
         )
     }
+}
+
+internal fun pptxNumberMarker(number: Int, type: String): String {
+    fun alphabet(value: Int): String {
+        var remaining = value.coerceAtLeast(1)
+        var text = ""
+        while (remaining > 0) { remaining--; text = ('a' + remaining % 26) + text; remaining /= 26 }
+        return text
+    }
+    fun roman(value: Int): String {
+        if (value !in 1..3999) return value.toString()
+        var remaining = value
+        return buildString { listOf(1000 to "m",900 to "cm",500 to "d",400 to "cd",100 to "c",90 to "xc",50 to "l",40 to "xl",10 to "x",9 to "ix",5 to "v",4 to "iv",1 to "i").forEach { (n,s) ->
+            while (remaining >= n) { append(s); remaining -= n }
+        } }
+    }
+    var text = when { type.startsWith("alpha") -> alphabet(number); type.startsWith("roman") -> roman(number); else -> number.toString() }
+    if (type.contains("Uc")) text = text.uppercase(java.util.Locale.ROOT)
+    return when { type.endsWith("ParenBoth") -> "($text)"; type.endsWith("ParenR") -> "$text)"; type.endsWith("Plain") -> text; else -> "$text." }
 }
