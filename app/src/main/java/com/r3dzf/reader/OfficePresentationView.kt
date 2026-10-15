@@ -10,6 +10,7 @@ import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,7 +56,9 @@ import androidx.compose.ui.unit.TextUnit
 import kotlin.math.roundToInt
 
 @Composable
-internal fun PresentationDocumentView(presentation: NativePresentation) {
+internal fun PresentationDocumentView(presentation: NativePresentation,initialProgress: ReadingProgress = ReadingProgress(),onProgress: (ReadingProgress) -> Unit = {}) {
+    val listState=rememberLazyListState(initialProgress.index.coerceIn(0,presentation.slides.lastIndex.coerceAtLeast(0)),initialProgress.offset)
+    ObserveReadingProgress(listState,presentation.slides.size,onProgress)
     Column(Modifier.fillMaxSize().background(Color(0xFFECEEF2))) {
         Text(
             stringResource(R.string.presentation_gesture_hint),
@@ -63,7 +66,7 @@ internal fun PresentationDocumentView(presentation: NativePresentation) {
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        LazyColumn(Modifier.weight(1f).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag("presentation-list"), state=listState, horizontalAlignment = Alignment.CenterHorizontally) {
             items(presentation.slides, key = { it.number }) { slide ->
                 ZoomableSlide(presentation, slide)
             }

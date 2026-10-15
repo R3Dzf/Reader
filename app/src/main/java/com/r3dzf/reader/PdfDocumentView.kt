@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -49,7 +50,7 @@ import kotlin.math.min
 
 private class PdfRenderHandle(file: File) {
     private val descriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
-    val renderer = PdfRenderer(descriptor)
+    val renderer = try { PdfRenderer(descriptor) } catch(error: Exception) { descriptor.close();throw error }
     private val renderLock = Any()
 
     fun renderPage(index: Int, requestedWidth: Int): Bitmap = synchronized(renderLock) {
@@ -70,15 +71,15 @@ private class PdfRenderHandle(file: File) {
         }
     }
 
-    fun close() {
+    fun close() = synchronized(renderLock) {
         runCatching { renderer.close() }
-        runCatching { descriptor.close() }
+        runCatching { descriptor.close() };Unit
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PdfDocumentView(file: File, onClose: () -> Unit) {
+fun PdfDocumentView(file: File, displayName: String = file.name, initialProgress: ReadingProgress = ReadingProgress(), onProgress: (ReadingProgress) -> Unit = {}, onClose: () -> Unit) {
     val handle = remember(file) { runCatching { PdfRenderHandle(file) }.getOrNull() }
     DisposableEffect(handle) {
         onDispose { handle?.close() }
@@ -91,32 +92,17 @@ fun PdfDocumentView(file: File, onClose: () -> Unit) {
         return
     }
 
+    val listState=rememberLazyListState(initialProgress.index.coerceIn(0,(handle.renderer.pageCount-1).coerceAtLeast(0)),initialProgress.offset)
+    ObserveReadingProgress(listState,handle.renderer.pageCount,onProgress)
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(file.name, maxLines = 1)
-                        Text(
-                            pluralStringResource(R.plurals.page_count, handle.renderer.pageCount, handle.renderer.pageCount),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onClose) {
-                        Text("‹", style = MaterialTheme.typography.headlineMedium)
-                    }
-                }
-            )
-        }
+        topBar = { DocumentTopBar(displayName,pluralStringResource(R.plurals.page_count,handle.renderer.pageCount,handle.renderer.pageCount),onClose) }
     ) { padding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(padding),
+                .padding(padding).testTag("pdf-list"),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items((0 until handle.renderer.pageCount).toList()) { pageIndex ->
