@@ -143,4 +143,9 @@
     <string name="reader_next">Next</string>
     <string name="reader_go_to">Go to page</string>
     <string name="reader_reset_zoom">Reset zoom</string>
+    <string name="sheet_find">Find</string>
+    <string name="sheet_fit_columns">Fit columns to screen</string>
+    <string name="sheet_freeze">Use saved frozen panes</string>
+    <string name="sheet_unfreeze">Unfreeze panes</string>
+    <string name="sheet_saved_formula">Saved formula · result is not recalculated</string>
 </resources>

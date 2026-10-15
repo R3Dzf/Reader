@@ -147,4 +147,9 @@
     <string name="reader_next">التالي</string>
     <string name="reader_go_to">انتقل إلى صفحة</string>
     <string name="reader_reset_zoom">إعادة ضبط التكبير</string>
+    <string name="sheet_find">بحث</string>
+    <string name="sheet_fit_columns">ملاءمة الأعمدة للشاشة</string>
+    <string name="sheet_freeze">تفعيل التثبيت المحفوظ</string>
+    <string name="sheet_unfreeze">إلغاء تثبيت الأجزاء</string>
+    <string name="sheet_saved_formula">المعادلة المحفوظة · لا يُعاد حساب النتيجة</string>
 </resources>

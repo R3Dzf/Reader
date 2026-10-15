@@ -54,11 +54,14 @@ internal fun readXlsxAppearance(xf: Element?, style: NativeSheetCell): NativeShe
     val horizontal = alignment.attributeByLocalName("horizontal") ?: "general"
     val vertical = alignment.attributeByLocalName("vertical") ?: "bottom"
     val order = alignment.attributeByLocalName("readingOrder")?.toIntOrNull()?.takeIf { it in 0..2 } ?: 0
+    val rotation = alignment.attributeByLocalName("textRotation")?.toIntOrNull() ?: 0
+    val indent = alignment.attributeByLocalName("indent")?.toIntOrNull()?.coerceIn(0, 250) ?: 0
     val unsupported = horizontal !in listOf("general", "left", "center", "right", "justify") || vertical !in listOf("top", "center", "bottom") ||
-        (alignment.attributeByLocalName("textRotation")?.toIntOrNull() ?: 0) != 0 ||
-        (alignment.attributeByLocalName("indent")?.toIntOrNull() ?: 0) != 0 || alignment.attributeByLocalName("shrinkToFit") in listOf("1", "true")
+        rotation !in 0..180
     return style.copy(horizontalAlignment = when (horizontal) { "left" -> SheetHorizontalAlignment.LEFT; "center" -> SheetHorizontalAlignment.CENTER;
         "right" -> SheetHorizontalAlignment.RIGHT; "justify" -> SheetHorizontalAlignment.JUSTIFY; else -> SheetHorizontalAlignment.GENERAL },
         verticalAlignment = when (vertical) { "top" -> SheetVerticalAlignment.TOP; "center" -> SheetVerticalAlignment.CENTER; else -> SheetVerticalAlignment.BOTTOM },
+        indent = indent, shrinkToFit = alignment.attributeByLocalName("shrinkToFit") in listOf("1", "true"),
+        textRotation = rotation.takeIf { it in 0..180 } ?: 0,
         readingOrder = order, wrapText = alignment.attributeByLocalName("wrapText") in listOf("1", "true"), appearanceUnsupported = style.appearanceUnsupported || unsupported)
 }

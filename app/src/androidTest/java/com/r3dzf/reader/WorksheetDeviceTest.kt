@@ -34,7 +34,7 @@ class WorksheetDeviceTest {
         show(sheet())
         compose.onNodeWithTag("sheet-zoom-in").performClick()
         compose.onNodeWithTag("sheet-zoom-level").assertTextContains("125", substring = true)
-        compose.onNodeWithTag("sheet-reset").performClick()
+        compose.onNodeWithTag("sheet-options").performClick(); compose.onNodeWithTag("sheet-reset").performClick()
         compose.onNodeWithTag("sheet-zoom-level").assertTextContains("100", substring = true)
         compose.onNodeWithContentDescription("A1:B4: مرحبا بالعالم").assertIsDisplayed()
     }

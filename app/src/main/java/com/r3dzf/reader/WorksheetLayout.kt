@@ -84,7 +84,8 @@ internal class WorksheetLayout(val sheet: NativeWorksheet,minimumRows: Int=1,min
         val origin = cells[range.row]?.get(range.firstColumn) ?: rowDefaults[range.row] ?: sheet.columnStyles[range.firstColumn] ?: sheet.defaultCell
         // Saved end-cell edges are common in merged ranges; explicit origin edges take precedence.
         val end = cells[range.lastRow]?.get(range.lastColumn)
-        val cell = if (end == null) origin else origin.copy(borderRight = origin.borderRight ?: end.borderRight, borderBottom = origin.borderBottom ?: end.borderBottom)
+        val styled = sheet.tables.firstOrNull { it.contains(range.row, range.firstColumn) }?.styled(range.row, range.firstColumn, origin) ?: origin
+        val cell = if (end == null) styled else styled.copy(borderRight = styled.borderRight ?: end.borderRight, borderBottom = styled.borderBottom ?: end.borderBottom)
         return SheetPlacement(range, cell, columns.offset(range.firstColumn), rows.offset(range.row), columns.offset(range.lastColumn + 1), rows.offset(range.lastRow + 1))
     }
     fun visible(left: Double, top: Double, width: Double, height: Double): List<SheetPlacement> = window(left, top, width, height).cells
@@ -141,4 +142,43 @@ internal fun sheetAddress(value: String): Pair<Int, Int>? {
     for (char in match.groupValues[1].uppercase()) column = column * 26 + char.code - 'A'.code + 1
     val row = match.groupValues[2].toIntOrNull() ?: return null
     return (row - 1 to column - 1).takeIf { row in 1..1_048_576 && column in 1..512 }
+}
+
+/** Coordinates are in points from the leading sheet edge, so RTL and LTR share pane logic. */
+internal data class SheetPane(val left: Double, val top: Double, val right: Double, val bottom: Double, val scrollX: Double, val scrollY: Double)
+internal fun sheetPanes(layout: WorksheetLayout, viewport: SheetViewport, width: Double, height: Double, freeze: Boolean): List<SheetPane> {
+    if (width <= 0 || height <= 0) return emptyList()
+    // Oversized saved panes must not consume the phone's entire scrolling area.
+    val fw = if (freeze) layout.columns.offset(layout.sheet.frozenColumns.coerceAtMost(layout.columns.count)).takeIf { it < width * .7 } ?: 0.0 else 0.0
+    val fh = if (freeze) layout.rows.offset(layout.sheet.frozenRows.coerceAtMost(layout.rows.count)).takeIf { it < height * .7 } ?: 0.0 else 0.0
+    return buildList {
+        add(SheetPane(fw, fh, width, height, viewport.x, viewport.y))
+        if (fh > 0) add(SheetPane(fw, 0.0, width, fh, viewport.x, 0.0))
+        if (fw > 0) add(SheetPane(0.0, fh, fw, height, 0.0, viewport.y))
+        if (fw > 0 && fh > 0) add(SheetPane(0.0, 0.0, fw, fh, 0.0, 0.0))
+    }
+}
+
+internal data class SheetSearchResult(val row: Int, val column: Int, val value: String)
+internal fun searchWorksheet(sheet: NativeWorksheet, query: String, limit: Int = 1000): List<SheetSearchResult> {
+    val needle = query.trim()
+    if (needle.isEmpty()) return emptyList()
+    return sheet.rows.asSequence().filterNot { it.hidden }.flatMap { row -> row.cells.asSequence()
+        .filter { (column, cell) -> sheet.columnWidthsPoints[column] != 0f && (cell.value.contains(needle, true) || cell.formula?.contains(needle, true) == true) }
+        .map { (column, cell) -> SheetSearchResult(row.rowIndex, column, cell.value) } }.take(limit).toList()
+}
+
+/** Text may flow only into empty unfilled cells, never through a merge, a border or a value. */
+internal fun WorksheetLayout.overflowEnd(placement: SheetPlacement, backwards: Boolean, maximum: Int = 32): Double {
+    if (placement.range.firstColumn != placement.range.lastColumn || placement.range.row != placement.range.lastRow) return if (backwards) placement.left else placement.right
+    var column = if (backwards) placement.range.firstColumn - 1 else placement.range.lastColumn + 1
+    var edge = if (backwards) placement.left else placement.right
+    repeat(maximum) {
+        val next = placement(placement.range.row, column) ?: return edge
+        val c = next.cell
+        if (c.value.isNotEmpty() || c.fillRgb != null || c.borderLeft != null || c.borderRight != null || next.range.firstColumn != next.range.lastColumn || next.range.row != next.range.lastRow) return edge
+        edge = if (backwards) next.left else next.right
+        column += if (backwards) -1 else 1
+    }
+    return edge
 }
