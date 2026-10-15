@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.StatFs
 import android.provider.Settings
 import androidx.core.content.FileProvider
-import com.android.apksig.ApkVerifier
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -118,9 +117,12 @@ internal class AppUpdates private constructor(private val context: Context) {
     }
     internal fun verifyApk(file: File,release: UpdateRelease) {
         require(file.length()==release.full.bytes && file.sha256()==release.full.sha256) { "integrity" }
-        val verified=ApkVerifier.Builder(file).setMinCheckedPlatformVersion(26).setMaxCheckedPlatformVersion(Build.VERSION.SDK_INT).build().verify()
-        require(verified.isVerified && verified.signerCertificates.size==1 && certificateHash(verified.signerCertificates.single())==UpdateProtocol.CERTIFICATE_SHA256) { "signature" }
-        val info=context.packageManager.getPackageArchiveInfo(file.absolutePath,0)?:error("package")
+        // The signed feed authenticates the complete APK hash. Android's parser supplies
+        // its signing identity; the system installer performs platform signature enforcement.
+        @Suppress("DEPRECATION") val flags=if(Build.VERSION.SDK_INT>=28) PackageManager.GET_SIGNING_CERTIFICATES else PackageManager.GET_SIGNATURES
+        val info=context.packageManager.getPackageArchiveInfo(file.absolutePath,flags)?:error("package")
+        @Suppress("DEPRECATION") val signers=if(Build.VERSION.SDK_INT>=28) info.signingInfo?.apkContentsSigners else info.signatures
+        require(signers?.size==1 && signatureHash(signers.single().toByteArray())==UpdateProtocol.CERTIFICATE_SHA256) { "signature" }
         @Suppress("DEPRECATION") val code=if(Build.VERSION.SDK_INT>=28) info.longVersionCode else info.versionCode.toLong()
         require(info.packageName==context.packageName && code==release.versionCode && code>BuildConfig.VERSION_CODE && info.versionName==release.versionName) { "package" }
         require(installedCertificate()==UpdateProtocol.CERTIFICATE_SHA256) { "signing_migration" }
@@ -173,7 +175,7 @@ internal class AppUpdates private constructor(private val context: Context) {
         }
         error("redirect")
     }
-    private fun certificateHash(cert: X509Certificate)=MessageDigest.getInstance("SHA-256").digest(cert.encoded).joinToString("") { "%02x".format(it) }
+    private fun signatureHash(bytes: ByteArray)=MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
     private fun errorCode(error: Exception): String = error.message?.takeIf { it in setOf("no_release","android_version","signing_migration","split_install","space","integrity","signature","package") } ?: "network"
     companion object {
         @Volatile private var instance: AppUpdates?=null

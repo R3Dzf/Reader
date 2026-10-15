@@ -37,4 +37,27 @@ class UpdateDeviceTest {
         assertEquals(UpdateProtocol.CERTIFICATE_SHA256,MessageDigest.getInstance("SHA-256").digest(cert.encoded).joinToString("") {"%02x".format(it)})
         assertTrue(cert.notAfter.time>System.currentTimeMillis()+90L*365*24*60*60*1000)
     }
+    @Test fun developmentApkCannotMasqueradeAsRelease() {
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        val file=java.io.File(context.applicationInfo.sourceDir)
+        val release=UpdateRelease(BuildConfig.VERSION_CODE.toLong()+1,"new",26,"",UpdateAsset("",file.length(),file.sha256()),emptyList())
+        try { AppUpdates.get(context).verifyApk(file,release);fail("Accepted debug signing") }
+        catch(expected: IllegalArgumentException) {assertEquals("signature",expected.message)}
+    }
+
+    @Test fun pythonGeneratedDeltaRebuildsExactBytesOnAndroid() {
+        val instrumentation=InstrumentationRegistry.getInstrumentation()
+        val fixture=instrumentation.context.assets.open("delta-reference.json").bufferedReader().use {JSONObject(it.readText())}
+        val folder=java.io.File(instrumentation.targetContext.cacheDir,"delta-${java.util.UUID.randomUUID()}").apply {mkdirs()}
+        try {
+            fun bytes(key: String)=Base64.getDecoder().decode(fixture.getString(key))
+            val base=java.io.File(folder,"base.apk").apply {writeBytes(bytes("base"))}
+            val patch=java.io.File(folder,"patch.rfd").apply {writeBytes(bytes("patch"))}
+            val expected=bytes("target");val hash=MessageDigest.getInstance("SHA-256").digest(expected).joinToString("") {"%02x".format(it)}
+            val output=java.io.File(folder,"new.apk")
+            DeltaPatch.apply(base,patch,output,hash,expected.size.toLong())
+            assertArrayEquals(expected,output.readBytes());assertArrayEquals(bytes("base"),base.readBytes())
+        } finally { folder.listFiles()?.forEach {it.delete()};folder.delete() }
+    }
+
 }
