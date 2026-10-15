@@ -88,6 +88,20 @@ internal class WorksheetLayout(val sheet: NativeWorksheet,minimumRows: Int=1,min
         val cell = if (end == null) styled else styled.copy(borderRight = styled.borderRight ?: end.borderRight, borderBottom = styled.borderBottom ?: end.borderBottom)
         return SheetPlacement(range, cell, columns.offset(range.firstColumn), rows.offset(range.row), columns.offset(range.lastColumn + 1), rows.offset(range.lastRow + 1))
     }
+    fun overflowOrigins(left: Double, top: Double, width: Double, height: Double): List<SheetPlacement> {
+        val first = columns.indexAt(left); val last = columns.indexAt(left + width)
+        return buildList {
+            for (row in rows.visible(top, top + height)) {
+                val entries = cells[row]?.entries.orEmpty().filter { it.value.value.isNotEmpty() }
+                val before = entries.filter { it.key in (first - 32) until first }.maxByOrNull { it.key }
+                val after = entries.filter { it.key in (last + 1)..(last + 32) }.minByOrNull { it.key }
+                for (entry in listOfNotNull(before, after)) {
+                    val cell = entry.value
+                    if (cell.valueKind == SheetValueKind.TEXT && !cell.wrapText && !cell.shrinkToFit && cell.textRotation == 0) placement(row, entry.key)?.let { add(it) }
+                }
+            }
+        }
+    }
     fun visible(left: Double, top: Double, width: Double, height: Double): List<SheetPlacement> = window(left, top, width, height).cells
     fun window(left: Double, top: Double, width: Double, height: Double): WorksheetWindow {
         val visibleColumns = columns.visible(left, left + width)
@@ -171,6 +185,8 @@ internal fun searchWorksheet(sheet: NativeWorksheet, query: String, limit: Int =
 /** Text may flow only into empty unfilled cells, never through a merge, a border or a value. */
 internal fun WorksheetLayout.overflowEnd(placement: SheetPlacement, backwards: Boolean, maximum: Int = 32): Double {
     if (placement.range.firstColumn != placement.range.lastColumn || placement.range.row != placement.range.lastRow) return if (backwards) placement.left else placement.right
+    val sourceEdge = if (backwards) placement.cell.borderLeft else placement.cell.borderRight
+    if (sourceEdge != null) return if (backwards) placement.left else placement.right
     var column = if (backwards) placement.range.firstColumn - 1 else placement.range.lastColumn + 1
     var edge = if (backwards) placement.left else placement.right
     repeat(maximum) {

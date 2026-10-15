@@ -77,7 +77,7 @@ internal class XlsxTableStyles(styles: Element?, private val colors: XlsxColors)
             if (children.size > 64) throw InvalidOfficeDocumentException("Too many table style elements.")
             style.attributeByLocalName("name").orEmpty() to children.associate { element ->
                 val id = element.attributeByLocalName("dxfId")?.toIntOrNull()
-                val cell = id?.let { patches.getOrNull(it) } ?: throw InvalidOfficeDocumentException("A table style references a missing differential style.")
+                val cell = if (element.attributeByLocalName("dxfId") == null) NativeSheetCell("") else id?.let { patches.getOrNull(it) } ?: throw InvalidOfficeDocumentException("A table style references a missing differential style.")
                 val size = element.attributeByLocalName("size")?.toIntOrNull()?.coerceIn(1, 1000) ?: 1
                 element.attributeByLocalName("type").orEmpty() to NativeTableStyleElement(cell, size)
             }

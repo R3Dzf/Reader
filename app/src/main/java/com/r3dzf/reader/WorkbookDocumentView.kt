@@ -99,7 +99,11 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
         layout.window(viewport.x, viewport.y, bodyWidth / pointsToPixels.toDouble(), bodyHeight / pointsToPixels.toDouble())
     }
     val panes = remember(layout, viewport, size, freeze) { sheetPanes(layout, viewport, bodyWidth / pointsToPixels.toDouble(), bodyHeight / pointsToPixels.toDouble(), freeze) }
-    val paneCells = remember(layout, panes) { panes.map { pane -> pane to layout.window(pane.left + pane.scrollX, pane.top + pane.scrollY, pane.right - pane.left, pane.bottom - pane.top).cells } }
+    val paneCells = remember(layout, panes) { panes.map { pane ->
+        val left = pane.left + pane.scrollX; val top = pane.top + pane.scrollY
+        val width = pane.right - pane.left; val height = pane.bottom - pane.top
+        pane to (layout.window(left, top, width, height).cells + layout.overflowOrigins(left, top, width, height)).distinctBy { it.range }
+    } }
     val textMeasurer = rememberTextMeasurer(cacheSize = 256)
     val families = remember { mutableMapOf<String, FontFamily>() }
     val hasFallbacks = remember(sheet) { sheet.rows.any { row -> row.cells.values.any { it.numberFormatUnsupported || it.appearanceUnsupported } } || sheet.tables.any { it.approximate } }
@@ -162,7 +166,7 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
         Box(Modifier.weight(1f).fillMaxWidth().clipToBounds().background(Color.White)
             .onSizeChanged { size = it }
             .pointerInput(sheet, size) { detectTransformGestures { _, pan, zoom, _ -> transform(zoom, pan) } }
-            .pointerInput(sheet, size, viewport) {
+            .pointerInput(sheet, size, viewport, freeze) {
                 detectTapGestures(onTap = { position ->
                     if (position.x in bodyLeft..bodyRight && position.y >= headerHeight) {
                         val px = (if (sheet.rightToLeft) bodyRight - position.x else position.x - bodyLeft) / pointsToPixels
@@ -251,13 +255,15 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
                 val labelStyle = TextStyle(color = headerTextColor, fontSize = with(density) { 12.dp.toSp() }, textAlign = TextAlign.Center)
                 val frozenWidth = panes.minOfOrNull { it.right }?.takeIf { panes.any { p -> p.left > 0 } } ?: 0.0
                 val frozenHeight = panes.minOfOrNull { it.bottom }?.takeIf { panes.any { p -> p.top > 0 } } ?: 0.0
+                if (frozenWidth > 0) drawLine(headerTextColor.copy(alpha=.55f), Offset(screenX(frozenWidth), headerHeight), Offset(screenX(frozenWidth), size.height.toFloat()), 1.dp.toPx())
+                if (frozenHeight > 0) drawLine(headerTextColor.copy(alpha=.55f), Offset(bodyLeft, headerHeight + (frozenHeight * pointsToPixels).toFloat()), Offset(bodyRight, headerHeight + (frozenHeight * pointsToPixels).toFloat()), 1.dp.toPx())
                 val headerColumns = (layout.columns.visible(0.0, frozenWidth) + layout.columns.visible(viewport.x + frozenWidth, viewport.x + bodyWidth / pointsToPixels)).distinct()
                 for (column in headerColumns) {
                     val dummy = SheetPlacement(NativeMergedRange(0, column, column), sheet.defaultCell, layout.columns.offset(column), 0.0, layout.columns.offset(column + 1), 0.0)
                     val frozen = dummy.left < frozenWidth
                     val pane = SheetPane(0.0, 0.0, 0.0, 0.0, if (frozen) 0.0 else viewport.x, 0.0)
                     val left = xLeft(dummy, pane); val right = xRight(dummy, pane)
-                    val label = textMeasurer.measure(AnnotatedString(sheetColumnLabel(column)), labelStyle, constraints = Constraints(maxWidth = (right - left).coerceIn(1f, 16_384f).toInt()), maxLines = 1)
+                    val label = textMeasurer.measure(AnnotatedString(sheetColumnLabel(column)), labelStyle, constraints = Constraints(minWidth = (right - left).coerceIn(1f, 16_384f).toInt(), maxWidth = (right - left).coerceIn(1f, 16_384f).toInt()), maxLines = 1)
                     val start = screenX(if (frozen) 0.0 else frozenWidth); val end = screenX(if (frozen) frozenWidth else bodyWidth / pointsToPixels.toDouble())
                     clipRect(minOf(start, end), 0f, maxOf(start, end), headerHeight) { drawText(label, topLeft = Offset(left, (headerHeight - label.size.height) / 2)) }
                 }
@@ -267,7 +273,7 @@ internal fun WorksheetView(sheet: NativeWorksheet, modifier: Modifier = Modifier
                     val scroll = if (frozen) 0.0 else viewport.y
                     val top = headerHeight + ((layout.rows.offset(row) - scroll) * pointsToPixels).toFloat()
                     val bottom = headerHeight + ((layout.rows.offset(row + 1) - scroll) * pointsToPixels).toFloat()
-                    val label = textMeasurer.measure(AnnotatedString((row + 1).toString()), labelStyle, constraints = Constraints(maxWidth = headerWidth.toInt()), maxLines = 1)
+                    val label = textMeasurer.measure(AnnotatedString((row + 1).toString()), labelStyle, constraints = Constraints(minWidth = headerWidth.toInt(), maxWidth = headerWidth.toInt()), maxLines = 1)
                     clipRect(rowHeaderX, headerHeight + (if (frozen) 0f else (frozenHeight * pointsToPixels).toFloat()), rowHeaderX + headerWidth, if (frozen) headerHeight + (frozenHeight * pointsToPixels).toFloat() else size.height.toFloat()) { drawText(label, topLeft = Offset(rowHeaderX, (top + bottom - label.size.height) / 2)) }
                 }
             }

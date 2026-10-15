@@ -90,6 +90,11 @@ class ExcelReadingTest {
         assertEquals(listOf(SheetSearchResult(0,0,"مرحبا Excel")), searchWorksheet(sheet,"excel"))
         assertTrue(searchWorksheet(sheet,"  ").isEmpty()); assertEquals(0,searchWorksheet(sheet,"excel",0).size)
     }
+    @Test fun offscreenTextOriginsAreRetainedWithoutScanningTheWholeWorkbook() {
+        val layout = WorksheetLayout(NativeWorksheet("Data", listOf(NativeSheetRow(0,mapOf(0 to NativeSheetCell("A title that spans columns")))), 40, false))
+        assertEquals("A1",layout.overflowOrigins(96.0,0.0,96.0,15.0).single().address)
+        assertTrue(layout.overflowOrigins(1800.0,0.0,96.0,15.0).isEmpty())
+    }
     @Test fun overflowStopsAtSavedValuesFillsBordersAndMerges() {
         val sheet = NativeWorksheet("Data", listOf(NativeSheetRow(0,mapOf(0 to NativeSheetCell("Long title"),3 to NativeSheetCell("Stop"))), NativeSheetRow(1,mapOf(0 to NativeSheetCell("Title"),2 to NativeSheetCell("",fillRgb=0xFF0000)))), 8, false)
         val layout = WorksheetLayout(sheet)
