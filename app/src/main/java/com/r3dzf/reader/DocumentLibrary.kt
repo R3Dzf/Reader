@@ -115,9 +115,9 @@ class DocumentLibrary internal constructor(private val context: Context) {
     }
     fun saveProgress(id: String,progress: ReadingProgress) {
         val safe=progress.bounded()
-        scope.launch { helper.writableDatabase.update("documents",ContentValues().apply {
+        scope.launch { runCatching { helper.writableDatabase.update("documents",ContentValues().apply {
             put("position",safe.index);put("scroll_offset",safe.offset);put("total",safe.total)
-        },"id=?",arrayOf(id)) }
+        },"id=?",arrayOf(id)) } }
     }
     suspend fun favorite(id: String,value: Boolean) = withContext(worker) {
         helper.writableDatabase.update("documents",ContentValues().apply { put("favorite",if(value) 1 else 0) },"id=?",arrayOf(id));Unit

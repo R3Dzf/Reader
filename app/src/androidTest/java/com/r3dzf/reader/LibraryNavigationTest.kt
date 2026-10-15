@@ -5,7 +5,6 @@ import android.graphics.pdf.PdfDocument
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.core.app.ActivityScenario
-import androidx.test.espresso.Espresso.pressBack
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -19,14 +18,15 @@ class LibraryNavigationTest {
     private val context get()=InstrumentationRegistry.getInstrumentation().targetContext
     private fun pdf(): ByteArray {
         val output=ByteArrayOutputStream()
-        PdfDocument().use { pdf ->
+        val pdf=PdfDocument()
+        try {
             repeat(3) { index ->
                 val page=pdf.startPage(PdfDocument.PageInfo.Builder(600,800,index+1).create())
                 page.canvas.drawText("Rafolio ${UUID.randomUUID()} page ${index+1}",35f,60f,Paint().apply { textSize=16f })
                 pdf.finishPage(page)
             }
             pdf.writeTo(output)
-        }
+        } finally { pdf.close() }
         return output.toByteArray()
     }
     private fun waitForResume() { compose.waitUntil(10_000) { compose.onAllNodesWithTag("resume-file").fetchSemanticsNodes().isNotEmpty() } }
@@ -38,7 +38,7 @@ class LibraryNavigationTest {
             compose.waitUntil(10_000) { compose.onAllNodesWithTag("pdf-list").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithTag("pdf-list").performScrollToIndex(1)
             compose.onNodeWithTag("pdf-page-1").assertIsDisplayed()
-            pressBack();waitForResume()
+            compose.onNodeWithTag("viewer-back").performClick();waitForResume()
             compose.waitUntil(5000) { runBlocking { library.documents().first { it.id==item.id }.progress.index }==1 }
             activity.recreate();waitForResume()
             compose.onNodeWithTag("resume-file").performClick()
@@ -57,7 +57,7 @@ class LibraryNavigationTest {
             waitForResume();compose.onNodeWithTag("resume-file").performClick()
             compose.waitUntil(10_000) { compose.onAllNodesWithTag("slide-3").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithTag("slide-3").assertIsDisplayed()
-            pressBack();waitForResume()
+            compose.onNodeWithTag("viewer-back").performClick();waitForResume()
             assertEquals(2,library.documents().first { it.id==item.id }.progress.index)
         } finally { activity.close();library.remove(item.id) }
     }
